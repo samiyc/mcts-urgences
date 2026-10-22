@@ -89,6 +89,12 @@ règles). Gain sur la règle de la couleur, en coût du retard :
 Un jour ordinaire, elle fait mieux que la meilleure règle ; dans la surcharge de l'accident, elle fait jeu
 égal.
 
+Son score est très plat (`échelle / (échelle + coût)` : 10 % de coût en plus ne retire que 0,025), et l'on
+pouvait craindre que l'exploration de l'arbre noie l'écart entre deux patients. Ce n'est pas le cas
+(22/10, mêmes 40 gardes) : avec une exploration de 0,7, 0,15 et 0,05, l'accident donne −1 364, −1 376 et
+−1 250, le jour ordinaire +266, +317 et +246, chaque fois dans les intervalles les uns des autres. La
+limite n'est pas dans l'arbre, elle est dans ce que la recherche sait des patients (plus bas).
+
 **Ce qu'il y a à gagner, et où.** Une recherche **omnisciente**, qui voit les vrais niveaux et l'avenir (une
 mesure, jamais un assistant : comme l'Omniscient de Lopin), fait −31 % sur la couleur pendant l'accident
 (20 gardes gagnées sur 20). On a séparé les deux savoirs :
