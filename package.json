@@ -1,0 +1,15 @@
+{
+  "name": "mcts-urgences",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Un assistant d'organisation pour les urgences d'un hôpital en crise : ISMCTS / POMCP sur l'état caché des patients.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "author": "Sami",
+  "license": "UNLICENSED"
+}
