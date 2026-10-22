@@ -155,7 +155,7 @@ function worstTable(patients) {
     ),
   );
   if (rows.length === 0) return el("p", { class: "hint" }, "Personne n'a attendu au-delà du délai de son niveau réel.");
-  const head = ["n°", "arrivée par", "bracelet", "niveau réel (caché)", "arrivé à", "attente", "retard", "aggravé", "coût"].map((label) => el("th", {}, label));
+  const head = ["n°", "arrivée par", "bracelet", "niveau réel (caché)", "arrivé à", "attente", "retard", "aggravé", "coût"].map((label, i) => el("th", { class: i >= 5 ? "num" : null }, label));
   return el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows)));
 }
 
@@ -177,7 +177,7 @@ function comparison() {
         el("td", { class: "num" }, `${fixed(row.meanWait)} min`),
       ),
     );
-  const head = ["Règle", "coût du retard", "au niveau du moment", "gain sur l'arrivée (IC 95 %)", "aggravés", "urgents à temps", "attente moyenne"].map((label) => el("th", {}, label));
+  const head = ["Règle", "coût du retard", "au niveau du moment", "gain sur l'arrivée (IC 95 %)", "aggravés", "urgents à temps", "attente moyenne"].map((label, i) => el("th", { class: i > 0 ? "num" : null }, label));
   return [el("h2", {}, `Les règles sur les mêmes ${state.compared.count ?? COMPARED} gardes`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows)))];
 }
 

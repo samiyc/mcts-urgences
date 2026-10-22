@@ -64,7 +64,7 @@ button.quiet { background: var(--panel); color: var(--ink); border-color: var(--
 table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 0.9rem; }
 th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
-td.num { font-variant-numeric: tabular-nums; text-align: right; }
+th.num, td.num { font-variant-numeric: tabular-nums; text-align: right; }
 td.hidden-truth { font-style: italic; }
 td.hidden-truth.wrong { font-weight: 700; }
 tr.current td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
