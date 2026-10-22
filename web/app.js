@@ -55,6 +55,7 @@ async function playShift(patients, rule, nurseRule, settings, run, label) {
 }
 
 async function refresh() {
+  stopWorkers();
   const run = ++state.run;
   const settings = settingsOf();
   const patients = drawShift(state.seed, settings);
@@ -77,19 +78,62 @@ const urgentInTime = (measures) => {
   return seen ? urgent.reduce((sum, group) => sum + group.inTime * group.count, 0) / seen : 1;
 };
 
-/** The four rules, the search among them, on the same few shifts with the same nurse, breathing between two choices. */
+/** The workers playing the comparison's shifts side by side: every core but two, one a shift at most. */
+let workers = [];
+function stopWorkers() {
+  for (const worker of workers) worker.terminate();
+  workers = [];
+}
+
+/**
+ * Plays every `jobs` entry (`{ seed, rule }`) in the workers, the page drawing the count as they finish;
+ * the measures in the jobs' order, or null if a newer run started meanwhile.
+ */
+function playInWorkers(jobs, settings, run) {
+  stopWorkers();
+  const size = Math.max(1, Math.min(jobs.length, (navigator.hardwareConcurrency || 4) - 2));
+  const results = new Array(jobs.length);
+  let next = 0;
+  let done = 0;
+  return new Promise((resolve) => {
+    const feed = (worker) => {
+      if (next >= jobs.length) return;
+      const job = next++;
+      worker.postMessage({ job, seed: jobs[job].seed, settings, rule: jobs[job].rule, nurse: state.nurse });
+    };
+    for (let i = 0; i < size; i += 1) {
+      const worker = new Worker(new URL("./shift-worker.js", import.meta.url), { type: "module" });
+      worker.onmessage = ({ data }) => {
+        if (run !== state.run) return;
+        results[data.job] = data.measures;
+        done += 1;
+        state.busy = `Comparaison : ${done} gardes jouées sur ${jobs.length} (${size} en parallèle)`;
+        renderBusy();
+        if (done === jobs.length) {
+          stopWorkers();
+          resolve(results);
+        } else feed(worker);
+      };
+      workers.push(worker);
+      feed(worker);
+    }
+  });
+}
+
+/** The four rules, the search among them, on the same few shifts with the same nurse, the shifts side by side in workers. */
 async function compareWithSearch() {
   const run = ++state.run;
   const settings = settingsOf();
   const runs = { arrival: [], colour: [], deadline: [], search: [] };
-  for (let i = 0; i < COMPARED_WITH_SEARCH; i += 1) {
-    const patients = drawShift(state.seed + i, settings);
-    for (const name of Object.keys(runs)) {
-      const result = await playShift(patients, ruleOf(name), nurseRuleOf(state.nurse), settings, run, `Comparaison, garde ${i + 1} sur ${COMPARED_WITH_SEARCH}`);
-      if (!result) return;
-      runs[name].push(result.measures);
-    }
-  }
+  const jobs = Object.keys(runs).flatMap((rule) => Array.from({ length: COMPARED_WITH_SEARCH }, (_, i) => ({ rule, seed: state.seed + i })));
+  // The search's shifts first: they are the long ones.
+  jobs.sort((a, b) => (b.rule === "search") - (a.rule === "search"));
+  state.busy = "Comparaison : les gardes partent dans les workers…";
+  renderBusy();
+  const results = await playInWorkers(jobs, settings, run);
+  if (!results) return;
+  jobs.forEach((job, i) => runs[job.rule].push({ seed: job.seed, measures: results[i] }));
+  for (const name of Object.keys(runs)) runs[name] = runs[name].sort((a, b) => a.seed - b.seed).map((one) => one.measures);
   const baseline = runs.arrival.map((one) => one.lateCost);
   state.compared = Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, { lateCost: mean(measures.map((one) => one.lateCost)), lateCostNow: mean(measures.map((one) => one.lateCostNow)), worsened: mean(measures.map((one) => one.worsened)), meanWait: mean(measures.map((one) => one.meanWait)), urgentInTime: mean(measures.map(urgentInTime)), gain: paired(baseline, measures.map((one) => one.lateCost)) }]));
   state.compared.count = COMPARED_WITH_SEARCH;

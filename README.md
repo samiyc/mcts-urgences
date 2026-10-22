@@ -18,7 +18,9 @@ juste après l'ordonnanceur de Lopin, dont il reprend toutes les pièces.
 `npm install` (une fois : il relie `../mcts-commun`), puis `npm run page` et ouvrir
 http://127.0.0.1:4801/web/. Une garde tirée, jouée sous la règle choisie, dans l'hôpital choisi, avec ou sans
 l'accident : les box au fil de la garde, la salle d'attente, les patients les plus mal servis avec leur
-niveau réel (ce que personne ne voyait), puis les trois règles sur les mêmes 100 gardes.
+niveau réel (ce que personne ne voyait), puis les trois règles sur les mêmes 100 gardes. Avec la recherche, la
+comparaison se fait sur 12 gardes, jouées côte à côte dans des *workers* (`web/shift-worker.js`, tous les cœurs
+sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul cœur (23/10/2026).
 
 ## Le problème
 
