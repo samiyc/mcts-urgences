@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "compare": "node scripts/compare.js"
+    "compare": "node scripts/compare.js",
+    "page": "node node_modules/mcts-commun/bin/serve.js 4801"
   },
   "author": "Sami",
   "license": "UNLICENSED",

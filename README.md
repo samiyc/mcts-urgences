@@ -9,6 +9,13 @@ sur trois hôpitaux (`npm run compare`, [`docs/modele.md`](docs/modele.md)). Pas
 [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md),
 juste après l'ordonnanceur de Lopin, dont il reprend toutes les pièces.
 
+## Voir la page
+
+`npm install` (une fois : il relie `../mcts-commun`), puis `npm run page` et ouvrir
+http://127.0.0.1:4801/web/. Une garde tirée, jouée sous la règle choisie, dans l'hôpital choisi, avec ou sans
+l'accident : les box au fil de la garde, la salle d'attente, les patients les plus mal servis avec leur
+niveau réel (ce que personne ne voyait), puis les trois règles sur les mêmes 100 gardes.
+
 ## Le problème
 
 - **Les ressources** : les box et les lits, les médecins et les infirmiers, les blocs opératoires, le

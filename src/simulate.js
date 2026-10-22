@@ -24,14 +24,13 @@ function scheduleWorsening(events, patient, from) {
 /** Lets the rule fill every free box with a free doctor. */
 function dispatch(shift, rule) {
   const { events, waiting, settings } = shift;
-  while (shift.freeBoxes > 0 && shift.freeDoctors > 0 && waiting.size > 0) {
+  while (shift.boxIds.length > 0 && shift.freeDoctors > 0 && waiting.size > 0) {
     const views = [...waiting.values()].map(viewOf);
-    const chosen = waiting.get(rule(views, { now: events.now, freeBoxes: shift.freeBoxes, freeDoctors: shift.freeDoctors })?.id);
+    const chosen = waiting.get(rule(views, { now: events.now, freeBoxes: shift.boxIds.length, freeDoctors: shift.freeDoctors })?.id);
     if (!chosen) throw new Error("la règle doit choisir un patient qui attend");
     waiting.delete(chosen.id);
-    shift.freeBoxes -= 1;
     shift.freeDoctors -= 1;
-    Object.assign(chosen, { start: events.now, levelAtStart: chosen.level });
+    Object.assign(chosen, { start: events.now, levelAtStart: chosen.level, box: shift.boxIds.shift() });
     events.schedule(events.now + settings.exam[chosen.level] * chosen.examFactor, { type: "examEnd", patient: chosen });
   }
   shift.peakWaiting = Math.max(shift.peakWaiting, waiting.size);
@@ -51,18 +50,20 @@ const HANDLERS = {
   examEnd(shift, patient) {
     shift.freeDoctors += 1;
     shift.doctorMinutes += shift.events.now - patient.start;
+    patient.examEnd = shift.events.now;
     shift.events.schedule(shift.events.now + shift.settings.stay[patient.levelAtStart] * patient.stayFactor, { type: "stayEnd", patient });
   },
   stayEnd(shift, patient) {
-    shift.freeBoxes += 1;
+    shift.boxIds.push(patient.box);
+    shift.boxIds.sort((a, b) => a - b);
     shift.boxMinutes += shift.events.now - patient.start;
     patient.end = shift.events.now;
   },
 };
 
 /**
- * Plays `patients` (scenario.js, `drawShift`) under `rule`. Returns each patient's course (`start`, `end`,
- * `wait`, `late`: minutes past the longest wait of their true level on arrival, `worsened`) and the shift's
+ * Plays `patients` (scenario.js, `drawShift`) under `rule`. Returns each patient's course (`start`, `examEnd`,
+ * `end`, `box` (from 0), `wait`, `late`: minutes past the longest wait of their true level on arrival, `worsened`) and the shift's
  * measures (`measuresOf`). The patients given are not changed.
  */
 export function simulateShift(patients, rule, overrides = {}) {
@@ -70,7 +71,7 @@ export function simulateShift(patients, rule, overrides = {}) {
   const events = createEvents();
   const course = patients.map((patient) => ({ ...patient, arrivalLevel: patient.level, worsened: 0 }));
   for (const patient of course) events.schedule(patient.arrival, { type: "arrive", patient });
-  const shift = { events, settings, waiting: new Map(), freeBoxes: settings.boxes, freeDoctors: settings.doctors, boxMinutes: 0, doctorMinutes: 0, peakWaiting: 0 };
+  const shift = { events, settings, waiting: new Map(), boxIds: Array.from({ length: settings.boxes }, (_, i) => i), freeDoctors: settings.doctors, boxMinutes: 0, doctorMinutes: 0, peakWaiting: 0 };
   for (let next = events.next(); next; next = events.next()) {
     HANDLERS[next.event.type](shift, next.event.patient);
     dispatch(shift, rule);
