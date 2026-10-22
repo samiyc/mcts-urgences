@@ -1,18 +1,23 @@
+import { paired } from "mcts-commun/measure.js";
 import { compareRules } from "../src/compare.js";
 import { ACCIDENT, COLOURS, DEFAULTS, HOSPITALS } from "../src/hypotheses.js";
 import { RULE_LABELS, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
-import { simulateShift } from "../src/simulate.js";
-import { boxRows, curvePath, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
+import { searchRule } from "../src/search.js";
+import { HOLD, choose, courseOf, hold, measuresOf, nextChoice, simulateShift, startShift, viewsOf } from "../src/simulate.js";
+import { boxRows, clock, curvePath, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
 
 /**
  * The page: a shift drawn from a seed, played under the chosen rule, in the chosen hospital, with or without
- * the accident; then the three rules on the same 100 shifts. What it shows is computed in view.js; this
- * module only draws and listens (event delegation on #app).
+ * the accident; then the rules on the same shifts. The search (src/search.js) thinks for a while at each
+ * choice: its shifts are played choice by choice, the page breathing between two. What it shows is computed
+ * in view.js; this module only draws and listens (event delegation on #app).
  */
 const COMPARED = 100;
-const state = { hospital: "moyen", accident: true, rule: "colour", seed: 1, compared: null };
+const COMPARED_WITH_SEARCH = 12;
+const state = { hospital: "moyen", accident: true, rule: "colour", seed: 1, compared: null, result: null, busy: "", run: 0 };
 const app = document.getElementById("app");
+const ruleOf = (name) => (name === "search" ? searchRule() : RULES[name]);
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -25,13 +30,77 @@ const svg = (tag, attrs = {}) => {
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
   return node;
 };
-const settingsOf = () => ({ ...HOSPITALS[state.hospital], ...(state.accident ? { crisis: ACCIDENT } : {}) });
+const settingsOf = () => ({ ...DEFAULTS, ...HOSPITALS[state.hospital], ...(state.accident ? { crisis: ACCIDENT } : {}) });
+const breathe = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+/** Plays a shift choice by choice, breathing between two; null if a newer run started meanwhile. */
+async function playShift(patients, rule, settings, run, label) {
+  const shift = startShift(patients, settings);
+  let choices = 0;
+  while (nextChoice(shift)) {
+    const chosen = rule(viewsOf(shift), { now: shift.events.now, freeBoxes: shift.boxIds.length, freeDoctors: shift.freeDoctors, shift });
+    if (chosen?.id === HOLD) hold(shift);
+    else choose(shift, chosen.id);
+    choices += 1;
+    if (choices % 3 === 0) {
+      state.busy = `${label} : ${choices} choix, ${clock(shift.events.now)}`;
+      renderBusy();
+      await breathe();
+      if (run !== state.run) return null;
+    }
+  }
+  const course = courseOf(shift);
+  return { patients: course, measures: measuresOf(course, shift) };
+}
+
+async function refresh() {
+  const run = ++state.run;
+  const settings = settingsOf();
+  const patients = drawShift(state.seed, settings);
+  if (state.rule !== "search") {
+    state.result = simulateShift(patients, RULES[state.rule], settings);
+    state.busy = "";
+    render();
+    return;
+  }
+  const result = await playShift(patients, ruleOf("search"), settings, run, "La recherche réfléchit");
+  if (!result) return;
+  Object.assign(state, { result, busy: "" });
+  render();
+}
+
+const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+const urgentInTime = (measures) => {
+  const urgent = [1, 2].map((level) => measures.byLevel[level]);
+  const seen = urgent.reduce((sum, group) => sum + group.count, 0);
+  return seen ? urgent.reduce((sum, group) => sum + group.inTime * group.count, 0) / seen : 1;
+};
+
+/** The four rules, the search among them, on the same few shifts, breathing between two choices. */
+async function compareWithSearch() {
+  const run = ++state.run;
+  const settings = settingsOf();
+  const runs = { arrival: [], colour: [], deadline: [], search: [] };
+  for (let i = 0; i < COMPARED_WITH_SEARCH; i += 1) {
+    const patients = drawShift(state.seed + i, settings);
+    for (const name of ["arrival", "colour", "deadline"]) runs[name].push(simulateShift(patients, RULES[name], settings).measures);
+    const result = await playShift(patients, ruleOf("search"), settings, run, `Comparaison, garde ${i + 1} sur ${COMPARED_WITH_SEARCH}`);
+    if (!result) return;
+    runs.search.push(result.measures);
+  }
+  const baseline = runs.arrival.map((one) => one.lateCost);
+  state.compared = Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, { lateCost: mean(measures.map((one) => one.lateCost)), worsened: mean(measures.map((one) => one.worsened)), meanWait: mean(measures.map((one) => one.meanWait)), urgentInTime: mean(measures.map(urgentInTime)), gain: paired(baseline, measures.map((one) => one.lateCost)) }]));
+  state.compared.count = COMPARED_WITH_SEARCH;
+  state.busy = "";
+  render();
+}
 
 function select(name, options, current) {
   return el("select", { "data-knob": name }, ...options.map(([value, label]) => el("option", { value, selected: value === current }, label)));
 }
 
 function controls() {
+  const count = state.rule === "search" ? COMPARED_WITH_SEARCH : COMPARED;
   return el(
     "div",
     { class: "controls" },
@@ -40,7 +109,7 @@ function controls() {
     el("label", {}, "Règle", select("rule", Object.entries(RULE_LABELS), state.rule)),
     el("label", {}, "Garde n°", el("input", { type: "number", min: "1", value: String(state.seed), "data-knob": "seed", inputmode: "numeric" })),
     el("button", { type: "button", class: "quiet", "data-action": "next" }, "Garde suivante"),
-    el("button", { type: "button", "data-action": "compare" }, `Comparer les règles sur ${COMPARED} gardes`),
+    el("button", { type: "button", "data-action": "compare" }, `Comparer les règles sur ${count} gardes`),
   );
 }
 
@@ -90,29 +159,40 @@ function worstTable(patients) {
 function comparison() {
   if (!state.compared) return [];
   const fixed = (value, digits = 0) => value.toFixed(digits).replace(".", ",");
-  const rows = Object.entries(state.compared).map(([name, row]) =>
-    el(
-      "tr",
-      { class: name === state.rule ? "current" : null },
-      el("td", {}, RULE_LABELS[name]),
-      el("td", { class: "num" }, fixed(row.lateCost)),
-      el("td", { class: "num" }, name === "arrival" ? "—" : `${fixed(row.gain.mean)} (${fixed(row.gain.low)} à ${fixed(row.gain.high)})`),
-      el("td", { class: "num" }, fixed(row.worsened, 1)),
-      el("td", { class: "num" }, `${fixed(100 * row.urgentInTime)} %`),
-      el("td", { class: "num" }, `${fixed(row.meanWait)} min`),
-    ),
-  );
+  const rows = Object.entries(state.compared)
+    .filter(([name]) => RULE_LABELS[name])
+    .map(([name, row]) =>
+      el(
+        "tr",
+        { class: name === state.rule ? "current" : null },
+        el("td", {}, RULE_LABELS[name]),
+        el("td", { class: "num" }, fixed(row.lateCost)),
+        el("td", { class: "num" }, name === "arrival" ? "—" : `${fixed(row.gain.mean)} (${fixed(row.gain.low)} à ${fixed(row.gain.high)})`),
+        el("td", { class: "num" }, fixed(row.worsened, 1)),
+        el("td", { class: "num" }, `${fixed(100 * row.urgentInTime)} %`),
+        el("td", { class: "num" }, `${fixed(row.meanWait)} min`),
+      ),
+    );
   const head = ["Règle", "coût du retard", "gain sur l'arrivée (IC 95 %)", "aggravés", "urgents à temps", "attente moyenne"].map((label) => el("th", {}, label));
-  return [el("h2", {}, `Les trois règles sur les mêmes ${COMPARED} gardes`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows)))];
+  return [el("h2", {}, `Les règles sur les mêmes ${state.compared.count ?? COMPARED} gardes`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows)))];
 }
 
 function legend() {
   return el("p", { class: "legend hint" }, ...Object.values(COLOURS).map((colour) => el("span", { class: "legend-item" }, el("span", { class: `dot ${colour}` }), colour)), " Partie foncée d'une barre : l'examen, avec un médecin ; partie claire : les soins, le box seul.");
 }
 
+/** While the search thinks: the controls and where it is. */
+function renderBusy() {
+  app.replaceChildren(controls(), el("p", { class: "summary busy", role: "status" }, state.busy));
+}
+
 function render() {
-  const settings = { ...DEFAULTS, ...settingsOf() };
-  const { patients, measures } = simulateShift(drawShift(state.seed, settings), RULES[state.rule], settings);
+  if (state.busy || !state.result) {
+    renderBusy();
+    return;
+  }
+  const settings = settingsOf();
+  const { patients, measures } = state.result;
   const scale = scaleOf(patients);
   app.replaceChildren(
     controls(),
@@ -130,9 +210,15 @@ function render() {
 const ACTIONS = {
   next: () => {
     state.seed += 1;
+    refresh();
   },
   compare: () => {
+    if (state.rule === "search") {
+      compareWithSearch();
+      return;
+    }
     state.compared = compareRules({ shifts: COMPARED, settings: settingsOf() });
+    render();
   },
 };
 
@@ -142,13 +228,12 @@ app.addEventListener("change", (event) => {
   if (name === "accident") state.accident = event.target.value === "oui";
   else if (name === "seed") state.seed = Math.max(1, Number(event.target.value) || 1);
   else state[name] = event.target.value;
-  if (name !== "rule" && name !== "seed") state.compared = null;
-  render();
+  if (name !== "seed") state.compared = null;
+  state.busy = state.rule === "search" ? "La recherche réfléchit…" : "";
+  refresh();
 });
 app.addEventListener("click", (event) => {
   const action = event.target.closest?.("[data-action]")?.dataset.action;
-  if (!ACTIONS[action]) return;
-  ACTIONS[action]();
-  render();
+  if (ACTIONS[action]) ACTIONS[action]();
 });
-render();
+refresh();

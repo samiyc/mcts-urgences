@@ -69,3 +69,4 @@ td.hidden-truth { font-style: italic; }
 td.hidden-truth.wrong { font-weight: 700; }
 tr.current td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 main { padding-bottom: 40px; }
+.summary.busy { color: var(--ink-2); font-style: italic; }

@@ -1,7 +1,7 @@
 # Le modèle des urgences, première version (22/10/2026)
 
-Un simulateur à événements discrets d'une garde de 8 h, sans recherche encore : les patients, le tri, les
-box, les médecins, et trois règles de référence. Tous les nombres sont dans `src/hypotheses.js` et sont
+Un simulateur à événements discrets d'une garde de 8 h : les patients, le tri, les box, les médecins, trois
+règles de référence, et depuis le soir du 22/10 la recherche (plus bas). Tous les nombres sont dans `src/hypotheses.js` et sont
 **des hypothèses, pas des données médicales** : des chiffres ronds pour un service plausible, à remplacer
 par des chiffres publiés.
 
@@ -60,11 +60,53 @@ Coût du retard moyen, et gain sur l'ordre d'arrivée avec son intervalle :
   médecin libres pour un rouge annoncé est exactement le genre de décision qu'une recherche peut prendre et
   qu'une règle ne prend pas.
 
+## La recherche (22/10, `src/search.js`)
+
+**Comment elle joue.** À chaque choix (un box et un médecin libres, au moins deux patients qui attendent, ou
+une ambulance annoncée), `search` de `mcts-commun` joue des mondes compatibles avec ce que le service sait :
+- le **niveau réel** de chaque patient pas encore vu est retiré au sort d'après sa couleur (le tri se
+  trompe 2 fois sur 10, d'un niveau) et d'après la fréquence de chaque niveau selon la source ;
+- les durées d'examen et de soins, et l'aggravation pendant l'attente, sont retirées au sort ;
+- les **arrivées non annoncées** sont retirées au sort aux taux habituels ; les ambulances annoncées sont
+  connues, avec leur couleur ;
+- les soins en cours sont supposés connus (on sait quand un box se libère).
+
+Elle choisit parmi les favoris des trois règles (4 au plus), et peut aussi **attendre** une ambulance
+annoncée, en gardant un box et un médecin libres. Aucune règle ne fait ce coup-là. Chaque monde est joué
+deux choix plus loin, puis avec la règle de la couleur jusqu'à ce que les patients des deux heures à venir
+soient entrés. Il est noté sur leur coût du retard. 100 itérations par choix, sur des **mondes communs** : la
+k-ième visite de chaque coup joue le même monde. Sans eux, le bruit d'une garde à venir écrasait l'écart entre
+deux patients, et la première version perdait contre la couleur.
+
+**Ce qu'elle donne** (`scripts/search-bench.js`, hôpital moyen, 40 gardes, mêmes patients pour toutes les
+règles). Gain sur la règle de la couleur, en coût du retard :
+
+| Situation | couleur | recherche | gain (IC 95 %) | gardes gagnées / nulles / perdues |
+|---|---|---|---|---|
+| jour ordinaire | 1 972 | 1 705 | **+266 (+21 à +512)**, −13,5 % | 30 / 3 / 7 |
+| accident | 24 959 | 26 324 | −1 364 (−3 277 à +548) | 20 / 0 / 20 |
+
+Un jour ordinaire, elle fait mieux que la meilleure règle ; dans la surcharge de l'accident, elle fait jeu
+égal.
+
+**Ce qu'il y a à gagner, et où.** Une recherche **omnisciente**, qui voit les vrais niveaux et l'avenir (une
+mesure, jamais un assistant : comme l'Omniscient de Lopin), fait −31 % sur la couleur pendant l'accident
+(20 gardes gagnées sur 20). On a séparé les deux savoirs :
+
+| La recherche connaît… | coût pendant l'accident (20 gardes) | gain sur la couleur |
+|---|---|---|
+| ce que sait le service | 24 522 | −331 (−2 555 à +1 893) |
+| les arrivées à venir | 25 076 | −886 |
+| les vrais niveaux et durées des patients présents | 15 719 | **+8 472 (+6 721 à +10 222)** |
+| tout | 16 564 | +7 627 |
+
+**Le levier n'est pas de prévoir l'avenir, c'est de mieux connaître les patients qui sont déjà là** : leur
+vrai niveau (le tri se trompe), leur aggravation, leurs durées. D'où la prochaine étape : une action
+**réévaluer** un patient qui attend, au prix d'un peu de temps d'infirmier, qui révèle son vrai niveau. La
+recherche choisirait qui réévaluer, et quand : c'est le geste propre du POMCP, s'informer avant d'agir.
+
 ## La suite
 
-1. **La page** : une garde jouée sous une règle, les box en diagramme, la salle d'attente au fil du temps.
-2. **Le planificateur** : `search` de `mcts-commun`, qui tire des niveaux réels compatibles avec les
-   couleurs (et les annonces des ambulances), jugé contre la couleur et l'échéance sur les mêmes gardes.
-3. **Réévaluer** un patient qui attend : une action qui révèle son niveau réel, au prix d'un peu de temps
-   d'infirmier.
-4. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`).
+1. **Réévaluer** un patient qui attend (voir plus haut) : la recherche choisit qui, et quand.
+2. **Plus de budget pendant la crise** : à 100 itérations, la recherche fait jeu égal sous la surcharge.
+3. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`).

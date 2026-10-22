@@ -1,11 +1,12 @@
 import { compareRules } from "../src/compare.js";
 import { ACCIDENT, HOSPITALS } from "../src/hypotheses.js";
-import { RULE_LABELS } from "../src/rules.js";
+import { RULE_LABELS, RULES } from "../src/rules.js";
+import { searchRule } from "../src/search.js";
 
 /**
- * `npm run compare -- [--shifts 200] [--hopital proximite|moyen|chu] [--accident] [--boxes N] [--doctors N]`: the
- * reference rules on the same drawn shifts, a line each. `--accident` adds the example crisis (ten victims
- * 1 h 30 into the shift).
+ * `npm run compare -- [--shifts 200] [--hopital proximite|moyen|chu] [--accident] [--boxes N] [--doctors N]
+ * [--search [budget]]`: the reference rules on the same drawn shifts, a line each. `--accident` adds the example
+ * crisis (ten victims 1 h 30 into the shift); `--search` adds the search (src/search.js, ~1 to 3 s a shift).
  */
 const args = process.argv.slice(2);
 const option = (name, fallback) => (args.includes(name) ? Number(args[args.indexOf(name) + 1]) : fallback);
@@ -18,7 +19,9 @@ const settings = {
   ...(args.includes("--doctors") ? { doctors: option("--doctors") } : {}),
 };
 const shifts = option("--shifts", 200);
-const result = compareRules({ shifts, settings });
+const searching = args.includes("--search");
+const budget = searching && /^\d+$/.test(args[args.indexOf("--search") + 1] ?? "") ? Number(args[args.indexOf("--search") + 1]) : undefined;
+const result = compareRules({ shifts, settings, rules: searching ? { ...RULES, search: searchRule({ budget }) } : RULES });
 const fixed = (value, digits = 0) => value.toFixed(digits).replace(".", ",");
 
 console.log(`${hospital.label}, ${settings.boxes} box, ${settings.doctors} médecins : ${shifts} gardes de 8 h tirées${settings.crisis ? ", avec l'accident" : ""} ; mêmes patients pour chaque règle.`);

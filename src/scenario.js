@@ -26,7 +26,7 @@ function triage(rng, level, right) {
 }
 
 /** Arrival times of a Poisson process of `perHour`, over [from, to) minutes. */
-function arrivals(rng, perHour, from, to) {
+export function arrivals(rng, perHour, from, to) {
   const times = [];
   if (perHour <= 0) return times;
   for (let at = from - (60 / perHour) * Math.log(1 - rng.next()); at < to; at -= (60 / perHour) * Math.log(1 - rng.next())) times.push(at);
@@ -34,7 +34,7 @@ function arrivals(rng, perHour, from, to) {
 }
 
 /** One patient: what the shift will reveal about them, and what it keeps hidden. */
-function patientOf(rng, { arrival, source, mix }, settings) {
+export function patientOf(rng, { arrival, source, mix }, settings) {
   const level = levelOf(rng, mix);
   return {
     arrival,

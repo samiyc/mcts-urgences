@@ -21,4 +21,5 @@ export const RULE_LABELS = Object.freeze({
   arrival: "ordre d'arrivée",
   colour: "couleur, puis arrivée",
   deadline: "échéance la plus proche",
+  search: "recherche (ISMCTS)",
 });
