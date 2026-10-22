@@ -1,9 +1,9 @@
 import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { LATE_WEIGHT, LEVELS, MAX_WAIT } from "./hypotheses.js";
-import { RULES } from "./rules.js";
+import { NURSE_RULES, RULES } from "./rules.js";
 import { arrivals, patientOf } from "./scenario.js";
-import { HOLD, choose, cloneShift, hold, nextChoice, scheduleWorsening, viewsOf } from "./simulate.js";
+import { HOLD, act, candidateViewsOf, choose, cloneShift, hold, lateCostNow, nextChoice, reassess, rest, scheduleWorsening, viewsOf } from "./simulate.js";
 
 /**
  * The search (ISMCTS, `search` of mcts-commun) choosing who goes in when a box and a doctor are free. It knows
@@ -19,8 +19,13 @@ import { HOLD, choose, cloneShift, hold, nextChoice, scheduleWorsening, viewsOf 
  * rule beyond, each world scored on the late cost of the patients waiting or coming within `horizon` minutes,
  * and played only until they are all in. The root's choices are judged on common worlds (`common` of
  * mcts-commun's search): a whole shift to come is far noisier than the gap between two patients.
+ *
+ * With a triage nurse (`nurses`), the search also chooses whom the nurse looks at again, or nobody: a patient
+ * looked at has a known level (the bracelet's new colour) in every world drawn after. In the playouts nobody
+ * is looked at again. `measure` scores the worlds on the late cost at arrival ("arrival", the first results'
+ * score) or at the level of the moment ("now", `lateCostNow`: worsening while waiting counts).
  */
-export const SEARCH_SETTINGS = Object.freeze({ budget: 100, depth: 2, explore: 0.7, width: 4, horizon: 120, seed: 1, omniscient: 0 });
+export const SEARCH_SETTINGS = Object.freeze({ budget: 100, depth: 2, explore: 0.7, width: 4, horizon: 120, seed: 1, omniscient: 0, measure: "arrival" });
 const NEW = 1_000_000;
 
 /** P(true level | colour, source), levels 1 to 5: triage's error model times the source's mix. */
@@ -45,13 +50,18 @@ function drawLevel(rng, odds) {
   return LEVELS[odds.findLastIndex((odd) => odd > 0)];
 }
 
-/** Draws again what a patient not yet seen hides: true level, times, worsening. */
+/**
+ * Draws again what a patient not yet seen hides: true level, times, worsening. A patient the nurse looked at
+ * again has the level the bracelet shows now, taken as their level since arrival.
+ */
 function redraw(patient, rng, settings) {
-  const level = drawLevel(rng, levelOdds(patient.colour, patient.source, settings));
+  const drawn = drawLevel(rng, levelOdds(patient.colour, patient.source, settings));
+  const level = patient.reassessedAt === null || patient.reassessedAt === undefined ? drawn : patient.colour;
   Object.assign(patient, {
     level,
     arrivalLevel: level,
     worsened: 0,
+    worsenedAt: [],
     examFactor: Math.exp(settings.spread * rng.normal()),
     stayFactor: Math.exp(settings.spread * rng.normal()),
     worsenDelays: [0, 1, 2].map(() => -settings.worsenAfter * Math.log(1 - rng.next())),
@@ -92,7 +102,7 @@ export function drawWorld(shift, rng, horizon = Infinity, peek = "") {
     ...arrivals(rng, settings.ambulanceRate, now + settings.announced, settings.shift).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
   ];
   for (const [i, coming] of comings.entries()) {
-    const patient = { id: NEW + i, ...patientOf(rng, coming, settings), worsened: 0, start: null, examEnd: null, end: null, box: null };
+    const patient = { id: NEW + i, ...patientOf(rng, coming, settings), worsened: 0, worsenedAt: [], firstColour: null, looks: 0, reassessedAt: null, assessing: false, recoloured: false, start: null, examEnd: null, end: null, box: null };
     patient.arrivalLevel = patient.level;
     world.patients.set(patient.id, patient);
     world.events.schedule(patient.arrival, { type: "arrive", id: patient.id });
@@ -104,19 +114,19 @@ export function drawWorld(shift, rng, horizon = Infinity, peek = "") {
 
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null);
 
-/** The colour rule until every patient the search counts is in. */
+/** The colour rule until every patient the search counts is in; nobody is looked at again. */
 function rollOut(world) {
-  while (!allIn(world) && nextChoice(world)) choose(world, RULES.colour(viewsOf(world)).id);
+  while (!allIn(world) && nextChoice(world)) act(world, world.kind, RULES.colour, null);
   return world;
 }
 
-/** The late cost of the patients still to be seen when the search began. */
-function pendingCost(world) {
+/** The late cost of the patients still to be seen when the search began, at arrival or at the level of the moment. */
+function pendingCost(world, measure = "arrival") {
   let cost = 0;
   for (const id of world.pending) {
     const patient = world.patients.get(id);
     const start = patient.start ?? world.events.now;
-    cost += LATE_WEIGHT[patient.arrivalLevel] * Math.max(0, start - patient.arrival - MAX_WAIT[patient.arrivalLevel]);
+    cost += measure === "now" ? lateCostNow(patient, start) : LATE_WEIGHT[patient.arrivalLevel] * Math.max(0, start - patient.arrival - MAX_WAIT[patient.arrivalLevel]);
   }
   return cost;
 }
@@ -133,6 +143,17 @@ function shortlistOf(moves, width) {
 }
 
 const WAIT = Object.freeze({ id: HOLD, key: HOLD });
+const NOBODY = Object.freeze({ id: null, key: "personne" });
+const keyOf = (view) => (view.id >= NEW ? `nouveau-${view.colour}` : String(view.id));
+
+/** The nurse's shortlist: the reference nurse rules' favourites, then the most urgent colours; and nobody. */
+function nurseShortlistOf(world, moves, width) {
+  const views = moves.map((move) => move.view);
+  const context = { now: world.events.now };
+  const favourites = [NURSE_RULES.overdue(views, context), NURSE_RULES.round(views, context)];
+  const ranked = [...favourites.map((view) => moves.find((move) => move.view === view)), ...[...moves].sort(byColour)];
+  return [...new Map(ranked.map((move) => [move.key, move])).values()].slice(0, width);
+}
 
 /** Is an ambulance announced and not yet arrived (the department knows it is coming, and its colour)? */
 function onItsWay(world) {
@@ -141,43 +162,64 @@ function onItsWay(world) {
   return false;
 }
 
+/** The moves of the choice `world` stands at: a box's patients (and the wait), or the nurse's (and nobody). */
+function movesOf(world) {
+  if (world.kind === "nurse") return [...candidateViewsOf(world).map((view) => ({ id: view.id, view, key: `revoir-${keyOf(view)}` })), NOBODY];
+  return [...viewsOf(world).map((view) => ({ id: view.id, view, key: keyOf(view) })), ...(onItsWay(world) ? [WAIT] : [])];
+}
+
+function shortlistFor(world, moves, width) {
+  const special = moves.filter((move) => move === WAIT || move === NOBODY);
+  const patients = moves.filter((move) => move !== WAIT && move !== NOBODY);
+  return [...(world.kind === "nurse" ? nurseShortlistOf(world, patients, width) : shortlistOf(patients, width)), ...special];
+}
+
+function playMove(world, move) {
+  if (move === WAIT) hold(world);
+  else if (move === NOBODY) rest(world);
+  else if (world.kind === "nurse") reassess(world, move.id);
+  else choose(world, move.id);
+}
+
 /** The problem the search solves, scored `scale / (scale + cost)`: about ½ for the colour rule's cost. */
-function problemFor(scale, { width, horizon, omniscient }) {
+function problemFor(scale, { width, horizon, omniscient, measure }) {
   return {
     sample: (shift, rng) => (omniscient === 1 ? trueWorld(shift, horizon) : drawWorld(shift, rng, horizon, ["", "", "levels", "future"][omniscient])),
     actor: () => "service",
-    moves: (world) => [...viewsOf(world).map((view) => ({ id: view.id, view, key: view.id >= NEW ? `nouveau-${view.colour}` : String(view.id) })), ...(onItsWay(world) ? [WAIT] : [])],
-    shortlist: (world, moves) => [...shortlistOf(moves.filter((move) => move !== WAIT), width), ...moves.filter((move) => move === WAIT)],
+    moves: movesOf,
+    shortlist: (world, moves) => shortlistFor(world, moves, width),
     key: (move) => move.key,
     play(world, move) {
-      if (move === WAIT) hold(world);
-      else choose(world, move.id);
+      playMove(world, move);
       world.over = allIn(world) || !nextChoice(world);
       return world;
     },
     over: (world) => world.over,
     rollout: rollOut,
-    score: (world) => scale / (scale + pendingCost(world)),
+    score: (world) => scale / (scale + pendingCost(world, measure)),
   };
 }
 
 /** The colour rule's mean cost over a few drawn worlds: the search's scale. */
-function scaleOf(shift, rng, horizon, runs = 6) {
+function scaleOf(shift, rng, { horizon, measure }, runs = 6) {
   let total = 0;
-  for (let i = 0; i < runs; i += 1) total += pendingCost(rollOut(drawWorld(shift, rng, horizon)));
+  for (let i = 0; i < runs; i += 1) total += pendingCost(rollOut(drawWorld(shift, rng, horizon)), measure);
   return Math.max(20, total / runs);
 }
 
 /**
- * The search as a rule (simulate.js's signature, reading `context.shift`): a single waiting patient goes in
- * at once; otherwise `budget` iterations, seeded from the shift's clock and its waiting room.
+ * The search as a rule (simulate.js's signature, reading `context.shift`), for the boxes and, given as the
+ * nurse rule too, for the nurse: a single waiting patient goes in at once; otherwise `budget` iterations,
+ * seeded from the shift's clock and its waiting room. For the nurse, null looks at nobody.
  */
 export function searchRule(options = {}) {
-  const { budget, depth, explore, width, horizon, seed, omniscient } = { ...SEARCH_SETTINGS, ...options };
-  return (waiting, { shift }) => {
-    if (waiting.length === 1 && !onItsWay(shift)) return waiting[0];
-    const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(shift.events.now * 1000) * 31 + waiting[0].id * 7 + waiting.length) >>> 0);
-    const found = search(shift, problemFor(scaleOf(shift, rng, horizon), { width, horizon, omniscient }), { budget, rng, depth, explore, common: true });
+  const { budget, depth, explore, width, horizon, seed, omniscient, measure } = { ...SEARCH_SETTINGS, ...options };
+  return (waiting, { shift, kind }) => {
+    if (kind !== "nurse" && waiting.length === 1 && !onItsWay(shift)) return waiting[0];
+    const salt = kind === "nurse" ? 17 : 0;
+    const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(shift.events.now * 1000) * 31 + waiting[0].id * 7 + waiting.length + salt) >>> 0);
+    const found = search(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, horizon, omniscient, measure }), { budget, rng, depth, explore, common: true });
+    if (kind === "nurse") return waiting.find((view) => view.id === found.move?.id) ?? null;
     if (found.move === WAIT || found.move?.id === HOLD) return { id: HOLD };
     return waiting.find((view) => view.id === found.move?.id) ?? RULES.colour(waiting);
   };

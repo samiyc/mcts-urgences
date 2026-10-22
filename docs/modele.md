@@ -111,8 +111,65 @@ vrai niveau (le tri se trompe), leur aggravation, leurs durées. D'où la procha
 **réévaluer** un patient qui attend, au prix d'un peu de temps d'infirmier, qui révèle son vrai niveau. La
 recherche choisirait qui réévaluer, et quand : c'est le geste propre du POMCP, s'informer avant d'agir.
 
+## La réévaluation, et la mesure qui change le verdict (22/10, soir)
+
+**Ce qui est modélisé.** Un infirmier d'accueil (`nurses: 1`) peut revoir un patient qui attend, 30 min
+après son arrivée puis 30 min après chaque passage ; cela lui prend 5 min. Le bracelet montre alors le
+**niveau réel du moment**, aggravation comprise. Qui revoir est un second type de choix : une règle
+d'infirmier (le tour de la salle d'attente, ou le plus en retard sur sa couleur) ou la recherche, qui
+peut aussi ne revoir personne. Sans infirmier, tout est comme avant (vérifié sur 56 gardes, règles et
+recherche).
+
+**Ce que la réévaluation révèle surtout, ce sont des aggravations.** Pendant l'accident, 31 bracelets
+montent d'un niveau par garde contre 1,4 qui descendent : à 30 min, les patients sur-triés sont déjà
+passés, il reste ceux qui se sont aggravés en attendant.
+
+**La première mesure ne voyait pas l'aggravation.** Le coût du retard comptait les minutes au-delà du délai
+du niveau **à l'arrivée**, au poids de ce niveau. Un vert devenu orange en salle d'attente pesait toujours
+comme un vert : rattraper son aggravation ne rapportait rien, et le faire passer devant coûtait. D'où une
+seconde mesure, à côté de la première (aucun chiffre plus haut n'a changé), le **coût du retard au niveau du
+moment** (`lateCostNow`) : chaque minute d'attente au-delà du délai compte au poids du niveau réel du
+patient à cette minute, et le délai se resserre quand il s'aggrave.
+
+**Elle change le verdict** (`scripts/search-bench.js`, hôpital moyen, 40 gardes, coût au niveau du moment) :
+
+| Règle ou recherche | jour ordinaire | accident | accident, gain sur la couleur (IC 95 %) |
+|---|---|---|---|
+| couleur | 4 486 | 69 471 | — |
+| échéance la plus proche | 3 147 | 61 419 | +8 051 (+5 117 à +10 986) |
+| couleur + tour de la salle | 5 129 | 79 145 | **−9 675** (−14 068 à −5 281) |
+| échéance + le plus en retard | **2 481** | 64 597 | +4 873 (+1 570 à +8 177) |
+| **recherche, notée au niveau du moment** | 2 578 | **49 625** | **+19 845 (+14 581 à +25 110)**, 38 gardes sur 40 |
+| la même, qui choisit aussi qui revoir | 2 587 | 51 814 | +17 656 (+12 922 à +22 391) |
+
+- **L'échéance la plus proche bat la couleur même pendant l'accident**, au niveau du moment : son
+  « effondrement en surcharge » (plus haut) venait de la mesure, qui ne comptait pas les aggravations.
+- **La recherche, notée sur la bonne mesure, fait la différence sous la surcharge** : contre l'échéance, la
+  meilleure règle, +11 794 par garde (+6 567 à +17 020, 29 gardes sur 40), −19 %. Un jour ordinaire, jeu
+  égal (+569, −626 à +1 764). Notée sur la première mesure, elle ne faisait que jeu égal avec la couleur :
+  c'est la mesure, pas l'arbre, qui la retenait.
+- **La réévaluation aide les règles un jour ordinaire** (échéance + le plus en retard : 3 147 → 2 481) **et les
+  fait chuter sous la surcharge** : la couleur fait passer devant chaque patient trouvé aggravé, les autres
+  attendent davantage et s'aggravent à leur tour (25 → 32 aggravés par garde). C'est le mécanisme qui fait
+  chuter l'échéance la plus proche sur la première mesure : servir d'abord ceux qui sont déjà en retard.
+  Avec un infirmier qui revoit le plus en retard, sur 100 gardes d'accident, l'ordre d'arrivée devient la
+  meilleure des trois règles : il ignore les couleurs, donc la cascade.
+- **La réévaluation n'apporte rien à la recherche** (2 578 contre 2 587, 49 625 contre 51 814). Elle n'arrive
+  qu'après 30 min et révèle surtout des aggravations que la recherche, qui tire déjà au sort l'aggravation
+  des patients qui attendent, anticipe en partie. L'omnisciente gagnait parce qu'elle connaissait le **vrai
+  niveau dès l'arrivée**, c'est-à-dire les erreurs du tri, que la réévaluation à 30 min ne rattrape plus.
+
+**Ce qu'on en retient.** Une information ne vaut que par la décision qui l'utilise : la même réévaluation
+aide l'échéance un jour ordinaire et fait chuter la couleur dans l'accident. Et le score décide de tout : la
+même recherche fait jeu égal ou gagne 19 % selon ce qu'on lui demande de minimiser. **Le coût au niveau du
+moment est le bon score** pour la suite (proposition, à valider par Sami) : il compte ce que la réévaluation
+est faite pour éviter.
+
 ## La suite
 
-1. **Réévaluer** un patient qui attend (voir plus haut) : la recherche choisit qui, et quand.
-2. **Plus de budget pendant la crise** : à 100 itérations, la recherche fait jeu égal sous la surcharge.
+1. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; les tableaux plus haut
+   seraient alors refaits sur cette mesure.
+2. **Revoir plus tôt** (`recheck` à 10-15 min) pour rattraper les erreurs du tri, là où l'omnisciente
+   gagnait, et des règles d'infirmier qui visent les bracelets les plus douteux (les verts arrivés en
+   ambulance, par exemple).
 3. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`).

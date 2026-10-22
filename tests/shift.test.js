@@ -45,7 +45,7 @@ describe("a shift of the emergency department (src/scenario.js, src/simulate.js)
     };
     simulateShift([patient(1, 0, 3), patient(2, 0, 2, { colour: 3 })], spy, ONE_ROOM);
     assert.ok(shown.length > 0);
-    assert.ok(shown.every((one) => Object.keys(one).sort().join() === "arrival,colour,id,source"));
+    assert.ok(shown.every((one) => Object.keys(one).sort().join() === "arrival,colour,id,reassessedAt,source"));
   });
 
   it("makes a waiting patient worse past their level's longest wait, the bracelet unchanged", () => {

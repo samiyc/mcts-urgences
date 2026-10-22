@@ -1,23 +1,26 @@
 import { paired } from "mcts-commun/measure.js";
 import { compareRules } from "../src/compare.js";
 import { ACCIDENT, COLOURS, DEFAULTS, HOSPITALS } from "../src/hypotheses.js";
-import { RULE_LABELS, RULES } from "../src/rules.js";
+import { NURSE_LABELS, NURSE_RULES, RULE_LABELS, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
-import { HOLD, choose, courseOf, hold, measuresOf, nextChoice, simulateShift, startShift, viewsOf } from "../src/simulate.js";
+import { act, courseOf, measuresOf, nextChoice, simulateShift, startShift } from "../src/simulate.js";
 import { boxRows, clock, curvePath, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
 
 /**
  * The page: a shift drawn from a seed, played under the chosen rule, in the chosen hospital, with or without
- * the accident; then the rules on the same shifts. The search (src/search.js) thinks for a while at each
- * choice: its shifts are played choice by choice, the page breathing between two. What it shows is computed
- * in view.js; this module only draws and listens (event delegation on #app).
+ * the accident, with or without a triage nurse who re-assesses the waiting patients; then the rules on the
+ * same shifts. The search (src/search.js) thinks for a while at each choice: its shifts are played choice by
+ * choice, the page breathing between two. What it shows is computed in view.js; this module only draws and
+ * listens (event delegation on #app).
  */
 const COMPARED = 100;
 const COMPARED_WITH_SEARCH = 12;
-const state = { hospital: "moyen", accident: true, rule: "colour", seed: 1, compared: null, result: null, busy: "", run: 0 };
+const state = { hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0 };
 const app = document.getElementById("app");
 const ruleOf = (name) => (name === "search" ? searchRule() : RULES[name]);
+const nurseRuleOf = (name) => (name === "search" ? searchRule() : (NURSE_RULES[name] ?? null));
+const searching = () => state.rule === "search" || state.nurse === "search";
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -30,17 +33,15 @@ const svg = (tag, attrs = {}) => {
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
   return node;
 };
-const settingsOf = () => ({ ...DEFAULTS, ...HOSPITALS[state.hospital], ...(state.accident ? { crisis: ACCIDENT } : {}) });
+const settingsOf = () => ({ ...DEFAULTS, ...HOSPITALS[state.hospital], ...(state.accident ? { crisis: ACCIDENT } : {}), nurses: state.nurse === "none" ? 0 : 1 });
 const breathe = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** Plays a shift choice by choice, breathing between two; null if a newer run started meanwhile. */
-async function playShift(patients, rule, settings, run, label) {
+async function playShift(patients, rule, nurseRule, settings, run, label) {
   const shift = startShift(patients, settings);
   let choices = 0;
-  while (nextChoice(shift)) {
-    const chosen = rule(viewsOf(shift), { now: shift.events.now, freeBoxes: shift.boxIds.length, freeDoctors: shift.freeDoctors, shift });
-    if (chosen?.id === HOLD) hold(shift);
-    else choose(shift, chosen.id);
+  for (let kind = nextChoice(shift); kind; kind = nextChoice(shift)) {
+    act(shift, kind, rule, nurseRule);
     choices += 1;
     if (choices % 3 === 0) {
       state.busy = `${label} : ${choices} choix, ${clock(shift.events.now)}`;
@@ -57,13 +58,13 @@ async function refresh() {
   const run = ++state.run;
   const settings = settingsOf();
   const patients = drawShift(state.seed, settings);
-  if (state.rule !== "search") {
-    state.result = simulateShift(patients, RULES[state.rule], settings);
+  if (!searching()) {
+    state.result = simulateShift(patients, RULES[state.rule], settings, nurseRuleOf(state.nurse));
     state.busy = "";
     render();
     return;
   }
-  const result = await playShift(patients, ruleOf("search"), settings, run, "La recherche réfléchit");
+  const result = await playShift(patients, ruleOf(state.rule), nurseRuleOf(state.nurse), settings, run, "La recherche réfléchit");
   if (!result) return;
   Object.assign(state, { result, busy: "" });
   render();
@@ -76,20 +77,21 @@ const urgentInTime = (measures) => {
   return seen ? urgent.reduce((sum, group) => sum + group.inTime * group.count, 0) / seen : 1;
 };
 
-/** The four rules, the search among them, on the same few shifts, breathing between two choices. */
+/** The four rules, the search among them, on the same few shifts with the same nurse, breathing between two choices. */
 async function compareWithSearch() {
   const run = ++state.run;
   const settings = settingsOf();
   const runs = { arrival: [], colour: [], deadline: [], search: [] };
   for (let i = 0; i < COMPARED_WITH_SEARCH; i += 1) {
     const patients = drawShift(state.seed + i, settings);
-    for (const name of ["arrival", "colour", "deadline"]) runs[name].push(simulateShift(patients, RULES[name], settings).measures);
-    const result = await playShift(patients, ruleOf("search"), settings, run, `Comparaison, garde ${i + 1} sur ${COMPARED_WITH_SEARCH}`);
-    if (!result) return;
-    runs.search.push(result.measures);
+    for (const name of Object.keys(runs)) {
+      const result = await playShift(patients, ruleOf(name), nurseRuleOf(state.nurse), settings, run, `Comparaison, garde ${i + 1} sur ${COMPARED_WITH_SEARCH}`);
+      if (!result) return;
+      runs[name].push(result.measures);
+    }
   }
   const baseline = runs.arrival.map((one) => one.lateCost);
-  state.compared = Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, { lateCost: mean(measures.map((one) => one.lateCost)), worsened: mean(measures.map((one) => one.worsened)), meanWait: mean(measures.map((one) => one.meanWait)), urgentInTime: mean(measures.map(urgentInTime)), gain: paired(baseline, measures.map((one) => one.lateCost)) }]));
+  state.compared = Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, { lateCost: mean(measures.map((one) => one.lateCost)), lateCostNow: mean(measures.map((one) => one.lateCostNow)), worsened: mean(measures.map((one) => one.worsened)), meanWait: mean(measures.map((one) => one.meanWait)), urgentInTime: mean(measures.map(urgentInTime)), gain: paired(baseline, measures.map((one) => one.lateCost)) }]));
   state.compared.count = COMPARED_WITH_SEARCH;
   state.busy = "";
   render();
@@ -100,13 +102,14 @@ function select(name, options, current) {
 }
 
 function controls() {
-  const count = state.rule === "search" ? COMPARED_WITH_SEARCH : COMPARED;
+  const count = searching() ? COMPARED_WITH_SEARCH : COMPARED;
   return el(
     "div",
     { class: "controls" },
     el("label", {}, "Hôpital", select("hospital", Object.entries(HOSPITALS).map(([id, one]) => [id, `${one.label} (${one.boxes} box, ${one.doctors} médecins)`]), state.hospital)),
     el("label", {}, "Situation", select("accident", [["oui", "accident à 09:30 (10 victimes)"], ["non", "jour ordinaire"]], state.accident ? "oui" : "non")),
     el("label", {}, "Règle", select("rule", Object.entries(RULE_LABELS), state.rule)),
+    el("label", {}, "Réévaluation (un infirmier)", select("nurse", Object.entries(NURSE_LABELS), state.nurse)),
     el("label", {}, "Garde n°", el("input", { type: "number", min: "1", value: String(state.seed), "data-knob": "seed", inputmode: "numeric" })),
     el("button", { type: "button", class: "quiet", "data-action": "next" }, "Garde suivante"),
     el("button", { type: "button", "data-action": "compare" }, `Comparer les règles sur ${count} gardes`),
@@ -142,7 +145,7 @@ function worstTable(patients) {
       {},
       el("td", {}, String(one.id)),
       el("td", {}, one.source),
-      el("td", {}, el("span", { class: `dot ${one.colour}` }), one.colour),
+      el("td", {}, el("span", { class: `dot ${one.colour}` }), one.firstColour === one.colour ? one.colour : `${one.colour} (était ${one.firstColour})`),
       el("td", { class: one.mistriaged ? "hidden-truth wrong" : "hidden-truth" }, el("span", { class: `dot ${one.truth}` }), one.truth),
       el("td", {}, one.arrival),
       el("td", { class: "num" }, `${one.wait} min`),
@@ -167,13 +170,14 @@ function comparison() {
         { class: name === state.rule ? "current" : null },
         el("td", {}, RULE_LABELS[name]),
         el("td", { class: "num" }, fixed(row.lateCost)),
+        el("td", { class: "num" }, fixed(row.lateCostNow)),
         el("td", { class: "num" }, name === "arrival" ? "—" : `${fixed(row.gain.mean)} (${fixed(row.gain.low)} à ${fixed(row.gain.high)})`),
         el("td", { class: "num" }, fixed(row.worsened, 1)),
         el("td", { class: "num" }, `${fixed(100 * row.urgentInTime)} %`),
         el("td", { class: "num" }, `${fixed(row.meanWait)} min`),
       ),
     );
-  const head = ["Règle", "coût du retard", "gain sur l'arrivée (IC 95 %)", "aggravés", "urgents à temps", "attente moyenne"].map((label) => el("th", {}, label));
+  const head = ["Règle", "coût du retard", "au niveau du moment", "gain sur l'arrivée (IC 95 %)", "aggravés", "urgents à temps", "attente moyenne"].map((label) => el("th", {}, label));
   return [el("h2", {}, `Les règles sur les mêmes ${state.compared.count ?? COMPARED} gardes`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows)))];
 }
 
@@ -213,11 +217,11 @@ const ACTIONS = {
     refresh();
   },
   compare: () => {
-    if (state.rule === "search") {
+    if (searching()) {
       compareWithSearch();
       return;
     }
-    state.compared = compareRules({ shifts: COMPARED, settings: settingsOf() });
+    state.compared = compareRules({ shifts: COMPARED, settings: settingsOf(), nurseRule: nurseRuleOf(state.nurse) });
     render();
   },
 };
@@ -229,7 +233,7 @@ app.addEventListener("change", (event) => {
   else if (name === "seed") state.seed = Math.max(1, Number(event.target.value) || 1);
   else state[name] = event.target.value;
   if (name !== "seed") state.compared = null;
-  state.busy = state.rule === "search" ? "La recherche réfléchit…" : "";
+  state.busy = searching() ? "La recherche réfléchit…" : "";
   refresh();
 });
 app.addEventListener("click", (event) => {

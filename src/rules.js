@@ -17,6 +17,27 @@ export const RULES = Object.freeze({
   deadline: (waiting) => first(waiting, (a, b) => deadlineOf(a) < deadlineOf(b) || (deadlineOf(a) === deadlineOf(b) && a.colour < b.colour)),
 });
 
+const lastLook = (patient) => patient.reassessedAt ?? patient.arrival;
+const overdue = (patient, now) => now - patient.arrival - MAX_WAIT[patient.colour];
+
+/**
+ * Whom a free triage nurse looks at again (simulate.js: re-assessment), among the patients due for a look:
+ * `(candidates, context) => view`, or null for nobody.
+ */
+export const NURSE_RULES = Object.freeze({
+  /** A round of the waiting room: the patient left longest without a look, since arriving or the last one. */
+  round: (candidates) => first(candidates, (a, b) => lastLook(a) < lastLook(b)),
+  /** The most overdue for their colour (waited longest past its longest wait), the more urgent colour between equals. */
+  overdue: (candidates, { now }) => first(candidates, (a, b) => overdue(a, now) > overdue(b, now) || (overdue(a, now) === overdue(b, now) && a.colour < b.colour)),
+});
+
+export const NURSE_LABELS = Object.freeze({
+  none: "personne n'est réévalué",
+  round: "le tour de la salle d'attente",
+  overdue: "le plus en retard sur sa couleur",
+  search: "la recherche choisit",
+});
+
 export const RULE_LABELS = Object.freeze({
   arrival: "ordre d'arrivée",
   colour: "couleur, puis arrivée",

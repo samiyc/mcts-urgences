@@ -79,6 +79,8 @@ export function summaryOf(measures) {
     `urgents vus à temps : ${fixed(100 * inTime)} %`,
     `attente moyenne ${fixed(measures.meanWait)} min`,
     `salle d'attente : ${measures.peakWaiting} au plus`,
+    `coût au niveau du moment ${fixed(measures.lateCostNow)}`,
+    ...(measures.looks ? [`${measures.looks} réévaluations, ${measures.recoloured} bracelets changés`] : []),
   ].join(" · ");
 }
 
@@ -93,6 +95,7 @@ export function worstPatients(patients, count = 10) {
       id: patient.id,
       source: patient.source === "ambulance" ? "ambulance" : "à pied",
       colour: COLOURS[patient.colour],
+      firstColour: COLOURS[patient.firstColour ?? patient.colour],
       truth: COLOURS[patient.arrivalLevel],
       mistriaged: patient.colour !== patient.arrivalLevel,
       arrival: clock(patient.arrival),

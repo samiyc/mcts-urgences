@@ -6,8 +6,10 @@ médical** : il organise les files d'attente, les box, les blocs et les médecin
 
 Statut (22/10/2026) : le simulateur d'une garde, trois règles de référence et leur comparaison par paires
 sur trois hôpitaux (`npm run compare`, [`docs/modele.md`](docs/modele.md)), et la recherche (ISMCTS sur des
-mondes communs) : −13,5 % de coût du retard sur la meilleure règle un jour ordinaire, jeu égal pendant
-l'accident. C'est l'étape 2 de la
+mondes communs) : −13,5 % de coût du retard sur la meilleure règle un jour ordinaire. Le soir, la
+réévaluation par un infirmier d'accueil et une seconde mesure, le coût du retard au niveau du moment (les
+aggravations en attente comptent) : sur elle, pendant l'accident, la recherche fait −19 % sur la meilleure
+règle. C'est l'étape 2 de la
 [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md),
 juste après l'ordonnanceur de Lopin, dont il reprend toutes les pièces.
 

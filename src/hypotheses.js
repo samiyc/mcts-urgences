@@ -45,6 +45,15 @@ export const DEFAULTS = Object.freeze({
    * level, after an exponential delay of this mean (minutes); the colour on the bracelet does not change.
    */
   worsenAfter: 90,
+  /**
+   * Re-assessment (Sami, 22/10): a triage nurse looks again at a patient who has waited, `reassess` minutes of
+   * the nurse's time; the bracelet then shows the patient's true level of now, worsening included. A patient
+   * may be looked at `recheck` minutes after arriving, then again `recheck` minutes after the last look.
+   * `nurses: 0`, no re-assessment: the department of the first results.
+   */
+  nurses: 0,
+  reassess: 5,
+  recheck: 30,
   /** A crisis: an accident brings `size` ambulance patients over `over` minutes from `at`; none by default. */
   crisis: null,
 });

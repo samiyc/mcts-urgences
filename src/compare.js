@@ -4,17 +4,18 @@ import { RULES } from "./rules.js";
 import { simulateShift } from "./simulate.js";
 
 /**
- * The rules on the same `shifts` shifts (seeds `seed`, `seed + 1`, …): each rule's mean measures, and its late
- * cost against the arrival order's, by pairs (arrival minus rule: above 0, the rule does better).
+ * The rules on the same `shifts` shifts (seeds `seed`, `seed + 1`, …), each with the same nurse rule when the
+ * settings have nurses: each rule's mean measures, and its late cost against the arrival order's, by pairs
+ * (arrival minus rule: above 0, the rule does better).
  */
-const MEASURES = ["lateCost", "late", "worsened", "meanWait", "peakWaiting", "boxUse", "doctorUse", "patients"];
+const MEASURES = ["lateCost", "lateCostNow", "looks", "recoloured", "late", "worsened", "meanWait", "peakWaiting", "boxUse", "doctorUse", "patients"];
 const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
 
-export function compareRules({ shifts = 200, seed = 1, settings = {}, rules = RULES } = {}) {
+export function compareRules({ shifts = 200, seed = 1, settings = {}, rules = RULES, nurseRule = null } = {}) {
   const runs = Object.fromEntries(Object.keys(rules).map((name) => [name, []]));
   for (let i = 0; i < shifts; i += 1) {
     const patients = drawShift(seed + i, settings);
-    for (const [name, rule] of Object.entries(rules)) runs[name].push(simulateShift(patients, rule, settings).measures);
+    for (const [name, rule] of Object.entries(rules)) runs[name].push(simulateShift(patients, rule, settings, nurseRule).measures);
   }
   const baseline = runs.arrival?.map((one) => one.lateCost);
   return Object.fromEntries(
