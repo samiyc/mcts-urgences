@@ -165,6 +165,24 @@ même recherche fait jeu égal ou gagne 19 % selon ce qu'on lui demande de minim
 moment est le bon score** pour la suite (proposition, à valider par Sami) : il compte ce que la réévaluation
 est faite pour éviter.
 
+## La garde, minute par minute (23/10, Sami)
+
+Sami : « c'est encore un peu dur de visualiser ce qu'il se passe vraiment dans l'hôpital ». La page rejoue
+donc la garde jouée sur un plan du service, minute par minute (`sceneAt` dans `web/view.js`, pur et testé),
+à 1, 5, 15 ou 30 minutes de garde par seconde, ou à la main avec un curseur :
+- **l'entrée**, avec les ambulances annoncées et les minutes qu'il leur reste ;
+- **la salle d'attente** : une pastille par patient, de la couleur de son bracelet, les premiers arrivés
+  d'abord ; un point au centre quand son niveau réel est plus grave que le bracelet (erreur de tri ou
+  aggravation : ce que personne ne voit) ; cerclée de rouge quand il attend plus que son bracelet ne le
+  permet ; 🧑‍⚕️ quand l'infirmier le réévalue ;
+- **les box** : le patient, 🩺 pendant l'examen, et une barre pour le séjour.
+
+On y voit d'un coup d'œil ce que les chiffres disaient. Pendant l'accident, des box restent **vides** alors
+que des patients attendent : les médecins sont tous en examen. Et des bracelets jaunes cachent un niveau rouge.
+
+Le simulateur garde désormais chaque réévaluation (`lookedAt` : début, fin, couleur donnée), pour que la
+page montre le bracelet tel qu'il était à chaque minute. Les résultats n'ont pas bougé (même empreinte).
+
 ## La suite
 
 1. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; les tableaux plus haut

@@ -1,9 +1,10 @@
-import { COLOURS, LATE_WEIGHT } from "../src/hypotheses.js";
+import { COLOURS, LATE_WEIGHT, MAX_WAIT } from "../src/hypotheses.js";
 
 /**
  * What the page shows of a shift, pure and tested under Node (tests/view.test.js): the boxes' timeline, the
- * waiting room over time, the shift in one line, and the patients the rule served worst, with what the
- * department could not see (their true level). The DOM layer (app.js) only draws it.
+ * waiting room over time, the shift in one line, the patients the rule served worst, with what the
+ * department could not see (their true level), and the department at any minute (`sceneAt`, the animated
+ * plan). The DOM layer (app.js) only draws it.
  */
 export const START_HOUR = 8;
 const pad = (n) => String(n).padStart(2, "0");
@@ -104,4 +105,90 @@ export function worstPatients(patients, count = 10) {
       worsened: patient.worsened,
       cost: Math.round(cost),
     }));
+}
+
+/** The bracelet's colour (a level) at minute `t`: the triage's, then each look's done by then. */
+export function colourAt(patient, t) {
+  let colour = patient.firstColour ?? patient.colour;
+  for (const look of patient.lookedAt ?? []) if (look.to <= t && look.colour !== null) colour = look.colour;
+  return colour;
+}
+
+/** The true level at minute `t`: the arrival's, one up for each worsening by then. */
+export const levelAt = (patient, t) => patient.arrivalLevel - patient.worsenedAt.filter((at) => at <= t).length;
+
+/**
+ * The department at minute `t` of a played shift (Sami, 23/10/2026: see what really happens in the hospital),
+ * rebuilt from the patients' courses:
+ * - `waiting`: the patients in the waiting room, the earliest first, each with the bracelet's colour, the
+ *   true level (`worse` when it is more serious than the bracelet: what nobody sees), the minutes waited,
+ *   `overdue` when that passes what the bracelet allows, `looked` while the nurse looks at them;
+ * - `boxes`: each box with its patient, if any, in the exam (a doctor there) or the care, and how far;
+ * - `coming`: the ambulances announced, not there yet; the doctors and nurses busy; the patients gone.
+ */
+export function sceneAt(patients, settings, t) {
+  const name = (level) => COLOURS[level];
+  const waiting = patients
+    .filter((patient) => patient.arrival <= t && !(patient.start <= t))
+    .sort((a, b) => a.arrival - b.arrival || a.id - b.id)
+    .map((patient) => {
+      const colour = colourAt(patient, t);
+      const level = levelAt(patient, t);
+      const wait = t - patient.arrival;
+      return {
+        id: patient.id,
+        source: patient.source,
+        colour: name(colour),
+        truth: name(level),
+        worse: level < colour,
+        wait,
+        overdue: wait > MAX_WAIT[colour],
+        looked: (patient.lookedAt ?? []).some((look) => look.from <= t && t < look.to),
+        recent: wait < 5,
+      };
+    });
+  const boxes = Array.from({ length: settings.boxes }, (_, box) => {
+    const patient = patients.find((one) => one.box === box && one.start <= t && t < one.end);
+    if (!patient) return { box, patient: null };
+    return {
+      box,
+      patient: {
+        id: patient.id,
+        colour: name(patient.colour),
+        truth: name(patient.levelAtStart ?? patient.level),
+        worse: (patient.levelAtStart ?? patient.level) < patient.colour,
+        phase: t < patient.examEnd ? "exam" : "care",
+        progress: Math.min(1, (t - patient.start) / Math.max(1e-9, patient.end - patient.start)),
+        examShare: (patient.examEnd - patient.start) / Math.max(1e-9, patient.end - patient.start),
+      },
+    };
+  });
+  const announced = settings.announced ?? 0;
+  const coming = patients.filter((patient) => patient.source === "ambulance" && patient.arrival > t && patient.arrival - announced <= t).sort((a, b) => a.arrival - b.arrival).map((patient) => ({ id: patient.id, in: Math.ceil(patient.arrival - t) }));
+  const doctorsBusy = boxes.filter((one) => one.patient?.phase === "exam").length;
+  const nursesBusy = waiting.filter((one) => one.looked).length + patients.filter((patient) => patient.start !== null && patient.start <= t && (patient.lookedAt ?? []).some((look) => look.from <= t && t < look.to)).length;
+  return {
+    t,
+    clock: clock(t),
+    waiting,
+    boxes,
+    coming,
+    doctors: { busy: doctorsBusy, total: settings.doctors },
+    nurses: { busy: nursesBusy, total: settings.nurses ?? 0 },
+    gone: patients.filter((patient) => patient.end <= t).length,
+    arrived: patients.filter((patient) => patient.arrival <= t).length,
+    crisis: Boolean(settings.crisis) && t >= settings.crisis.at && t < settings.crisis.at + settings.crisis.over,
+  };
+}
+
+/** The scene in one line, beside the plan. */
+export function sceneLine(scene) {
+  const parts = [scene.clock, `${scene.waiting.length} en salle d'attente`, `${scene.boxes.filter((one) => one.patient).length} / ${scene.boxes.length} box occupés`, `médecins ${scene.doctors.busy} / ${scene.doctors.total} en examen`];
+  if (scene.nurses.total) parts.push(scene.nurses.busy ? "l'infirmier réévalue" : "l'infirmier est libre");
+  const overdue = scene.waiting.filter((one) => one.overdue).length;
+  if (overdue) parts.push(`${overdue} au-delà du délai de leur bracelet`);
+  const worse = scene.waiting.filter((one) => one.worse).length;
+  if (worse) parts.push(`${worse} plus graves que leur bracelet (caché)`);
+  parts.push(`${scene.gone} sortis`);
+  return parts.join(" · ");
 }

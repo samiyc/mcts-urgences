@@ -60,6 +60,9 @@ const HANDLERS = {
   reassessEnd(shift, patient) {
     shift.freeNurses += 1;
     patient.assessing = false;
+    // The page replays the looks: when, and the colour given (null if the patient was taken in meanwhile). A new array, as above.
+    const colour = patient.start === null ? patient.level : null;
+    patient.lookedAt = [...patient.lookedAt, { from: shift.events.now - shift.settings.reassess, to: shift.events.now, colour }];
     // Taken into a box during the look: it came too late to change anything.
     if (patient.start !== null) return;
     if (patient.colour !== patient.level) patient.recoloured = true;
@@ -74,7 +77,7 @@ const HANDLERS = {
 export function startShift(patients, overrides = {}) {
   const settings = { ...DEFAULTS, ...overrides };
   const events = createEvents();
-  const course = new Map(patients.map((patient) => [patient.id, { ...patient, arrivalLevel: patient.level, firstColour: patient.colour, worsened: 0, worsenedAt: [], start: null, examEnd: null, end: null, box: null, looks: 0, reassessedAt: null, assessing: false, recoloured: false }]));
+  const course = new Map(patients.map((patient) => [patient.id, { ...patient, arrivalLevel: patient.level, firstColour: patient.colour, worsened: 0, worsenedAt: [], start: null, examEnd: null, end: null, box: null, looks: 0, lookedAt: [], reassessedAt: null, assessing: false, recoloured: false }]));
   for (const patient of course.values()) events.schedule(patient.arrival, { type: "arrive", id: patient.id });
   return { settings, events, patients: course, waiting: [], holding: false, boxIds: Array.from({ length: settings.boxes }, (_, i) => i), freeDoctors: settings.doctors, freeNurses: settings.nurses, resting: false, wakeAt: null, kind: null, boxMinutes: 0, doctorMinutes: 0, peakWaiting: 0 };
 }

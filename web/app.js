@@ -5,18 +5,27 @@ import { NURSE_LABELS, NURSE_RULES, RULE_LABELS, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
 import { act, courseOf, measuresOf, nextChoice, simulateShift, startShift } from "../src/simulate.js";
-import { boxRows, clock, curvePath, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
+import { boxRows, clock, curvePath, sceneAt, sceneLine, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
 
 /**
  * The page: a shift drawn from a seed, played under the chosen rule, in the chosen hospital, with or without
  * the accident, with or without a triage nurse who re-assesses the waiting patients; then the rules on the
  * same shifts. The search (src/search.js) thinks for a while at each choice: its shifts are played choice by
- * choice, the page breathing between two. What it shows is computed in view.js; this module only draws and
- * listens (event delegation on #app).
+ * choice, the page breathing between two. The played shift is replayed on a plan of the department, minute by
+ * minute (`sceneAt`), at a chosen speed or from a slider. What it shows is computed in view.js; this module
+ * only draws and listens (event delegation on #app).
  */
 const COMPARED = 100;
 const COMPARED_WITH_SEARCH = 12;
 const state = { hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0 };
+/** The animated plan: the minute shown, minutes of shift a second, the animation frame while it plays. */
+const live = { t: 0, speed: 5, frame: null, last: null };
+const LIVE_SPEEDS = [
+  ["1", "1 min par seconde"],
+  ["5", "5 min par seconde"],
+  ["15", "15 min par seconde"],
+  ["30", "30 min par seconde"],
+];
 const app = document.getElementById("app");
 const ruleOf = (name) => (name === "search" ? searchRule() : RULES[name]);
 const nurseRuleOf = (name) => (name === "search" ? searchRule() : (NURSE_RULES[name] ?? null));
@@ -56,6 +65,8 @@ async function playShift(patients, rule, nurseRule, settings, run, label) {
 
 async function refresh() {
   stopWorkers();
+  pauseLive();
+  live.t = 0;
   const run = ++state.run;
   const settings = settingsOf();
   const patients = drawShift(state.seed, settings);
@@ -225,6 +236,130 @@ function comparison() {
   return [el("h2", {}, `Les règles sur les mêmes ${state.compared.count ?? COMPARED} gardes`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows)))];
 }
 
+const LIVE = { width: 1000, dot: 30, waitingCols: 8, boxCols: 4, boxW: 96, boxH: 70, top: 34 };
+
+/** A patient's dot: the bracelet's colour; the true level in the middle when it is more serious (hidden). */
+function patientDot(x, y, one, title) {
+  const group = svg("g", { class: `patient${one.overdue ? " overdue" : ""}${one.recent ? " recent" : ""}`, transform: `translate(${x} ${y})` });
+  const label = svg("title");
+  label.textContent = title;
+  group.append(label, svg("circle", { r: LIVE.dot / 2 - 3, class: `fill ${one.colour}` }));
+  if (one.worse) group.append(svg("circle", { r: 5, class: `fill truth ${one.truth}` }));
+  const id = svg("text", { y: one.worse ? -7 : 4, class: "pid" });
+  id.textContent = String(one.id);
+  group.append(id);
+  return group;
+}
+
+function text(x, y, content, attrs = {}) {
+  const node = svg("text", { x, y, ...attrs });
+  node.textContent = content;
+  return node;
+}
+
+/** The department at the minute shown: the entrance, the waiting room, the boxes. */
+function livePlan(scene) {
+  const rows = Math.max(3, Math.ceil(scene.waiting.length / LIVE.waitingCols));
+  const boxRowsCount = Math.ceil(scene.boxes.length / LIVE.boxCols);
+  const height = LIVE.top + Math.max(rows * LIVE.dot + 20, boxRowsCount * (LIVE.boxH + 8) + 4, 150);
+  const plan = svg("svg", { viewBox: `0 0 ${LIVE.width} ${height}`, class: "plan", role: "img", "aria-label": `Le service à ${scene.clock}` });
+  // The entrance: ambulances announced, with their minutes to go.
+  plan.append(svg("rect", { x: 0, y: 0, width: 150, height, rx: 8, class: `room entrance${scene.crisis ? " crisis" : ""}` }), text(12, 22, scene.crisis ? "Entrée — accident" : "Entrée", { class: "room-title" }));
+  scene.coming.slice(0, 6).forEach((one, i) => plan.append(text(14, LIVE.top + 20 + i * 24, `🚑 n° ${one.id} dans ${one.in} min`, { class: "coming" })));
+  // The waiting room, the earliest arrivals first.
+  const waitingX = 166;
+  const waitingW = LIVE.waitingCols * LIVE.dot + 24;
+  plan.append(svg("rect", { x: waitingX, y: 0, width: waitingW, height, rx: 8, class: "room" }), text(waitingX + 12, 22, `Salle d'attente (${scene.waiting.length})`, { class: "room-title" }));
+  scene.waiting.forEach((one, i) => {
+    const x = waitingX + 12 + (i % LIVE.waitingCols) * LIVE.dot + LIVE.dot / 2;
+    const y = LIVE.top + Math.floor(i / LIVE.waitingCols) * LIVE.dot + LIVE.dot / 2;
+    const title = `Patient ${one.id} (${one.source === "ambulance" ? "ambulance" : "à pied"}) : bracelet ${one.colour}, niveau réel ${one.truth}${one.worse ? " (plus grave, personne ne le voit)" : ""}, attend depuis ${Math.round(one.wait)} min${one.overdue ? ", au-delà du délai de son bracelet" : ""}${one.looked ? ", l'infirmier le réévalue" : ""}`;
+    plan.append(patientDot(x, y, one, title));
+    if (one.looked) plan.append(text(x + 10, y - 8, "🧑‍⚕️", { class: "nurse" }));
+  });
+  // The boxes: the patient, the doctor during the exam, how far the stay is.
+  const boxesX = waitingX + waitingW + 16;
+  const boxesW = LIVE.width - boxesX;
+  plan.append(svg("rect", { x: boxesX, y: 0, width: boxesW, height, rx: 8, class: "room" }), text(boxesX + 12, 22, `Box (${scene.boxes.filter((one) => one.patient).length} / ${scene.boxes.length}) · médecins en examen ${scene.doctors.busy} / ${scene.doctors.total}`, { class: "room-title" }));
+  const step = (boxesW - 16) / LIVE.boxCols;
+  for (const { box, patient } of scene.boxes) {
+    const x = boxesX + 8 + (box % LIVE.boxCols) * step;
+    const y = LIVE.top - 6 + Math.floor(box / LIVE.boxCols) * (LIVE.boxH + 8);
+    plan.append(svg("rect", { x, y, width: step - 8, height: LIVE.boxH, rx: 6, class: `box${patient ? " busy" : ""}` }), text(x + 8, y + 16, `Box ${box + 1}`, { class: "box-title" }));
+    if (!patient) continue;
+    const title = `Patient ${patient.id} : bracelet ${patient.colour}, niveau réel ${patient.truth} — ${patient.phase === "exam" ? "examen, avec un médecin" : "soins, le box seul"}`;
+    plan.append(patientDot(x + 24, y + 42, patient, title));
+    if (patient.phase === "exam") plan.append(text(x + 46, y + 48, "🩺", { class: "doctor" }));
+    const barW = step - 24;
+    plan.append(svg("rect", { x: x + 8, y: y + LIVE.boxH - 10, width: barW, height: 4, rx: 2, class: "stay" }), svg("rect", { x: x + 8, y: y + LIVE.boxH - 10, width: barW * patient.progress, height: 4, rx: 2, class: `stay-done ${patient.phase}` }));
+  }
+  return plan;
+}
+
+/** The animated plan with its controls; `refreshLive` redraws it alone while it plays. */
+function liveSection() {
+  const { patients } = state.result;
+  const end = Math.ceil(Math.max(...patients.map((patient) => patient.end)));
+  const scene = sceneAt(patients, settingsOf(), live.t);
+  const playing = live.frame !== null;
+  return el(
+    "section",
+    { class: "live", id: "live" },
+    el(
+      "div",
+      { class: "controls" },
+      el("button", { type: "button", "data-action": playing ? "livePause" : "livePlay" }, playing ? "Pause" : live.t >= end ? "Revoir" : "Lire la garde"),
+      el("label", {}, "Vitesse", select("liveSpeed", LIVE_SPEEDS, String(live.speed))),
+      el("label", { class: "scrub" }, `Heure : ${scene.clock}`, el("input", { type: "range", min: "0", max: String(end), step: "1", value: String(Math.round(live.t)), "data-live": "t", "aria-label": "Minute de la garde" })),
+    ),
+    el("p", { class: "summary live-line", "aria-live": "off" }, sceneLine(scene)),
+    el("div", { class: "plan-wrap" }, livePlan(scene)),
+    el("p", { class: "hint legend" }, "Une pastille : un patient, de la couleur de son bracelet, avec son numéro. Un point au centre : son niveau réel quand il est plus grave que le bracelet — ce que personne ne voit. Cerclée de rouge : il attend plus que son bracelet ne le permet. 🧑‍⚕️ l'infirmier le réévalue, 🩺 un médecin l'examine ; la barre d'un box : le séjour, foncée pendant l'examen."),
+  );
+}
+
+function refreshLive() {
+  document.getElementById("live")?.replaceWith(liveSection());
+}
+
+/** Redraws the plan, its line and the slider in place: the controls stay, so a menu opened while it plays stays open. */
+function drawScene() {
+  const section = document.getElementById("live");
+  if (!section) return;
+  const scene = sceneAt(state.result.patients, settingsOf(), live.t);
+  section.querySelector(".plan-wrap").replaceChildren(livePlan(scene));
+  section.querySelector(".live-line").textContent = sceneLine(scene);
+  section.querySelector(".scrub").firstChild.textContent = `Heure : ${scene.clock}`;
+  section.querySelector("[data-live='t']").value = String(Math.round(live.t));
+}
+
+function tick(now) {
+  const end = Math.max(...state.result.patients.map((patient) => patient.end));
+  live.t = Math.min(end, live.t + ((now - (live.last ?? now)) / 1000) * live.speed);
+  live.last = now;
+  if (live.t < end) {
+    live.frame = requestAnimationFrame(tick);
+    drawScene();
+  } else {
+    live.frame = null;
+    refreshLive();
+  }
+}
+
+function playLive() {
+  const end = Math.max(...state.result.patients.map((patient) => patient.end));
+  if (live.t >= end) live.t = 0;
+  live.last = null;
+  live.frame = requestAnimationFrame(tick);
+  refreshLive();
+}
+
+function pauseLive() {
+  if (live.frame !== null) cancelAnimationFrame(live.frame);
+  live.frame = null;
+  if (state.result) refreshLive();
+}
+
 function legend() {
   return el("p", { class: "legend hint" }, ...Object.values(COLOURS).map((colour) => el("span", { class: "legend-item" }, el("span", { class: `dot ${colour}` }), colour)), " Partie foncée d'une barre : l'examen, avec un médecin ; partie claire : les soins, le box seul.");
 }
@@ -245,6 +380,8 @@ function render() {
   app.replaceChildren(
     controls(),
     el("p", { class: "summary" }, summaryOf(measures)),
+    el("h2", {}, "La garde, minute par minute"),
+    liveSection(),
     el("h2", {}, "Les box"),
     timeline(patients, settings, scale),
     legend(),
@@ -256,6 +393,8 @@ function render() {
 }
 
 const ACTIONS = {
+  livePlay: playLive,
+  livePause: pauseLive,
   next: () => {
     state.seed += 1;
     refresh();
@@ -273,12 +412,22 @@ const ACTIONS = {
 app.addEventListener("change", (event) => {
   const name = event.target.dataset?.knob;
   if (!name) return;
+  if (name === "liveSpeed") {
+    live.speed = Number(event.target.value);
+    return;
+  }
   if (name === "accident") state.accident = event.target.value === "oui";
   else if (name === "seed") state.seed = Math.max(1, Number(event.target.value) || 1);
   else state[name] = event.target.value;
   if (name !== "seed") state.compared = null;
   state.busy = searching() ? "La recherche réfléchit…" : "";
   refresh();
+});
+app.addEventListener("input", (event) => {
+  if (event.target.dataset?.live !== "t") return;
+  live.t = Number(event.target.value);
+  // Redrawn in place, so the slider keeps the pointer.
+  drawScene();
 });
 app.addEventListener("click", (event) => {
   const action = event.target.closest?.("[data-action]")?.dataset.action;

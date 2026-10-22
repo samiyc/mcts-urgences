@@ -70,3 +70,26 @@ td.hidden-truth.wrong { font-weight: 700; }
 tr.current td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 main { padding-bottom: 40px; }
 .summary.busy { color: var(--ink-2); font-style: italic; }
+.live { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
+.live .summary { margin: 8px 0; font-variant-numeric: tabular-nums; }
+.scrub { min-width: min(420px, 100%); flex: 1; }
+.scrub input { width: 100%; padding: 0; }
+.plan-wrap { overflow-x: auto; }
+.plan { width: 100%; min-width: 640px; height: auto; display: block; }
+.plan .room { fill: color-mix(in srgb, var(--ink) 4%, var(--panel)); stroke: var(--line); }
+.plan .room.entrance.crisis { fill: var(--crisis); }
+.plan .room-title { font: 600 13px system-ui, sans-serif; fill: var(--ink-2); }
+.plan .coming { font: 12px system-ui, sans-serif; fill: var(--ink); }
+.plan .box { fill: var(--panel); stroke: var(--line); }
+.plan .box.busy { stroke: var(--ink-2); }
+.plan .box-title { font: 11px system-ui, sans-serif; fill: var(--ink-2); }
+.plan .fill.rouge { fill: var(--rouge); } .plan .fill.orange { fill: var(--orange); } .plan .fill.jaune { fill: var(--jaune); }
+.plan .fill.vert { fill: var(--vert); } .plan .fill.bleu { fill: var(--bleu); }
+.plan .fill.truth { stroke: #fff; stroke-width: 1.5; }
+.plan .pid { font: 700 9px system-ui, sans-serif; fill: #fff; text-anchor: middle; pointer-events: none; }
+.plan .patient.overdue > circle:first-of-type { stroke: var(--rouge); stroke-width: 3; }
+.plan .patient.recent > circle:first-of-type { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 3 2; }
+.plan .nurse, .plan .doctor { font-size: 16px; pointer-events: none; }
+.plan .stay { fill: var(--line); }
+.plan .stay-done.exam { fill: var(--accent); }
+.plan .stay-done.care { fill: color-mix(in srgb, var(--accent) 45%, var(--panel)); }
