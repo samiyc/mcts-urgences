@@ -4,7 +4,8 @@ Un assistant d'organisation pour les urgences d'un hôpital : quel patient passe
 médecin, quand l'afflux dépasse les ressources. **Il propose, l'humain décide. Il ne donne jamais d'avis
 médical** : il organise les files d'attente, les box, les blocs et les médecins, en temps de crise.
 
-Statut (22/10/2026) : pas commencé. C'est l'étape 2 de la
+Statut (22/10/2026) : le simulateur d'une garde, trois règles de référence et leur comparaison par paires
+sur trois hôpitaux (`npm run compare`, [`docs/modele.md`](docs/modele.md)). Pas encore de recherche. C'est l'étape 2 de la
 [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md),
 juste après l'ordonnanceur de Lopin, dont il reprend toutes les pièces.
 

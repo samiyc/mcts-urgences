@@ -8,8 +8,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "compare": "node scripts/compare.js"
   },
   "author": "Sami",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mcts-commun": "file:../mcts-commun"
+  }
 }
