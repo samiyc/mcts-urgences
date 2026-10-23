@@ -21,7 +21,7 @@ const settings = {
 const shifts = option("--shifts", 200);
 const searching = args.includes("--search");
 const budget = searching && /^\d+$/.test(args[args.indexOf("--search") + 1] ?? "") ? Number(args[args.indexOf("--search") + 1]) : undefined;
-const result = compareRules({ shifts, settings, rules: searching ? { ...RULES, search: searchRule({ budget }) } : RULES });
+const result = compareRules({ shifts, settings, rules: searching ? { ...RULES, search: searchRule(budget ? { budget } : {}) } : RULES });
 const fixed = (value, digits = 0) => value.toFixed(digits).replace(".", ",");
 
 console.log(`${hospital.label}, ${settings.boxes} box, ${settings.doctors} médecins : ${shifts} gardes de 8 h tirées${settings.crisis ? ", avec l'accident" : ""} ; mêmes patients pour chaque règle.`);
