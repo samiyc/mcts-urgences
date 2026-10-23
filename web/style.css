@@ -95,3 +95,13 @@ main { padding-bottom: 40px; }
 .plan .stay-done.care { fill: color-mix(in srgb, var(--accent) 45%, var(--panel)); }
 .masthead .links { margin: 0 0 4px; font-size: 0.9rem; }
 .masthead .links a { color: var(--accent); }
+.player { margin: 12px 0; }
+.patient-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin: 8px 0; }
+.patient-card { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; font: inherit; color: inherit; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
+.patient-card:hover { border-color: var(--accent, #2f6f8f); }
+.patient-card.overdue { border-left: 4px solid var(--rouge); }
+.patient-card.suggested, button.suggested { outline: 2px solid var(--accent, #2f6f8f); outline-offset: 1px; }
+.patient-card .card-line { flex-basis: 100%; font-size: 0.86rem; color: var(--ink-2); }
+.patient-card .card-line.pick { color: var(--accent, #2f6f8f); font-weight: 600; }
+.replay-list { font-size: 0.88rem; padding-left: 20px; }
+.gaps h3 { font-size: 0.98rem; margin: 12px 0 4px; }

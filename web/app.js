@@ -5,6 +5,7 @@ import { NURSE_LABELS, NURSE_RULES, RULE_LABELS, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
 import { act, courseOf, measuresOf, nextChoice, simulateShift, startShift } from "../src/simulate.js";
+import { createPlayer } from "./player.js";
 import { boxRows, clock, curvePath, sceneAt, sceneLine, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
 
 /**
@@ -369,7 +370,22 @@ function renderBusy() {
   app.replaceChildren(controls(), el("p", { class: "summary busy", role: "status" }, state.busy));
 }
 
+/** Playing the shift oneself (player.js): the game in front of the person takes the page while it lasts. */
+const player = createPlayer({
+  el,
+  current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse }),
+  render: () => render(),
+  setBusy: (text) => {
+    state.busy = text;
+    render();
+  },
+});
+
 function render() {
+  if (!state.busy && player.playing()) {
+    app.replaceChildren(controls(), player.view());
+    return;
+  }
   if (state.busy || !state.result) {
     renderBusy();
     return;
@@ -380,6 +396,7 @@ function render() {
   app.replaceChildren(
     controls(),
     el("p", { class: "summary" }, summaryOf(measures)),
+    player.view(),
     el("h2", {}, "La garde, minute par minute"),
     liveSection(),
     el("h2", {}, "Les box"),
@@ -410,6 +427,7 @@ const ACTIONS = {
 };
 
 app.addEventListener("change", (event) => {
+  if (player.change(event.target)) return;
   const name = event.target.dataset?.knob;
   if (!name) return;
   if (name === "liveSpeed") {
@@ -430,6 +448,7 @@ app.addEventListener("input", (event) => {
   drawScene();
 });
 app.addEventListener("click", (event) => {
+  if (player.click(event.target)) return;
   const action = event.target.closest?.("[data-action]")?.dataset.action;
   if (ACTIONS[action]) ACTIONS[action]();
 });

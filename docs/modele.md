@@ -183,15 +183,23 @@ que des patients attendent : les médecins sont tous en examen. Et des bracelets
 Le simulateur garde désormais chaque réévaluation (`lookedAt` : début, fin, couleur donnée), pour que la
 page montre le bracelet tel qu'il était à chaque minute. Les résultats n'ont pas bougé (même empreinte).
 
+
+## Jouer la garde soi-même (23/10, Sami : l'étape 2, les replays avec un humain)
+
+Dans la page, « Jouer la garde vous-même » : la personne décide qui entre dans un box libre (ou d'attendre), sur la garde choisie (hôpital, situation, numéro) ; l'infirmier de tri garde la règle de la page. **Seul**, ou **aidé par l'assistant**, qui montre le patient que la recherche ferait entrer (la recherche notée au niveau du moment, sa meilleure version). La logique est pure et testée (`src/play.js`), la page ne fait que dessiner (`web/player.js`).
+- **À la fin**, la garde jouée contre la couleur, l'échéance la plus proche et l'assistant seul, sur les mêmes patients (le coût du retard au niveau du moment, et les patients en retard). En suivant l'assistant à chaque choix, on retrouve exactement l'assistant seul (vérifié dans la page : 31 945 sur la garde 1 de l'hôpital moyen avec l'accident).
+- **Les replays** : la garde se rejoue à l'identique depuis son hôpital, son numéro, la règle de l'infirmier et la suite des choix (`urgences-replay/1`) ; les 20 dernières sont gardées dans le navigateur, et se téléchargent.
+- **Les écarts, avec le recul** : à chaque choix, chaque patient qui pouvait entrer est essayé, puis la garde jouée jusqu'au bout sous l'échéance la plus proche, avec les vrais patients à venir ; l'écart est ce que le choix a coûté à lui seul. On voit aussi combien de choix ont suivi l'assistant. **Le recul connaît le vrai niveau des patients** : il préfère parfois un jaune à un orange (un jaune qui était plus grave) ; il dit où un choix a coûté, pas ce qu'on pouvait voir sur le moment. Les écarts ne s'additionnent pas : chacun suppose la suite jouée par la règle.
+- La comparaison des trois manières de jouer (seul, aidé, l'assistant seul) se fera sur plusieurs gardes jouées par Sami : c'est l'argument de la démonstration (feuille de route § 3).
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
 
 1. **Les mesures de nuit** — prêtes (23/10) : `night.json` à la racine du dépôt, à ajouter à la file de la machine par `mcts-backlog --add-file` (mcts-commun), puis à lancer par `mcts-backlog` ; (l'ordonnanceur en commun) : la recherche contre les règles sur des centaines de
    gardes, au coût du moment.
-2. **Les replays** : enregistrer les choix d'un humain qui coordonne la garde dans la page, les rejouer, et
-   comparer à chaque patient appelé ce que la recherche aurait fait. Puis l'humain seul, aidé par
-   l'assistant, l'assistant seul.
+2. **Les replays** — faits le 23/10 (« Jouer la garde vous-même », plus haut) ; reste à jouer plusieurs gardes de
+   chaque manière (seul, aidé, l'assistant seul) et à en tirer l'écart, l'argument de la démonstration.
 3. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`, comme l'entrepôt) ;
    un médecin ou un infirmier joué au clavier (Z Q S D et E, Sami), qui ajoute l'aléa d'un vrai joueur.
 4. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; et **revoir plus tôt**
