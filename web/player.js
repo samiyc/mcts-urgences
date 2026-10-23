@@ -25,6 +25,8 @@ export function createPlayer({ el, current, render, setBusy }) {
     }
   };
   const keep = (replay) => {
+    // Also to the project's replays/ folder, through the page server (out of git; nothing if no server takes it).
+    fetch("/api/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(replay) }).catch(() => {});
     try {
       localStorage.setItem(STORE, JSON.stringify([replay, ...load()].slice(0, KEPT)));
     } catch {
