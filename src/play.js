@@ -85,12 +85,14 @@ export function playReplay(replay, { onChoice = null } = {}) {
  * shift just before (that patient in, then the rest of the shift under `rule`, the earliest deadline by default, the
  * nurse under its rule, the real patients to come). Each choice is worth the shift's late cost at the level of the
  * moment (`lateCostNow`; lower is better); the person's own the same way, so the gap is only the choice's. The
- * assistant's pick at each choice is kept too, for how often person and assistant agree.
+ * assistant's pick at each choice is kept too, for how often person and assistant agree. A nurse played by the search
+ * is played in those rollouts by the rule of the most overdue (Sami's replays, 23/10: with the search re-deciding every
+ * look, the analysis of one shift ran for hours); the shift itself is replayed with its own nurse.
  * `{ choices: [{ index, now, chosen, best, gap, assistant, options: [{ id, colour, cost }] }], agreed, withAssistant, gap }`.
  */
 export function gapsOf(replay, { rule = RULES.deadline, assistant = true } = {}) {
   const choices = [];
-  const nurseRule = nurseRuleOf(replay.nurse);
+  const nurseRule = replay.nurse === "search" ? NURSE_RULES.overdue : nurseRuleOf(replay.nurse);
   const costAfter = (before, id) => {
     const shift = cloneShift(before);
     if (id === HOLD) hold(shift);
