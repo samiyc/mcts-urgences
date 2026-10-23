@@ -249,6 +249,28 @@ d'attente, `T` le tri, `D` la salle des médecins, `b` le lit d'un box (autant d
 - Le plan sert d'abord à **voir et à jouer**. Les règles s'y comparent sur les mêmes gardes, mais le coût
   absolu dépend du dessin du plan.
 
+## Les premières parties de Sami (23/10 au soir)
+
+Quatre parties, toutes dans l'hôpital moyen pendant l'accident ; le coût du retard au niveau du moment (moins, c'est mieux). Les écarts avec le recul rejouent la suite sous l'échéance la plus proche ; quand la recherche joue l'infirmier, ces rejeux le jouent par la règle du plus en retard (sinon l'analyse d'une garde durait des heures, `89f5ccf`).
+
+**Les deux gardes jouées sur la page (les choix de box) :**
+
+| | Sami | couleur | échéance | assistant seul |
+|---|---|---|---|---|
+| garde 3, aidé, l'infirmier joué par la recherche | 27 715 | 21 265 | 22 125 | **8 752** |
+| garde 1, seul, sans infirmier | 44 044 | 40 686 | **27 075** | 31 945 |
+
+- **Sami joue surtout la couleur** : comme la règle couleur 47 choix sur 74 (aidé) et 57 sur 66 (seul) ; comme l'assistant 24 fois sur 74. C'est la règle qui perd pendant un accident au coût du moment (« Les premières mesures de nuit »).
+- **Ses choix les plus coûteux se ressemblent** : un rouge ou un orange qui vient d'arriver, quand l'assistant propose un vert ou un jaune qui attend depuis longtemps (13h00 : le n°47 rouge plutôt que le n°28 vert, +7 243). Les écarts se concentrent de 9 h à 14 h, juste après l'arrivée des victimes.
+- **Aidé, il fait moins bien que la couleur seule** : suivre l'assistant une fois sur trois ne marche pas, son plan suppose qu'on le suit ensuite.
+- Le recul connaît le vrai niveau des patients : il dit où un choix a coûté, pas ce qu'on voyait sur le moment.
+
+**Le médecin au clavier sur le plan (garde 1)** : Sami 84 567, un médecin robot à sa place 59 078 (+43 %). Un patient que la règle lui envoie attend en moyenne **30 min** au lit avant son examen (70 au plus), 1,8 min avec un robot : 331 min de garde avec un patient à lui qu'il n'avait pas rejoint, 11 examens. La page envoie un patient au médecin humain comme à un robot, et seule la ligne d'état le dit.
+
+**L'infirmier de tri au clavier sur le plan (garde 1)** : Sami **58 680**, sans infirmier 59 078, l'infirmier robot du tour de salle 67 664, celui du plus en retard 70 296. Il bat les deux robots avec deux fois moins de réévaluations (71 contre 141), et trouve 21 bracelets faux ou aggravés (cinq verts en fait rouges). Mais il fait à peine mieux que personne : sous la règle couleur, un patient revu plus grave passe devant et les autres s'aggravent, la règle des box gâche ce que l'infirmier apprend (déjà vu le 22/10, « La réévaluation »).
+
+**Sami (23/10)** : la garde lui plaît pour la prise de choix ; sur le plan, il n'est pas encore sûr des objectifs.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
