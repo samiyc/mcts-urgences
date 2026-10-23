@@ -93,3 +93,5 @@ main { padding-bottom: 40px; }
 .plan .stay { fill: var(--line); }
 .plan .stay-done.exam { fill: var(--accent); }
 .plan .stay-done.care { fill: color-mix(in srgb, var(--accent) 45%, var(--panel)); }
+.masthead .links { margin: 0 0 4px; font-size: 0.9rem; }
+.masthead .links a { color: var(--accent); }

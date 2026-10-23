@@ -185,9 +185,14 @@ page montre le bracelet tel qu'il était à chaque minute. Les résultats n'ont 
 
 ## La suite
 
-1. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; les tableaux plus haut
-   seraient alors refaits sur cette mesure.
-2. **Revoir plus tôt** (`recheck` à 10-15 min) pour rattraper les erreurs du tri, là où l'omnisciente
-   gagnait, et des règles d'infirmier qui visent les bracelets les plus douteux (les verts arrivés en
-   ambulance, par exemple).
-3. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`).
+Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
+
+1. **Les mesures de nuit** (l'ordonnanceur en commun) : la recherche contre les règles sur des centaines de
+   gardes, au coût du moment.
+2. **Les replays** : enregistrer les choix d'un humain qui coordonne la garde dans la page, les rejouer, et
+   comparer à chaque patient appelé ce que la recherche aurait fait. Puis l'humain seul, aidé par
+   l'assistant, l'assistant seul.
+3. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`, comme l'entrepôt) ;
+   un médecin ou un infirmier joué au clavier (Z Q S D et E, Sami), qui ajoute l'aléa d'un vrai joueur.
+4. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; et **revoir plus tôt**
+   (`recheck` à 10-15 min) pour rattraper les erreurs du tri.

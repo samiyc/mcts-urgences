@@ -1,0 +1,16 @@
+.changelog { max-width: 980px; margin: 0 auto; padding: 0 16px 40px; }
+.changelog section { margin: 0 0 28px; }
+.changelog h2 { font-size: 1.15rem; margin: 18px 0 8px; }
+.version { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+.version h3 { font-size: 1rem; margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.version .tag { background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 7px; font-size: 0.85rem; }
+.version .date { color: var(--ink-2); font-weight: 400; font-size: 0.85rem; margin-left: auto; }
+.version ul { margin: 4px 0; padding-left: 20px; }
+.version li { margin: 3px 0; line-height: 1.45; }
+.version .commits { margin: 4px 0 0; font-size: 0.8rem; color: var(--ink-2); }
+.changelog table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+.changelog th, .changelog td { border-bottom: 1px solid var(--line); padding: 5px 8px; text-align: left; }
+.changelog th.num, .changelog td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.changelog .scroll { overflow-x: auto; }
+.masthead .links { margin: 0 0 4px; font-size: 0.9rem; }
+.masthead .links a { color: var(--accent); }

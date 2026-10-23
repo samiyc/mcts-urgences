@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Journal des versions</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="changelog.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <p class="links"><a href="index.html">← les urgences</a></p>
+      <h1>Urgences en garde : journal des versions</h1>
+      <p>Des patients arrivent avec une couleur de tri qui estime leur gravité ; une recherche (ISMCTS) choisit qui passe, en imaginant leur gravité réelle et les arrivées à venir.</p>
+    </header>
+    <main class="changelog">
+      <section>
+        <h2>Ce que gagne la recherche (ISMCTS)</h2>
+        <p class="hint">Coût d'une garde (l'attente pondérée par la gravité au moment où le patient attend ; moins, c'est mieux), 40 gardes tirées par paires, avec la réévaluation par une infirmière de tri (22/10 au soir, docs/modele.md). L'intervalle est celui de l'écart sur la couleur, à 95 %.</p>
+        <div class="scroll"><table>
+          <thead><tr><th>Règle ou recherche</th><th class="num">jour ordinaire</th><th class="num">accident</th><th class="num">gain sur la couleur pendant l'accident</th></tr></thead>
+          <tbody>
+          <tr><td>la couleur</td><td class="num">4 486</td><td class="num">69 471</td><td class="num">—</td></tr>
+          <tr><td>l'échéance la plus proche</td><td class="num">3 147</td><td class="num">61 419</td><td class="num">+8 051 (+5 117 à +10 986)</td></tr>
+          <tr><td>l'échéance + le plus en retard</td><td class="num"><strong>2 481</strong></td><td class="num">64 597</td><td class="num">+4 873 (+1 570 à +8 177)</td></tr>
+          <tr><td><strong>la recherche</strong></td><td class="num">2 578</td><td class="num"><strong>49 625</strong></td><td class="num"><strong>+19 845 (+14 581 à +25 110)</strong>, 38 gardes sur 40</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+      <section>
+        <h2>Les versions</h2>
+
+      <article class="version">
+        <h3><span class="tag">0.5</span> La garde, minute par minute <span class="date">23/10</span></h3>
+        <ul>
+          <li>Le plan animé de la garde : l'entrée et ses ambulances, la salle d'attente, les box, les soignants, les patients qui s'aggravent en attendant.</li>
+        </ul>
+        <p class="commits"><code>2565340</code></p>
+      </article>
+
+      <article class="version">
+        <h3><span class="tag">0.4</span> La comparaison dans des workers <span class="date">23/10</span></h3>
+        <ul>
+          <li>La comparaison avec la recherche joue ses gardes côte à côte, sur tous les cœurs moins deux : environ 11 s pour 12 gardes.</li>
+        </ul>
+        <p class="commits"><code>d903bcc</code> <code>7efacf5</code></p>
+      </article>
+
+      <article class="version">
+        <h3><span class="tag">0.3</span> La réévaluation et le coût du moment <span class="date">22/10, soir</span></h3>
+        <ul>
+          <li>Une infirmière de tri revoit les patients en attente ; la gravité se compte au moment où l'on attend. Pendant un accident, la recherche fait alors 49 625 contre 69 471 pour la couleur.</li>
+        </ul>
+        <p class="commits"><code>fbd3af6</code></p>
+      </article>
+
+      <article class="version">
+        <h3><span class="tag">0.2</span> La recherche <span class="date">22/10</span></h3>
+        <ul>
+          <li>La recherche (ISMCTS) sur des mondes communs ; ce qu'il faudrait savoir pour faire mieux (les vrais niveaux des patients présents).</li>
+        </ul>
+        <p class="commits"><code>fb0f7ff</code> <code>3877dac</code></p>
+      </article>
+
+      <article class="version">
+        <h3><span class="tag">0.1</span> La garde, ses règles et sa page <span class="date">22/10</span></h3>
+        <ul>
+          <li>Un simulateur de garde, trois règles de référence (l'arrivée, la couleur, l'échéance), et la page.</li>
+        </ul>
+        <p class="commits"><code>9cce8cb</code> <code>6cd69d4</code> <code>f6f7e20</code></p>
+      </article>
+      </section>
+      <p class="hint">Le détail de chaque version, ses chiffres et ses erreurs corrigées, est dans <code>docs/modele.md</code> du dépôt mcts-urgences.</p>
+    </main>
+  </body>
+</html>
