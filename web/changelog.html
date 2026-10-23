@@ -16,19 +16,38 @@
     <main class="changelog">
       <section>
         <h2>Ce que gagne la recherche (ISMCTS)</h2>
-        <p class="hint">Coût d'une garde (l'attente pondérée par la gravité au moment où le patient attend ; moins, c'est mieux), 40 gardes tirées par paires, avec la réévaluation par une infirmière de tri (22/10 au soir, docs/modele.md). L'intervalle est celui de l'écart sur la couleur, à 95 %.</p>
+        <p class="hint">Coût d'une garde au niveau du moment (l'attente pondérée par la gravité qu'a le patient pendant qu'il attend ; moins, c'est mieux), 200 gardes tirées par situation, mêmes patients pour toutes les règles, la recherche notée à ce coût (npm run compare -- --search --now). Mesures de nuit du 23/10 au soir, jouées par l'ordonnanceur commun (mcts-backlog). La dernière colonne : l'écart de la recherche sur l'ordre d'arrivée, à 95 %.</p>
         <div class="scroll"><table>
-          <thead><tr><th>Règle ou recherche</th><th class="num">jour ordinaire</th><th class="num">accident</th><th class="num">gain sur la couleur pendant l'accident</th></tr></thead>
+          <thead><tr><th>Situation</th><th class="num">l'arrivée</th><th class="num">la couleur</th><th class="num">l'échéance</th><th class="num">la recherche</th><th class="num">recherche contre l'arrivée</th></tr></thead>
           <tbody>
-          <tr><td>la couleur</td><td class="num">4 486</td><td class="num">69 471</td><td class="num">—</td></tr>
-          <tr><td>l'échéance la plus proche</td><td class="num">3 147</td><td class="num">61 419</td><td class="num">+8 051 (+5 117 à +10 986)</td></tr>
-          <tr><td>l'échéance + le plus en retard</td><td class="num"><strong>2 481</strong></td><td class="num">64 597</td><td class="num">+4 873 (+1 570 à +8 177)</td></tr>
-          <tr><td><strong>la recherche</strong></td><td class="num">2 578</td><td class="num"><strong>49 625</strong></td><td class="num"><strong>+19 845 (+14 581 à +25 110)</strong>, 38 gardes sur 40</td></tr>
+          <tr><td>hôpital moyen, jour ordinaire</td><td class="num">2 113</td><td class="num">2 007</td><td class="num">1 416</td><td class="num"><strong>1 255</strong></td><td class="num">+858 (+697 à +1 019)</td></tr>
+          <tr><td>hôpital moyen, accident</td><td class="num"><strong>39 318</strong></td><td class="num">56 196</td><td class="num">51 193</td><td class="num">39 626</td><td class="num">−309 (−1 769 à +1 151)</td></tr>
+          <tr><td>hôpital de proximité, accident</td><td class="num">98 347</td><td class="num">119 693</td><td class="num">116 749</td><td class="num"><strong>95 803</strong></td><td class="num">+2 544 (+429 à +4 660)</td></tr>
+          <tr><td>grand CHU, accident</td><td class="num">9 810</td><td class="num">13 147</td><td class="num">7 470</td><td class="num"><strong>6 921</strong></td><td class="num">+2 889 (+2 467 à +3 312)</td></tr>
           </tbody>
         </table></div>
       </section>
       <section>
         <h2>Les versions</h2>
+
+      <article class="version">
+        <h3><span class="tag">0.8</span> Le service en plan, un soignant au clavier <span class="date">23/10, soir</span></h3>
+        <ul>
+          <li>La garde sur un plan du service où patients et soignants marchent (6 s par case) : l'examen commence quand le patient et le médecin sont au lit.</li>
+          <li>Vous jouez un médecin (E au lit d'un box ; le patient d'un collègue pas encore commencé, et vous échangez) ou l'infirmier de tri (E à côté d'un patient à revoir), avec Z Q S D ; à la fin, la même garde avec un robot à votre place.</li>
+          <li>La marche coûte : hôpital moyen pendant l'accident, 62 261 sans marche, 73 900 sur le plan (la couleur, 20 gardes).</li>
+        </ul>
+        <p class="commits"><code>8002bbc</code></p>
+      </article>
+
+      <article class="version">
+        <h3><span class="tag">0.7</span> Les mesures au niveau du moment <span class="date">23/10, soir</span></h3>
+        <ul>
+          <li>npm run compare -- --search --now : la recherche notée au coût du moment, et le tableau à ce coût ; 200 gardes par situation.</li>
+          <li>La couleur devient la pire règle pendant un accident ; la recherche est la meilleure, ou à égalité avec l'arrivée, partout.</li>
+        </ul>
+        <p class="commits"><code>7f5c91c</code></p>
+      </article>
 
       <article class="version">
         <h3><span class="tag">0.6</span> Jouer la garde soi-même <span class="date">23/10, soir</span></h3>

@@ -197,7 +197,17 @@ Dans la page, « Jouer la garde vous-même » : la personne décide qui entre da
 
 200 gardes par situation, le coût du retard **à l'arrivée** (la mesure de `npm run compare`), la recherche notée elle aussi à l'arrivée (son réglage par défaut) : jour ordinaire, hôpital moyen : couleur 1 039, échéance 965, **recherche 870** ; avec l'accident : moyen, couleur **20 914**, recherche 22 163 ; de proximité, couleur **37 549**, recherche 40 591 ; grand CHU, échéance 5 377, **recherche 5 035**.
 - Le jour ordinaire et le grand CHU : la recherche devant. Les accidents dans les petits hôpitaux : la couleur devant, comme le disait déjà la mesure du 22/10 avec la recherche notée à l'arrivée.
-- **À refaire** : `compare` ne sait pas encore noter la recherche au niveau du moment, sa meilleure version (la seule qui battait la couleur pendant l'accident, +19 845) ; il faudra une option `--now` et la colonne du coût au niveau du moment, puis relancer ces quatre mesures.
+- **Refait le soir même, au niveau du moment** (`npm run compare -- --search --now` : la recherche notée au coût du moment, sa meilleure version, et le tableau à ce coût ; 200 gardes par situation, jobs `urg-*-2026-10-23c`). Coût du moment, arrivée / couleur / échéance / **recherche** :
+
+| situation | arrivée | couleur | échéance | recherche | recherche contre l'arrivée (IC 95 %) |
+|---|---|---|---|---|---|
+| moyen, jour ordinaire | 2 113 | 2 007 | 1 416 | **1 255** | +858 (+697 à +1 019) |
+| moyen, accident | **39 318** | 56 196 | 51 193 | 39 626 | −309 (−1 769 à +1 151) |
+| proximité, accident | 98 347 | 119 693 | 116 749 | **95 803** | +2 544 (+429 à +4 660) |
+| grand CHU, accident | 9 810 | 13 147 | 7 470 | **6 921** | +2 889 (+2 467 à +3 312) |
+
+- **Au coût du moment, la couleur est la pire règle pendant un accident** : faire passer les rouges et les oranges laisse s'aggraver les jaunes qui attendent, et l'ordre d'arrivée fait bien mieux qu'elle (−17 000 dans l'hôpital moyen).
+- **La recherche est la meilleure ou à égalité avec la meilleure partout** : devant de 11 % un jour ordinaire, de 3 % à l'hôpital de proximité, de 7 % au grand CHU (sur l'échéance), à égalité avec l'arrivée dans l'hôpital moyen. Elle ne perd plus nulle part, alors qu'à l'arrivée la couleur la battait dans les petits hôpitaux.
 
 ## Le service en plan, un soignant au clavier (23/10 au soir, Sami : l'étape 3)
 
@@ -243,7 +253,7 @@ d'attente, `T` le tri, `D` la salle des médecins, `b` le lit d'un box (autant d
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
 
-1. **Les mesures de nuit** — prêtes (23/10) : `night.json` à la racine du dépôt, à ajouter à la file de la machine par `mcts-backlog --add-file` (mcts-commun), puis à lancer par `mcts-backlog` ; (l'ordonnanceur en commun) : la recherche contre les règles sur des centaines de
+1. **Les mesures de nuit** — faites le 23/10 au soir, au coût du moment (plus haut) : `night.json` à la racine du dépôt, à ajouter à la file de la machine par `mcts-backlog --add-file` (mcts-commun), puis à lancer par `mcts-backlog` ; (l'ordonnanceur en commun) : la recherche contre les règles sur des centaines de
    gardes, au coût du moment.
 2. **Les replays** — faits le 23/10 (« Jouer la garde vous-même », plus haut) ; reste à jouer plusieurs gardes de
    chaque manière (seul, aidé, l'assistant seul) et à en tirer l'écart, l'argument de la démonstration.
