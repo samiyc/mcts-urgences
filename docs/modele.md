@@ -199,6 +199,46 @@ Dans la page, « Jouer la garde vous-même » : la personne décide qui entre da
 - Le jour ordinaire et le grand CHU : la recherche devant. Les accidents dans les petits hôpitaux : la couleur devant, comme le disait déjà la mesure du 22/10 avec la recherche notée à l'arrivée.
 - **À refaire** : `compare` ne sait pas encore noter la recherche au niveau du moment, sa meilleure version (la seule qui battait la couleur pendant l'accident, +19 845) ; il faudra une option `--now` et la colonne du coût au niveau du moment, puis relancer ces quatre mesures.
 
+## Le service en plan, un soignant au clavier (23/10 au soir, Sami : l'étape 3)
+
+La même garde (les mêmes patients, examens, séjours, aggravations et réévaluations), mais **sur un plan du
+service où l'on marche** (`src/plans.js`, `src/ward.js`, pur et testé ; `web/ward-panel.js` dessine). Un plan
+par hôpital, en texte comme ceux de l'entrepôt : `#` un mur, `E` l'entrée, `w` une chaise de la salle
+d'attente, `T` le tri, `D` la salle des médecins, `b` le lit d'un box (autant de lits que de box).
+- **Une case, c'est quelques mètres, et un pas 6 s de garde.** Les gens se croisent dans les couloirs (pas de
+  réservations comme pour les robots de l'entrepôt). Le patient marche de l'entrée à une chaise, puis, une fois
+  appelé, jusqu'au lit ; **l'examen commence quand le patient et le médecin sont tous les deux au lit**, et
+  l'attente compte jusque-là. L'infirmier marche jusqu'au patient pour le réévaluer.
+- **Qui entre en box reste la règle de la page**, comme sans plan. Le médecin envoyé est le libre le plus
+  proche du lit. La recherche, elle, voit la garde sans marche : les patients appelés y commencent quand le
+  plus lent des deux est arrivé au lit.
+- **Au clavier** (Z Q S D ou les flèches, et E), on joue :
+  - **un médecin** : E au lit d'un box pour examiner le patient qui y est couché. C'est le vôtre, ou celui
+    d'un collègue pas encore commencé, et vous échangez alors vos patients ;
+  - **ou l'infirmier de tri** : E à côté d'un patient qui attend depuis 30 min, pour le réévaluer.
+  - Le médecin qui ne vient pas laisse son patient attendre. C'est l'aléa d'un vrai joueur que Sami voulait.
+    Au bout d'une nuit après la fin de la garde (12 h), un patient jamais examiné est compté vu à ce
+    moment-là.
+- **À la fin**, la garde contre la même, sur le même plan, avec un robot à votre place. Le replay
+  (`urgences-plan/1` : les réglages et les touches, chacune avec son pas) se rejoue à l'identique ; il est
+  gardé dans le navigateur et dans `replays/` (hors de git).
+
+**Ce que coûte la marche**, robots seuls, 20 gardes par case (coût au niveau du moment) :
+
+| | sans marche | sur le plan |
+|---|---|---|
+| hôpital moyen, jour ordinaire, couleur | 2 349 | 3 289 |
+| hôpital moyen, accident, couleur | 62 261 | 73 900 |
+| hôpital moyen, accident, arrivée | 44 612 | 54 920 |
+| grand CHU, accident, couleur | 11 429 | 19 433 |
+
+- Quelques minutes de marche par patient, et un médecin qui attend au lit que son patient arrive : la marche
+  pèse surtout là où le service tourne au plus juste (le grand CHU double).
+- L'hôpital de proximité, lui, est déjà débordé sans marche. Sur son plan, certaines gardes laissent des
+  patients jamais vus avant la nuit (8 sur 20 gardes un jour ordinaire, sous la couleur).
+- Le plan sert d'abord à **voir et à jouer**. Les règles s'y comparent sur les mêmes gardes, mais le coût
+  absolu dépend du dessin du plan.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
@@ -207,7 +247,6 @@ Les étapes communes aux trois dépôts sont dans la [feuille de route](https://
    gardes, au coût du moment.
 2. **Les replays** — faits le 23/10 (« Jouer la garde vous-même », plus haut) ; reste à jouer plusieurs gardes de
    chaque manière (seul, aidé, l'assistant seul) et à en tirer l'écart, l'argument de la démonstration.
-3. **L'hôpital en plan** : les salles, les couloirs, les déplacements (le module `grid`, comme l'entrepôt) ;
-   un médecin ou un infirmier joué au clavier (Z Q S D et E, Sami), qui ajoute l'aléa d'un vrai joueur.
+3. **L'hôpital en plan** — fait le 23/10 au soir (plus haut) ; reste à dessiner l'imagerie, le bloc et l'UHCD, et la salle d'attente qui déborde dans les couloirs.
 4. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; et **revoir plus tôt**
    (`recheck` à 10-15 min) pour rattraper les erreurs du tri.

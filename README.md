@@ -23,6 +23,10 @@ niveau réel (ce que personne ne voyait), puis les trois règles sur les mêmes 
 comparaison se fait sur 12 gardes, jouées côte à côte dans des *workers* (`web/shift-worker.js`, tous les cœurs
 sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul cœur (23/10/2026).
 
+**Le service en plan** (23/10 au soir) : la même garde sur un plan où patients et soignants marchent, et un
+médecin ou l'infirmier de tri joué au clavier (Z Q S D et E) ; à la fin, la garde contre la même avec un robot à
+votre place ([`docs/modele.md`](docs/modele.md), « Le service en plan »).
+
 ## Le problème
 
 - **Les ressources** : les box et les lits, les médecins et les infirmiers, les blocs opératoires, le

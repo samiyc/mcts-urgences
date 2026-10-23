@@ -6,6 +6,7 @@ import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
 import { act, courseOf, measuresOf, nextChoice, simulateShift, startShift } from "../src/simulate.js";
 import { createPlayer } from "./player.js";
+import { createWardPanel } from "./ward-panel.js";
 import { boxRows, clock, curvePath, sceneAt, sceneLine, scaleOf, summaryOf, waitingCurve, worstPatients } from "./view.js";
 
 /**
@@ -381,9 +382,21 @@ const player = createPlayer({
   },
 });
 
+/** The department on its plan (ward-panel.js): while a game is on it, it takes the page too. */
+const wardPanel = createWardPanel({
+  el,
+  svg,
+  current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse, rule: state.rule }),
+  render: () => render(),
+});
+
 function render() {
   if (!state.busy && player.playing()) {
     app.replaceChildren(controls(), player.view());
+    return;
+  }
+  if (wardPanel.active()) {
+    app.replaceChildren(controls(), wardPanel.view());
     return;
   }
   if (state.busy || !state.result) {
@@ -397,6 +410,7 @@ function render() {
     controls(),
     el("p", { class: "summary" }, summaryOf(measures)),
     player.view(),
+    wardPanel.view(),
     el("h2", {}, "La garde, minute par minute"),
     liveSection(),
     el("h2", {}, "Les box"),
@@ -427,7 +441,7 @@ const ACTIONS = {
 };
 
 app.addEventListener("change", (event) => {
-  if (player.change(event.target)) return;
+  if (player.change(event.target) || wardPanel.change(event.target)) return;
   const name = event.target.dataset?.knob;
   if (!name) return;
   if (name === "liveSpeed") {
@@ -448,8 +462,10 @@ app.addEventListener("input", (event) => {
   drawScene();
 });
 app.addEventListener("click", (event) => {
-  if (player.click(event.target)) return;
+  if (player.click(event.target) || wardPanel.click(event.target)) return;
   const action = event.target.closest?.("[data-action]")?.dataset.action;
   if (ACTIONS[action]) ACTIONS[action]();
 });
 refresh();
+// The keys of the caregiver played on the plan; a key in a form field is the field's.
+document.addEventListener("keydown", (event) => wardPanel.key(event));

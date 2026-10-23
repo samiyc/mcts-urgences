@@ -71,7 +71,12 @@ const HANDLERS = {
   wake(shift) {
     shift.wakeAt = null;
   },
+  /** The plan's clock (ward.js): a step of the shift walked minute by minute, nothing else. */
+  tick() {},
 };
+
+/** Applies one event of the queue to `shift`: the plan (ward.js) runs the queue itself, a step at a time. */
+export const handleEvent = (shift, event) => HANDLERS[event.type](shift, shift.patients.get(event.id));
 
 /** The start of a shift: `patients` (scenario.js, `drawShift`) to come, every box and doctor free. */
 export function startShift(patients, overrides = {}) {
