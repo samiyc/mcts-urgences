@@ -192,6 +192,13 @@ Dans la page, « Jouer la garde vous-même » : la personne décide qui entre da
 - **Les écarts, avec le recul** : à chaque choix, chaque patient qui pouvait entrer est essayé, puis la garde jouée jusqu'au bout sous l'échéance la plus proche, avec les vrais patients à venir ; l'écart est ce que le choix a coûté à lui seul. On voit aussi combien de choix ont suivi l'assistant. **Le recul connaît le vrai niveau des patients** : il préfère parfois un jaune à un orange (un jaune qui était plus grave) ; il dit où un choix a coûté, pas ce qu'on pouvait voir sur le moment. Les écarts ne s'additionnent pas : chacun suppose la suite jouée par la règle.
 - La comparaison des trois manières de jouer (seul, aidé, l'assistant seul) se fera sur plusieurs gardes jouées par Sami : c'est l'argument de la démonstration (feuille de route § 3).
 
+
+## Les premières mesures de nuit (23/10 au soir, mcts-backlog)
+
+200 gardes par situation, le coût du retard **à l'arrivée** (la mesure de `npm run compare`), la recherche notée elle aussi à l'arrivée (son réglage par défaut) : jour ordinaire, hôpital moyen : couleur 1 039, échéance 965, **recherche 870** ; avec l'accident : moyen, couleur **20 914**, recherche 22 163 ; de proximité, couleur **37 549**, recherche 40 591 ; grand CHU, échéance 5 377, **recherche 5 035**.
+- Le jour ordinaire et le grand CHU : la recherche devant. Les accidents dans les petits hôpitaux : la couleur devant, comme le disait déjà la mesure du 22/10 avec la recherche notée à l'arrivée.
+- **À refaire** : `compare` ne sait pas encore noter la recherche au niveau du moment, sa meilleure version (la seule qui battait la couleur pendant l'accident, +19 845) ; il faudra une option `--now` et la colonne du coût au niveau du moment, puis relancer ces quatre mesures.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
