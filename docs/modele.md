@@ -271,6 +271,14 @@ Quatre parties, toutes dans l'hôpital moyen pendant l'accident ; le coût du re
 
 **Sami (23/10)** : la garde lui plaît pour la prise de choix ; sur le plan, il n'est pas encore sûr des objectifs.
 
+## La page (23/10, tard)
+
+**Le recul plus rapide** (`89f5ccf`) : quand la recherche joue l'infirmier, les rejeux avec le recul le jouent par la règle du plus en retard ; l'analyse d'une garde passe de plusieurs heures à 8 s (la garde elle-même se rejoue avec son vrai infirmier).
+
+**Les replays rangés seuls** (Sami, 23/10 au soir) : chaque partie gardée par la page est aussi envoyée au serveur de la page (`POST /api/replays` de mcts-commun), qui l'écrit dans `replays/`, hors de git (comme `replays/` dans Lopin). Un serveur lancé avant cette version répond 404 : il faut relancer `npm run page`.
+
+**L'allure** (Sami, 23/10, tard) : la page prend l'allure commune des projets (`mcts-commun/web/theme.css`, dans l'esprit de Lopin) : un bandeau dans la couleur de l'application, les réglages en carte, les sections pliables bien visibles (une barre, un chevron qui tourne, « Ouvrir / Fermer »), les tableaux et le thème sombre. Ici, rouge et blanc, comme une croix-rouge, avec une croix rouge sur un carré blanc devant le titre.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
