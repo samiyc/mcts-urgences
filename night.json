@@ -1,0 +1,9 @@
+{
+  "about": "Les mesures de nuit des urgences (Sami, 23/10/2026) : la recherche contre les règles, 200 gardes par situation. Une par situation, un fil chacune : mcts-backlog --add-file mcts-urgences/night.json, puis mcts-backlog.",
+  "jobs": [
+    { "id": "urg-moyen", "command": "npm run compare -- --hopital moyen --shifts 200 --search", "estimate": "10 min" },
+    { "id": "urg-moyen-accident", "command": "npm run compare -- --hopital moyen --shifts 200 --accident --search", "estimate": "15 min" },
+    { "id": "urg-proximite-accident", "command": "npm run compare -- --hopital proximite --shifts 200 --accident --search", "estimate": "15 min" },
+    { "id": "urg-chu-accident", "command": "npm run compare -- --hopital chu --shifts 200 --accident --search", "estimate": "20 min" }
+  ]
+}

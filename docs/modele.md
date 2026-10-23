@@ -187,7 +187,7 @@ page montre le bracelet tel qu'il était à chaque minute. Les résultats n'ont 
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
 
-1. **Les mesures de nuit** (l'ordonnanceur en commun) : la recherche contre les règles sur des centaines de
+1. **Les mesures de nuit** — prêtes (23/10) : `night.json` à la racine du dépôt, à ajouter à la file de la machine par `mcts-backlog --add-file` (mcts-commun), puis à lancer par `mcts-backlog` ; (l'ordonnanceur en commun) : la recherche contre les règles sur des centaines de
    gardes, au coût du moment.
 2. **Les replays** : enregistrer les choix d'un humain qui coordonne la garde dans la page, les rejouer, et
    comparer à chaque patient appelé ce que la recherche aurait fait. Puis l'humain seul, aidé par
