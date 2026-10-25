@@ -279,6 +279,86 @@ Quatre parties, toutes dans l'hôpital moyen pendant l'accident ; le coût du re
 
 **L'allure** (Sami, 23/10, tard) : la page prend l'allure commune des projets (`mcts-commun/web/theme.css`, dans l'esprit de Lopin) : un bandeau dans la couleur de l'application, les réglages en carte, les sections pliables bien visibles (une barre, un chevron qui tourne, « Ouvrir / Fermer »), les tableaux et le thème sombre. Ici, rouge et blanc, comme une croix-rouge, avec une croix rouge sur un carré blanc devant le titre.
 
+## Le parcours détaillé, étape 1 (25/10, Sami)
+
+Sami veut suivre chaque patient « comme dans un vrai hôpital » : plus de rôles, plus de pièces, les ressources rares
+au-delà des lits. Les recherches sont dans [`docs/recherche/`](recherche/README.md), et les six étapes dans sa
+[feuille de route](recherche/feuille-de-route.md). **Le parcours vient à côté de la garde simple** : `simulate.js`,
+`ward.js`, la page et leurs mesures ne changent pas.
+
+**Ce qu'il simule** (`src/pathway.js`, `src/pathway-scenario.js`, et les nombres dans `src/pathway-hypotheses.js`) :
+- **une journée de 24 h à partir de 8 h**, puis jusqu'à un jour de plus pour les patients encore là ;
+- les arrivées suivent l'heure : peu la nuit, un pic l'après-midi. Le taux moyen de 8 h à 16 h est celui de la
+  garde simple, et un médecin de renfort vient de 10 h à 22 h ;
+- le patient passe par toutes les étapes :
+  - l'inscription, puis le tri par l'IOA ;
+  - l'attente d'une place et d'un médecin : la SAUV pour un rouge, la chambre d'isolement, sinon un box ;
+  - l'examen, puis les examens de son parcours caché : la biologie (prélèvement, puis 70 min de rendu), le
+    scanner (un patient à la fois), l'avis d'un spécialiste d'astreinte ;
+  - la lecture des résultats par un médecin, puis les soins ;
+  - la sortie : le domicile, l'UHCD, un lit d'aval, le bloc, un transfert ;
+- un patient valide, trié 3 à 5, attend ses résultats assis, et rend son box ;
+- **le boarding** : un patient à hospitaliser sans lit garde son box, ou passe en UHCD si une place y est libre ;
+- les lits d'aval se libèrent par service, surtout vers midi ;
+- un patient trié 3 à 5 peut partir sans être vu ;
+- le 15 envoie ailleurs les ambulances non rouges tant que 20 patients attendent une place ;
+- **deux décisions sont laissées à une règle** : qui prend la place et le médecin libres (les règles de
+  `rules.js`), et qui prend le lit qu'un service libère (`BED_RULES` : la décision la plus ancienne, celui qui tient
+  un box, les 75 ans et plus d'abord).
+
+**Un jour ordinaire face à la DREES** : 50 journées, hôpital moyen, règle couleur.
+
+| | le parcours | la DREES, enquête 2023 |
+|---|---|---|
+| patients par jour | 127 | — |
+| délai avant le tri, médiane | 8 min | 8 min |
+| tri à plus de 30 min | 1 % | 11 % |
+| durée de passage, médiane | 2 h 16 | 3 h 10 |
+| sortis en moins de 4 h | 81 % | — |
+| résultats lus, médiane après la demande | 83 min | troponine rendue en 81 min |
+| hospitalisés, bloc ou transfert | 20 % | 16 % hospitalisés |
+| partis sans être vus | 0,7 % | 3,4 % |
+
+- Le modèle va un peu plus vite que la France de 2023 : son jour ordinaire est moins chargé, et ses lits plus
+  nombreux qu'un grand hôpital.
+- La ressource la plus occupée est **l'UHCD** (66 % en moyenne) ; les box le sont à 33 % sur la journée, nuit
+  comprise.
+
+**Les règles sur les mêmes journées** (`node scripts/pathway-compare.js`, 50 journées) :
+
+| | coût au moment | partis | pic en attente | attente max d'un rouge ou orange | sortis en < 4 h |
+|---|---|---|---|---|---|
+| jour ordinaire, ordre d'arrivée | 3 854 | 0,1 | 7,0 | 50 min | 82 % |
+| jour ordinaire, couleur | 2 943 | 0,9 | 7,8 | 37 min | 81 % |
+| jour ordinaire, échéance | **2 533** | 0,4 | 7,7 | 36 min | 81 % |
+| accident, ordre d'arrivée | 41 742 | **3,1** | 19,8 | 175 min | 59 % |
+| accident, couleur | 42 188 | 14,6 | 24,4 | **105 min** | 57 % |
+| accident, échéance | **40 187** | 9,0 | 23,5 | 149 min | 49 % |
+
+- **Un jour ordinaire, l'échéance gagne**, comme dans la garde simple : + 1 322 sur l'ordre d'arrivée (de 230 à
+  2 413).
+- **Pendant l'accident, aucune règle ne se détache au coût du moment** : les intervalles se chevauchent tous. Mais
+  les max montrent ce que la moyenne cache :
+  - la couleur prend les rouges et les oranges plus vite (105 min au pire, contre 175 à l'ordre d'arrivée) ;
+  - mais elle fait partir **cinq fois plus** de patients sans être vus (14,6 contre 3,1 par journée) : les verts
+    attendent jusqu'à bout de patience ;
+  - c'est ce que Sami voulait voir avec les indicateurs max.
+- **Les règles du lit ne changent pas le coût au moment** : il compte l'attente avant l'examen, et les patients en
+  attente de lit passent surtout en UHCD. Elles déplacent le boarding (le maximum, les 75 ans et plus la nuit) ;
+  c'est la mesure de l'étape 6, quand la recherche décidera aussi des lits.
+
+**Les tests** (`tests/pathway.test.js`) vérifient :
+- le tirage est le même d'une graine à l'autre ;
+- tout patient sort par l'une des sorties ;
+- une place n'est jamais prise au-delà de sa capacité, sinon le code lève une erreur ;
+- les examens et leur lecture ;
+- le boarding qui garde le box, et l'UHCD qui le libère ;
+- un patient sans lit encore là à la fin ;
+- les départs sans être vu, et les ambulances envoyées ailleurs ;
+- les règles du lit ;
+- la règle ne voit jamais le vrai niveau ;
+- les pics et les max.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).
@@ -290,3 +370,6 @@ Les étapes communes aux trois dépôts sont dans la [feuille de route](https://
 3. **L'hôpital en plan** — fait le 23/10 au soir (plus haut) ; reste à dessiner l'imagerie, le bloc et l'UHCD, et la salle d'attente qui déborde dans les couloirs.
 4. **Choisir le score principal** : le coût au niveau du moment, si Sami le valide ; et **revoir plus tôt**
    (`recheck` à 10-15 min) pour rattraper les erreurs du tri.
+5. **Le parcours détaillé** — l'étape 1 est faite le 25/10 (plus haut) ; les cinq autres sont dans la
+   [feuille de route du parcours](recherche/feuille-de-route.md) : le plan détaillé, l'interne au clavier, la
+   fatigue et les pauses, le replay d'ensemble, la recherche sur le parcours.

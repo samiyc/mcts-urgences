@@ -1,0 +1,125 @@
+import { ACCIDENT, DEFAULTS, HOSPITALS } from "./hypotheses.js";
+
+/**
+ * Every number of the detailed pathway (Sami, 25/10/2026, docs/recherche/), in one place, over the simple shift's
+ * (hypotheses.js). A figure with a source cites docs/recherche/ (DREES: the Urgences 2023 survey, a weekday in
+ * June); the others are **hypotheses**, round figures for a plausible department, not medical data. Times are in
+ * minutes, `t = 0` being `startHour` o'clock.
+ */
+export const PATHWAY_DEFAULTS = Object.freeze({
+  ...DEFAULTS,
+  /** A day from 8 a.m. (the survey's day), and up to a day more for the patients still there (then counted as still there). */
+  startHour: 8,
+  shift: 1440,
+  overtime: 1440,
+  /**
+   * Arrivals by hour of the day, around the mean rate: low at night, a peak in the afternoon and the early evening
+   * (DREES ER 1373, graph 2, for the shape; the figures are a hypothesis). Scaled so that the mean from 8 h to 16 h
+   * is the simple shift's rate (pathway-scenario.js).
+   */
+  hourly: Object.freeze([0.45, 0.35, 0.3, 0.28, 0.28, 0.32, 0.5, 0.8, 1.15, 1.35, 1.45, 1.45, 1.4, 1.4, 1.4, 1.35, 1.3, 1.3, 1.3, 1.25, 1.1, 0.95, 0.8, 0.6]),
+  /**
+   * A doctor more by day, from 10 h to 22 h, when most patients come (hypothesis: departments staff to their
+   * curve; without it, the afternoon peak saturates the doctors that a flat day keeps 80 % busy).
+   */
+  dayDoctors: Object.freeze({ from: 10, to: 22, extra: 1 }),
+  /** How many of each: the medium hospital (12 boxes, 4 doctors), the others scaled on their boxes (`pathwaySettingsOf`). */
+  capacity: Object.freeze({ reception: 1, ioa: 1, sauv: 2, isolation: 1, uhcd: 6, scanner: 1, theatre: 1, specialists: 2 }),
+  /** Registration (DREES: 80 % within 5 min), triage (hypothesis), the doctor reading the results (hypothesis). */
+  register: 2,
+  triage: 5,
+  review: 5,
+  /** Biology: the sample, then the lab's turnaround, a median (troponin: 81 min in 28 French centres, 60 aimed at; SFBC/SFMU). */
+  sample: 10,
+  labTurnaround: 70,
+  /** The scanner, transport included (hypothesis); a specialist's coming (on call at night) and advice (hypotheses). */
+  scan: 20,
+  adviceDelay: 45,
+  advice: 20,
+  /** A box made ready again; after a contagious or agitated patient (hypotheses). */
+  clean: 10,
+  cleanIsolated: 45,
+  /** An operation (hypothesis); a transfer to another hospital waits for its transport (hypothesis). */
+  theatre: 120,
+  transferDelay: 120,
+  /** The bed found, the patient leaves: the median is 25 min (DREES ER 1373). */
+  toBed: 25,
+  /** In the UHCD: half stay more than 11 h 55 (DREES ER 1372); this share then goes on to a ward (DREES: 4 % of 9 %). */
+  uhcdStay: 715,
+  uhcdThenWard: 0.45,
+  /** A patient waiting for a bed moves to the UHCD if a bed is free there, freeing their box (hypothesis: the usual practice). */
+  uhcdForBoarders: true,
+  /**
+   * The care once the results are read, in the place (hypothesis; the simple shift's `stay` held the box for the
+   * results as well, here they are their own steps).
+   */
+  care: Object.freeze({ 1: 60, 2: 45, 3: 30, 4: 10, 5: 5 }),
+  /** A patient who walked in and is triaged 3 to 5 waits for the results seated, freeing the box (hypothesis: the usual practice). */
+  seated: true,
+  /** A free doctor reads the results that are back before taking a new patient (hypothesis). */
+  reviewFirst: true,
+  /** What each true level needs (hypotheses; DREES ER 1372: 46 % of patients use the technical platform). */
+  needs: Object.freeze({
+    bio: Object.freeze({ 1: 0.95, 2: 0.9, 3: 0.65, 4: 0.25, 5: 0.05 }),
+    scan: Object.freeze({ 1: 0.7, 2: 0.5, 3: 0.3, 4: 0.08, 5: 0 }),
+    advice: Object.freeze({ 1: 0.5, 2: 0.35, 3: 0.15, 4: 0.03, 5: 0 }),
+  }),
+  /**
+   * Where each true level goes (hypotheses, set so that a day's mix gives about DREES's: 79 % home, 9 % UHCD,
+   * 16 % admitted, ER 1372 and 1373).
+   */
+  orientation: Object.freeze({
+    1: Object.freeze({ home: 0, uhcd: 0.05, ward: 0.45, theatre: 0.4, transfer: 0.1 }),
+    2: Object.freeze({ home: 0.35, uhcd: 0.2, ward: 0.38, theatre: 0.05, transfer: 0.02 }),
+    3: Object.freeze({ home: 0.72, uhcd: 0.12, ward: 0.15, theatre: 0.01, transfer: 0 }),
+    4: Object.freeze({ home: 0.93, uhcd: 0.05, ward: 0.02, theatre: 0, transfer: 0 }),
+    5: Object.freeze({ home: 1, uhcd: 0, ward: 0, theatre: 0, transfer: 0 }),
+  }),
+  /** The wards a patient may be admitted to, by true level (hypothesis). */
+  wardOf: Object.freeze({
+    1: Object.freeze({ reanimation: 0.6, chirurgie: 0.2, cardiologie: 0.2 }),
+    other: Object.freeze({ medecine: 0.55, chirurgie: 0.25, cardiologie: 0.2 }),
+  }),
+  /**
+   * The downstream beds of the medium hospital (hypotheses): free when the day starts, then freed over a day, most
+   * near midday (DREES ER 1373: wards free their beds late in the morning; a bed decided between 8 and 12 waits 55 min
+   * at the median, 10 min between 16 and 20).
+   */
+  wards: Object.freeze({
+    medecine: Object.freeze({ free: 2, perDay: 9 }),
+    chirurgie: Object.freeze({ free: 1, perDay: 4 }),
+    cardiologie: Object.freeze({ free: 1, perDay: 3 }),
+    reanimation: Object.freeze({ free: 1, perDay: 2 }),
+  }),
+  /** When the freed beds come: around this hour, with this spread (hours). */
+  bedHour: 12.5,
+  bedSpread: 1.5,
+  /** Patients to isolate, contagious or agitated (hypothesis: 3 %); patients of 75 or more, by true level (hypothesis). */
+  isolate: 0.03,
+  elderly: Object.freeze({ 1: 0.3, 2: 0.3, 3: 0.2, 4: 0.1, 5: 0.05 }),
+  /**
+   * Leaving without being seen (DREES: 3.4 % of patients, plus 0.6 % against advice): a patient triaged 3 to 5 may
+   * leave after a patience: a sure part, then an exponential one of this mean (hypotheses, set for a few per cent on
+   * an ordinary day; the longer the wait, the more leave, as every study finds).
+   */
+  patience: Object.freeze({ 3: 600, 4: 360, 5: 300 }),
+  patienceFloor: 120,
+  /** The 15 sends ambulances elsewhere (but not the red ones) while this many triaged patients wait for a place (hypothesis). */
+  divertAt: 20,
+});
+
+/** The pathway's settings for `hospital`, with the accident or not: the rates of hypotheses.js, the capacities scaled on its boxes. */
+export function pathwaySettingsOf({ hospital = "moyen", accident = false, ...overrides } = {}) {
+  const base = { ...PATHWAY_DEFAULTS, ...HOSPITALS[hospital] };
+  const scale = base.boxes / PATHWAY_DEFAULTS.boxes;
+  const scaled = (value) => Math.max(1, Math.round(value * scale));
+  return {
+    ...base,
+    capacity: Object.fromEntries(Object.entries(base.capacity).map(([name, value]) => [name, name === "reception" ? value : scaled(value)])),
+    wards: Object.fromEntries(Object.entries(base.wards).map(([name, ward]) => [name, { free: Math.round(ward.free * scale), perDay: ward.perDay * scale }])),
+    divertAt: Math.round(base.divertAt * scale),
+    dayDoctors: { ...base.dayDoctors, extra: Math.round(base.dayDoctors.extra * scale) },
+    ...(accident ? { crisis: ACCIDENT } : {}),
+    ...overrides,
+  };
+}

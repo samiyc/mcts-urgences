@@ -11,6 +11,9 @@ One of Sami's `mcts-*` repositories, created 22/10/2026, siblings in `E:\Dev\My 
 where the ISMCTS was built and measured). The plan and the reasons live in lopin's
 `docs/ismcts-ailleurs/` (`feuille-de-route.md` first).
 
+The detailed pathway (25/10/2026, `src/pathway*.js`), next to the simple shift and not replacing it: the research
+and its roadmap are in `docs/recherche/` (README first).
+
 ## Rules
 
 - **Prose docs are in French**, as the owner works; code, comments and identifiers are English.
