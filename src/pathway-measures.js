@@ -1,3 +1,4 @@
+import { BOARDING_COST } from "./pathway-hypotheses.js";
 import { hourAt } from "./pathway-scenario.js";
 import { POOLS } from "./pathway-places.js";
 import { sample } from "./pathway-timeline.js";
@@ -77,6 +78,21 @@ function boardingOf(day, admitted) {
     inBox: sum(admitted.map((patient) => patient.boxBoarding)),
     elderlyNights: admitted.filter((patient) => patient.elderly && nightMinutes(day.settings, patient.admitAt, patient.exitAt ?? day.clock) > 0).length,
   };
+}
+
+/**
+ * What the wait for a bed cost the day, as the search choosing beds or the HET scores it (BOARDING_COST, H51): a
+ * minute, and three for a patient of 75 or more at night (« No Bed Night »).
+ */
+export function boardingCostOf(day) {
+  let cost = 0;
+  for (const patient of day.patients.values()) {
+    if (patient.admitAt === null) continue;
+    const until = patient.exitAt ?? day.clock;
+    const night = patient.elderly ? nightMinutes(day.settings, patient.admitAt, until) : 0;
+    cost += BOARDING_COST.perMinute * (until - patient.admitAt + (BOARDING_COST.elderlyAtNight - 1) * night);
+  }
+  return cost;
 }
 
 const maxWaitOf = (day, seen) =>

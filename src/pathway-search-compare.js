@@ -1,5 +1,6 @@
 import { paired } from "mcts-commun/measure.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "./pathway.js";
+import { boardingCostOf } from "./pathway-measures.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
 import { BREAK_DECIDERS, DECIDED, fatigueMeasures } from "./pathway-fatigue.js";
 import { ALERT, FATIGUE, HET, INTERN } from "./pathway-hypotheses.js";
@@ -109,8 +110,9 @@ export function playAlertSearchDay({ seed, options, budget }) {
 export const HET_SEARCHED = Object.freeze(["never", "threshold", "search"]);
 
 /**
- * One day: each way of triggering the HET, its measures, the HET's (`het`), and the late cost with its beds at their
- * weight (`lateCostNow`, the cost the comparison reads; `lateCostOnly` without them).
+ * One day: each way of triggering the HET, its measures, the HET's (`het`), and the cost the comparison reads
+ * (`lateCostNow`): the late cost, the wait for a bed (Sami, 26/10: the HET is for the beds, as the search scores it)
+ * and its beds at their weight; `lateCostOnly` the late cost alone, `boardingCost` the wait for a bed.
  */
 export function playHetSearchDay({ seed, options, budget }) {
   const ruleOf = (name) => (name === "search" ? pathwaySearchHetRule({ budget }) : HET_RULES[name]);
@@ -119,7 +121,8 @@ export function playHetSearchDay({ seed, options, budget }) {
       const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, het: HET })), { box: RULES.colour, bed: BED_RULES.oldest, het: ruleOf(name) });
       const measures = pathwayMeasures(day);
       const het = hetMeasures(day);
-      return [name, { ...measures, lateCostOnly: measures.lateCostNow, lateCostNow: measures.lateCostNow + het.cost, het }];
+      const boardingCost = boardingCostOf(day);
+      return [name, { ...measures, lateCostOnly: measures.lateCostNow, boardingCost, lateCostNow: measures.lateCostNow + boardingCost + het.cost, het }];
     }),
   );
 }
