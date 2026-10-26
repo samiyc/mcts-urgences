@@ -490,6 +490,42 @@ contre prêtée, IC 95 %) :
 
 La chambre vide d'un jour ordinaire était une place perdue : la prêter vaut un box de plus, et plus encore quand le
 service déborde. Les empreintes du parcours ont changé (le parcours, la marche, l'interne, la fatigue, la recherche,
-l'épidémie) ; les mesures des sections d'avant datent du modèle sans prêt, et les mesures de la recherche sont à
-refaire avec lui (les jobs `parcours-pret-*` de `night.json`).
+l'épidémie) ; les mesures des sections d'avant datent du modèle sans prêt.
+
+**La recherche des box, avec la chambre prêtée** (200 journées, 100 itérations, les jobs `parcours-pret-*`) : un jour
+ordinaire, **2 189** contre 2 757 pour l'échéance (−21 %, +568, de +193 à +943) ; pendant l'accident, **20 114** contre
+31 648 (−36 %, +11 534, de +9 513 à +13 555). Le gain de la recherche tient avec le prêt.
+
+## L'hôpital en tension, le HET (26/10 au soir, Sami)
+
+**Le niveau avant le Plan blanc** (`src/pathway-het.js`, `HET`, H63 à H66). D'après l'ARS Nouvelle-Aquitaine, le HET
+répond à un manque de lits pour les hospitalisations, prévisible plus que soudain ; il engage tous les services, pas
+seulement les urgences, et vise à éviter le Plan blanc ([oublis.md](recherche/oublis.md)). Dans le modèle :
+- **la décision** : toutes les 15 min tant qu'il n'est pas déclenché, faut-il le déclencher ? Les règles : jamais, ou
+  au seuil (3 patients qui attendent un lit, pour 12 box, H66) ; et la recherche, sur 4 h ;
+- **ce qu'il fait** : les services s'organisent en 1 h, rendent 2 lits en reportant des admissions programmées (H63),
+  puis un lit de médecine toutes les 4 h jusqu'à la fin de la journée, par des sorties avancées (H64). Il ne rappelle
+  aucun médecin : cela reste le Plan blanc ;
+- **ce qu'il coûte** : chaque lit obtenu pèse 120, 7 min 30 de retard d'un rouge (H65).
+
+Sur la page, « L'hôpital en tension (HET) » de l'onglet Parcours détaillé, et un trait orange foncé sur la frise ; dans
+les scripts, `npm run pathway:search -- --het`.
+
+**Les mesures**, sur les mêmes 200 journées de l'hôpital moyen, à 50 itérations (le coût : le retard plus les lits
+obtenus à leur poids ; les jobs `parcours-het-*`) :
+
+| Journée | jamais | au seuil | la recherche | la recherche contre jamais (IC 95 %) | lits obtenus (seuil ; recherche) | attente d'un lit la plus longue (jamais ; recherche) |
+|---|---|---|---|---|---|---|
+| ordinaire | 3 051 | 3 062 | 3 099 | −48 (−301 à +205) | 0,9 ; 1,8 | 746 ; 627 min |
+| accident | 32 657 | 32 848 | 33 096 | **−439** (−486 à −393) | 1,7 ; 3,9 | 1 121 ; 1 004 min |
+| pic de l'épidémie | 8 288 | 7 836 | 7 581 | +706 (−191 à +1 603) | 2,6 ; 3,7 | 1 419 ; 1 227 min |
+
+- **Le seuil** déclenche tard, vers 1 h du matin en moyenne : les patients qui attendent un lit s'accumulent le soir.
+  Il ne sert qu'au pic de l'épidémie.
+- **La recherche** ne gagne rien de sûr. Pendant l'accident, elle coûte même plus que de ne jamais déclencher. Au pic
+  de l'épidémie, elle bat le seuil (+254, de +17 à +492), sans battre « jamais » de façon sûre.
+- **Pourquoi** : sa note compte aussi l'attente d'un lit des patients qui en attendent un, que la mesure ne compte pas.
+  Elle déclenche donc plus souvent, et raccourcit l'attente d'un lit la plus longue (de 1 121 à 1 004 min pendant
+  l'accident). Mais les lits obtenus coûtent plus que le retard qu'ils évitent. Le but du HET étant les lits, la mesure
+  devrait sans doute compter l'attente d'un lit, comme la note : c'est à décider.
 

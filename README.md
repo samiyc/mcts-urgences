@@ -22,8 +22,8 @@ gauche, qui se replie :
 - **Service en plan** : un soignant au clavier ;
 - **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, une saison
   ordinaire ou le pic d'une épidémie d'hiver, la marche comptée ou non, un interne robot, au hasard ou décidé par une
-  règle, la fatigue des médecins et leurs pauses, l'ordre du scanner et du bloc, le Plan blanc et la sortie de SAUV
-  par une règle, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au
+  règle, la fatigue des médecins et leurs pauses, l'ordre du scanner et du bloc, l'hôpital en tension (HET), le Plan
+  blanc et la sortie de SAUV par une règle, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au
   clavier », une vacation de 4 h jouée avec Z Q S D et E ;
 - **Replays** : les parties gardées et le dossier `replays/` ;
 - **Stats** : les règles comparées sur la garde et sur le parcours.

@@ -50,6 +50,21 @@
   ],
   "versions": [
     {
+      "version": "0.19",
+      "date": "26/10, soir",
+      "title": "La chambre d'isolement prêtée, et l'hôpital en tension",
+      "commits": [
+        "ff68047",
+        "88ad99f"
+      ],
+      "items": [
+        "La chambre d'isolement se prête, libre, à des patients légers et jeunes, et revient à un patient à isoler : les places s'échangent s'il est déjà en box, sinon le patient sorti passe dans un box libre ou sur un fauteuil (la réponse de Sami à H61).",
+        "Le prêt fait gagner partout : de −20 % un jour ordinaire à −15 % pendant l'accident à l'hôpital moyen, sur l'échéance ; la recherche des box garde son gain avec lui (−21 % et −36 %).",
+        "Le HET, le niveau avant le Plan blanc : les services rendent des lits en reportant des admissions, puis par des sorties avancées ; il se règle dans l'onglet Parcours détaillé et se voit sur la frise.",
+        "Sur 200 journées, ni le seuil ni la recherche ne gagnent de façon sûre avec le HET, sauf le seuil battu par la recherche au pic de l'épidémie : sa note compte l'attente d'un lit, que la mesure ne compte pas encore."
+      ]
+    },
+    {
       "version": "0.18",
       "date": "26/10, soir",
       "title": "Toutes les décisions du parcours, et l'épidémie d'hiver",
