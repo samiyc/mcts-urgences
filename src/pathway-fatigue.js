@@ -91,6 +91,17 @@ export function internSlowOf(day) {
   return 1 + slowing(slow, day.events.now / 60) + (atNight(day.settings, day.events.now) ? night : 0);
 }
 
+/**
+ * How much slower the triage nurse (the IOA) works now (1 without fatigue): their shifts of 12 h change at 8 h and 20 h,
+ * the hours since on the doctors' curve, more at night (step 4, H53).
+ */
+export function ioaSlowOf(day) {
+  if (!day.fatigue) return 1;
+  const { slow, night } = day.settings.fatigue;
+  const hours = (day.events.now % 720) / 60;
+  return 1 + slowing(slow, hours) + (atNight(day.settings, day.events.now) ? night : 0);
+}
+
 /** Whether doctor `k`, reading patient's results now, overlooks them (read again later): more likely as fatigue grows. */
 export function overlooks(day, k, patient) {
   if (!day.fatigue || !day.fatigue.people[k]) return false;

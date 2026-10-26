@@ -25,7 +25,7 @@ const EXPECTED = {
   search: "2bc22fa5048d24e8",
   walked: "fbb1948d953628b7",
   intern: "b7c5c4ec55099e7b",
-  fatigue: "d8e50eff3ec52174",
+  fatigue: "4dbbcd219ee71d7d",
   pathwaySearch: "867647d056a815ce",
 };
 

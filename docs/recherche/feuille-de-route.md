@@ -95,8 +95,9 @@ Les choix de Sami (26/10) :
 
 ## Étape 4 : la fatigue et les pauses (faite le 26/10, [parcours.md](../parcours.md), « La fatigue et les pauses »)
 
-Faite pour les médecins, et pour l'interne (ses tâches ralentissent, sans pause : H50). Les infirmiers n'ont pas
-encore de fatigue. Les résultats lus en retard passent par les oublis.
+Faite pour les médecins, pour l'interne (ses tâches ralentissent, sans pause : H50) et pour l'infirmier d'accueil
+(le tri ralentit en fin de poste de 12 h : H53). Les résultats lus en retard passent par les oublis. Les
+transmissions à la relève restent une pause de 15 min, sans perte d'information.
 
 D'après [soignants.md](soignants.md) :
 - **la fatigue monte** avec les heures et la nuit ;

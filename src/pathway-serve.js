@@ -1,4 +1,4 @@
-import { beginBreak, serveBreaks } from "./pathway-fatigue.js";
+import { beginBreak, ioaSlowOf, serveBreaks } from "./pathway-fatigue.js";
 import { serveTransports } from "./pathway-porters.js";
 import { decidedQueue, startTheatre } from "./pathway-queues.js";
 import { locate } from "./pathway-trace.js";
@@ -77,7 +77,8 @@ export function startBreak(day, person, slot) {
 export function serve(day) {
   const { queues, settings } = day;
   startEach(day, { queue: queues.register, pool: "reception", type: "registerEnd", endAt: (t) => t + settings.register });
-  startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage });
+  // A tired triage nurse takes longer (pathway-fatigue.js), when fatigue counts.
+  startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage * ioaSlowOf(day) });
   serveTransports(day);
   serveBreaks(day, startBreak);
   // The scanner's order: by colour, unless decided one at a time (pathway-queues.js) while two or more wait.
