@@ -115,6 +115,11 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   /** When the freed beds come: around this hour, with this spread (hours). */
   bedHour: 12.5,
   bedSpread: 1.5,
+  /**
+   * The isolation room lent when free to a light (triaged `fromColour` or more) and young patient, taken back for a
+   * patient to isolate (Sami, 26/10/2026, H61; pathway-isolation.js); null, never lent.
+   */
+  isolationLent: Object.freeze({ fromColour: 4 }),
   /** Patients to isolate, contagious or agitated (hypothesis: 3 %); patients of 75 or more, by true level (hypothesis). */
   isolate: 0.03,
   elderly: Object.freeze({ 1: 0.3, 2: 0.3, 3: 0.2, 4: 0.1, 5: 0.05 }),

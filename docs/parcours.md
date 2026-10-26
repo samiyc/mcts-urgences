@@ -444,8 +444,9 @@ son IC 95 %) :
 Les patients en plus font presque tout. Isoler la moitié d'entre eux coûte **moins** que de ne pas les isoler : la
 chambre d'isolement ne prend que des patients à isoler, et un jour ordinaire, elle reste presque toujours vide ; avec
 l'épidémie, elle sert, comme un box de plus. Est-ce ainsi dans un vrai service, ou y met-on un patient ordinaire quand
-elle est libre ? C'est une question à poser (H61). Les lits manquants coûtent peu sur une journée : leur effet
-s'accumule sur des semaines, que le simulateur ne joue pas.
+elle est libre ? Sami a répondu le soir même (H61) : on la prête, et le modèle le fait depuis (« La chambre
+d'isolement prêtée », plus bas). Les lits manquants coûtent peu sur une journée : leur effet s'accumule sur des
+semaines, que le simulateur ne joue pas. Les chiffres de cette section datent d'avant le prêt.
 
 **La recherche au pic de l'épidémie** (les mêmes 200 journées de l'hôpital moyen, les jobs `parcours-hiver-*` de
 `night.json`) :
@@ -454,3 +455,41 @@ s'accumule sur des semaines, que le simulateur ne joue pas.
   l'échéance (2,2 contre 2,3) ;
 - **le Plan blanc**, à 50 itérations : 9 103 contre 9 835 pour « jamais » (+733, de −42 à +1 507) et 10 058 au seuil.
   C'est le jour où il sert le plus, mais l'intervalle touche encore zéro : rien de sûr.
+
+## La chambre d'isolement prêtée (26/10 au soir, Sami)
+
+Sami, sur H61 : la chambre d'isolement se prête à des patients **aux symptômes légers et plutôt jeunes**, que l'on
+peut déplacer facilement. Le besoin d'isoler est rare, mais souvent pressant : un patient instable ou violent
+déstabilise le reste du service. On sort alors le patient en cours pour mettre le patient à isoler à sa place.
+L'idéal est d'échanger leurs places si le patient à isoler occupait déjà un box ; sinon, le patient sorti repasse par
+la file, où la règle (ou la recherche) donne les box à ceux qui en ont le plus besoin.
+
+Le modèle le fait (`src/pathway-isolation.js`, `isolationLent`) :
+- **le prêt** : libre, et sans patient à isoler qui l'attende, la chambre prend un patient trié 4 ou 5 de moins de
+  75 ans, de préférence à un box ;
+- **le patient à isoler déjà en box** : les deux échangent leurs places, et chacun garde ses soins en cours ;
+- **le patient à isoler en attente** : celui qui occupe la chambre part dans un box libre, ou sinon sur un fauteuil,
+  comme un patient léger venu à pied qui attend ses résultats ; la chambre, nettoyée, revient au patient à isoler par
+  la règle des box ;
+- **la chambre de nouveau libre** : un patient à isoler resté en box y passe, et son box est nettoyé après lui.
+
+Ce que le modèle a dû choisir (H62) : un patient en plein examen finit son examen avant de sortir, quelques minutes
+pour un patient léger ; un échange de places se fait sans nettoyage entre les deux.
+
+Sur l'hôpital moyen, la chambre est prêtée 17 fois par jour en moyenne, et reprise moins d'une fois par jour, pour
+3,6 patients à isoler. **Ce que gagne le prêt**, par l'échéance sur les mêmes 200 journées (la chambre jamais prêtée
+contre prêtée, IC 95 %) :
+
+| Situation | jamais prêtée | prêtée | le gain |
+|---|---|---|---|
+| hôpital moyen, jour ordinaire | 3 443 | 2 757 | +686 (+324 à +1 048) |
+| hôpital moyen, accident | 37 389 | 31 648 | +5 740 (+4 654 à +6 827) |
+| hôpital moyen, pic de l'épidémie | 9 343 | 7 748 | +1 595 (+862 à +2 327) |
+| hôpital de proximité, accident | 59 144 | 49 532 | +9 611 (+7 690 à +11 532) |
+| grand CHU, accident | 5 595 | 3 990 | +1 605 (+811 à +2 399) |
+
+La chambre vide d'un jour ordinaire était une place perdue : la prêter vaut un box de plus, et plus encore quand le
+service déborde. Les empreintes du parcours ont changé (le parcours, la marche, l'interne, la fatigue, la recherche,
+l'épidémie) ; les mesures des sections d'avant datent du modèle sans prêt, et les mesures de la recherche sont à
+refaire avec lui (les jobs `parcours-pret-*` de `night.json`).
+

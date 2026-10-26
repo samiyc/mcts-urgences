@@ -1,5 +1,6 @@
 import { beginBreak, ioaSlowOf, serveBreaks } from "./pathway-fatigue.js";
 import { serveTransports } from "./pathway-porters.js";
+import { reclaimIsolation } from "./pathway-isolation.js";
 import { decidedQueue, startTheatre } from "./pathway-queues.js";
 import { locate } from "./pathway-trace.js";
 import { intoScanner } from "./pathway-trace.js";
@@ -7,7 +8,7 @@ import { byColour, free, lognormal, moveTo, now, startReview, take } from "./pat
 
 /**
  * Everything of the detailed pathway (pathway.js) that follows a fixed order, done at once: the reception, the
- * triage, the scanner, the specialists, the theatre, the UHCD, the results read. No rule chooses here, but for the
+ * triage, the scanner, the specialists, the theatre, the UHCD, the isolation room taken back, the results read. No rule chooses here, but for the
  * scanner and the theatre when their order is decided (pathway-queues.js).
  */
 
@@ -90,5 +91,7 @@ export function serve(day) {
   startEach(day, { queue: queues.specialists, pool: "specialists", type: "adviceEnd", endAt: (t) => t + settings.adviceDelay + settings.advice });
   serveTheatre(day);
   serveUhcd(day);
+  // The isolation room lent, taken back for a patient to isolate (pathway-isolation.js).
+  reclaimIsolation(day);
   while (settings.reviewFirst && queues.review.length && free(day, "doctors") > 0) startReview(day, queues.review.shift());
 }

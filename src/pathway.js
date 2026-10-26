@@ -8,6 +8,7 @@ import { INTERN_RULES, decideIntern, internDecision } from "./pathway-intern-dec
 import { QUEUE_RULES, decideQueue, queueDecision } from "./pathway-queues.js";
 import { ALERT_RULES, alertDecision, decideAlert, startAlert } from "./pathway-alert.js";
 import { SAUV_RULES, decideSauv, sauvDecision } from "./pathway-sauv.js";
+import { noteLent, startIsolation } from "./pathway-isolation.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve, startBreak } from "./pathway-serve.js";
@@ -161,6 +162,7 @@ export function startPathway(day) {
     intern: startIntern(settings, layoutOf(settings.plan)),
     fatigue: startFatigueOf(settings, events),
     alert: startAlert(settings),
+    isolation: startIsolation(settings),
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
@@ -270,6 +272,7 @@ export function decide(day, decision, id) {
   if (!place || free(day, "doctors") <= 0) throw new Error("la règle doit choisir un patient qui attend, pour qui une place est libre");
   removeFrom(day.queues.waiting, id);
   drop(day, id, ["vitals"]);
+  noteLent(day, patient, place);
   const walked = moveTo(day, patient, place);
   take(day, "doctors");
   const fetched = doctorTo(day, id);

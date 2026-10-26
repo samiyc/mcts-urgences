@@ -19,15 +19,15 @@ import { runWard, startWard, wardResult } from "../src/ward.js";
  * its commit says so, with the measures before and after.
  */
 const EXPECTED = {
-  pathway: "2e49cbb9d4650d60",
+  pathway: "497506e1fded3e7d",
   shift: "2268a5261e750c8b",
   ward: "57b01014292f8c4d",
   search: "2bc22fa5048d24e8",
-  walked: "fbb1948d953628b7",
-  intern: "b7c5c4ec55099e7b",
-  fatigue: "4dbbcd219ee71d7d",
-  pathwaySearch: "867647d056a815ce",
-  epidemic: "44a0d0be203c14f6",
+  walked: "3cb2943dc7e2acfe",
+  intern: "2f8e26fa3de22379",
+  fatigue: "9e82a932b8b806b1",
+  pathwaySearch: "0bdc497e0fe40ebb",
+  epidemic: "0b02e321b46028a9",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);

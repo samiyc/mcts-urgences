@@ -1,5 +1,6 @@
 import { minutesOf } from "./pathway-cells.js";
 import { overlooks, slowOf } from "./pathway-fatigue.js";
+import { borrows } from "./pathway-isolation.js";
 import { drop } from "./pathway-intern.js";
 import { doctorTo, intoSlot, outOfDepartment, outOfSlot } from "./pathway-trace.js";
 
@@ -35,10 +36,13 @@ export function exitPatient(day, patient, exit) {
   drop(day, patient.id);
 }
 
-/** The place a waiting patient would take now, or null: the SAUV for a red, the isolation room for an isolated one, else a box. */
+/**
+ * The place a waiting patient would take now, or null: the SAUV for a red, the isolation room for an isolated one (or,
+ * lent, for a light and young one, pathway-isolation.js), else a box.
+ */
 export function placeFor(day, patient) {
   if (patient.colour === 1 && free(day, "sauv") > 0) return "sauv";
-  if (patient.isolate && free(day, "isolation") > 0) return "isolation";
+  if (free(day, "isolation") > 0 && (patient.isolate || borrows(day, patient))) return "isolation";
   return free(day, "boxes") > 0 ? "boxes" : null;
 }
 

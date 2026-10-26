@@ -52,21 +52,40 @@ describe("the plans of the detailed pathway (src/pathway-plans.js)", () => {
   });
 });
 
-/** The places taken by a patient while another still held them, from the day's moves: `["boxes:3 à 412"]`. */
+/**
+ * The places taken by a patient while another still held them, from the day's moves: `["boxes:3 à 412"]`. The moves
+ * of one instant go together, those who leave first: two patients may swap their places (pathway-isolation.js).
+ */
 function doubleBooked(day) {
   const holder = new Map();
   const where = new Map();
   const clashes = [];
-  for (const { t, who, to } of day.trace.moves) {
-    if (where.has(who)) holder.delete(where.get(who));
-    where.delete(who);
-    if (to.slot === undefined) continue;
-    const key = `${to.at}:${to.slot}`;
-    if (holder.has(key)) clashes.push(`${key} à ${t}`);
-    holder.set(key, who);
-    where.set(who, key);
+  for (const moves of instantsOf(day.trace.moves)) {
+    for (const { who } of moves) leaves(holder, where, who);
+    for (const { t, who, to } of moves.filter((move) => move.to.slot !== undefined)) {
+      const key = `${to.at}:${to.slot}`;
+      if (holder.has(key)) clashes.push(`${key} à ${t}`);
+      holder.set(key, who);
+      where.set(who, key);
+    }
   }
   return clashes;
+}
+
+/** The moves in groups of one instant each, in order. */
+function instantsOf(moves) {
+  const groups = [];
+  for (const move of moves) {
+    if (groups.at(-1)?.[0].t === move.t) groups.at(-1).push(move);
+    else groups.push([move]);
+  }
+  return groups;
+}
+
+/** `who` leaves the place they held, if they still hold it. */
+function leaves(holder, where, who) {
+  if (where.has(who) && holder.get(where.get(who)) === who) holder.delete(where.get(who));
+  where.delete(who);
 }
 
 describe("where everyone is, and the walks (src/pathway-trace.js, src/pathway-walk.js)", () => {
