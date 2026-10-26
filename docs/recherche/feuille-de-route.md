@@ -93,7 +93,10 @@ Les choix de Sami (26/10) :
 - À la fin, la garde contre la même avec un interne robot, comme pour le médecin au clavier (« Le service en
   plan » dans [modele.md](../modele.md)).
 
-## Étape 4 : la fatigue et les pauses
+## Étape 4 : la fatigue et les pauses (faite le 26/10, [modele.md](../modele.md), « La fatigue et les pauses »)
+
+Faite pour les médecins : l'interne et les infirmiers n'ont pas encore de fatigue. Les résultats lus en retard
+passent par les oublis.
 
 D'après [soignants.md](soignants.md) :
 - **la fatigue monte** avec les heures et la nuit ;

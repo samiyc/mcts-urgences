@@ -1,6 +1,7 @@
 import { compareRules } from "../src/compare.js";
 import { ACCIDENT, DEFAULTS, HOSPITALS } from "../src/hypotheses.js";
 import { comparePathwayRules } from "../src/pathway-compare.js";
+import { compareBreakRules } from "../src/pathway-fatigue-compare.js";
 import { NURSE_RULES, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
@@ -44,7 +45,7 @@ const write = (key, value) => {
 };
 const firstTab = () => [location.hash.slice(1), read(STORE)].find((name) => TAB_NAMES.includes(name)) ?? "garde";
 
-const state = { tab: firstTab(), hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0, pathwayDays: 20, pathwayCompared: null, gains: null, serverReplays: undefined };
+const state = { tab: firstTab(), hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0, pathwayDays: 20, pathwayCompared: null, fatigueCompared: null, gains: null, serverReplays: undefined };
 const layout = document.getElementById("layout");
 const sidebar = document.getElementById("sidebar");
 const app = document.getElementById("app");
@@ -143,6 +144,17 @@ function comparePathway() {
   }, 30);
 }
 
+function compareFatigue() {
+  setBusy(`Les pauses des médecins : ${state.pathwayDays} journées de 24 h, sept façons…`);
+  setTimeout(() => {
+    const { plan, walk } = ctx.pathway;
+    const rows = compareBreakRules({ days: state.pathwayDays, hospital: state.hospital, accident: state.accident, walk, ...(plan ? { plan } : {}) });
+    const label = `${HOSPITALS[state.hospital].label}, ${state.accident ? "avec l'accident" : "jour ordinaire"}${walk ? ", marche comptée" : ""}`;
+    Object.assign(state, { fatigueCompared: { rows, days: state.pathwayDays, label }, busy: "" });
+    render();
+  }, 30);
+}
+
 const ACTIONS = {
   livePlay: () => live.play(),
   livePause: () => live.pause(),
@@ -156,6 +168,7 @@ const ACTIONS = {
     render();
   },
   comparePathway,
+  compareFatigue,
 };
 
 /** A shared setting changed: the shift is played again (the comparison kept for another seed only). */

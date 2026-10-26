@@ -114,3 +114,6 @@ Les codes de métier :
 | H44 | Une pause de 30 min pour manger, à placer entre 11 h et 15 h, puis entre 19 h et 22 h ; 2 h de repos la nuit | `FATIGUE.breaks` | Les pauses réelles d'un urgentiste et d'un interne de garde ? | URG, CDS | à vérifier |
 | H45 | Une pause remet la fatigue de 30 % à zéro, le repos de nuit de 60 % | `FATIGUE.rest` | Une pause courte rend-elle vraiment le rythme ? | URG | à vérifier |
 | H46 | Au moins 2 médecins présents, jamais tous en pause | `FATIGUE.minDoctors` | Combien de médecins doivent rester en poste pendant une pause ? | CDS | à vérifier |
+| H47 | Un résultat oublié 1 fois sur 100, plus 0,4 point par heure de fatigue ; relu 30 min plus tard | `FATIGUE.oversight`, `oversightDelay` | Les résultats lus en retard sont-ils plus fréquents en fin de garde, et de combien ? | URG, BIO | à vérifier |
+| H48 | Une relève de 15 min, sans prendre de patient | `FATIGUE.handover` | Combien dure une relève entre deux équipes, et que fait le service pendant ce temps ? | CDS, URG | à vérifier |
+| H49 | « Au creux » : 3 patients en attente ou moins | `FATIGUE.quietWaiting` | Quand une équipe estime-t-elle pouvoir lâcher un médecin pour sa pause ? | CDS | à vérifier |

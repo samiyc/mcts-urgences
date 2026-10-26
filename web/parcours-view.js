@@ -1,5 +1,6 @@
 import { COLOURS } from "../src/hypotheses.js";
 import { STEPS } from "../src/pathway.js";
+import { fatigueMeasures } from "../src/pathway-fatigue.js";
 import { internMeasures } from "../src/pathway-game.js";
 import { statusAt } from "../src/pathway-status.js";
 import { walkScene } from "../src/pathway-walk.js";
@@ -70,7 +71,19 @@ function internFigures(day) {
   ];
 }
 
-/** The day's figures (pathwayMeasures), what it walked (walkMeasures), and its intern's. */
+/** The doctors' fatigue of the day (pathway-fatigue.js), when it counts. */
+function fatigueFigures(day) {
+  if (!day.fatigue) return [];
+  const one = fatigueMeasures(day);
+  return [
+    figure(`${one.meals} / ${one.rests}`, "repas / repos de nuit pris par les médecins"),
+    figure(`${decimal(one.longest, 1)} h`, "la plus longue période sans pause"),
+    figure(`${decimal(100 * one.slowing, 1)} %`, "de ralentissement moyen des médecins"),
+    figure(String(one.oversights), "résultats oubliés, relus 30 min plus tard"),
+  ];
+}
+
+/** The day's figures (pathwayMeasures), what it walked (walkMeasures), its intern's and its fatigue. */
 export function figures({ day, measures, walking }) {
   const { exits, stay, boarding, peak, maxWait } = measures;
   const { byRole } = walking;
@@ -91,6 +104,7 @@ export function figures({ day, measures, walking }) {
     figure(km("porter"), `marchés par les brancardiers (${walking.transports} transports)`),
     figure(`${walking.unported}`, `transports sans brancardier libre ; ${decimal(walking.porterWait.mean, 1)} min pour en avoir un`),
     ...internFigures(day),
+    ...fatigueFigures(day),
   );
 }
 

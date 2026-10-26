@@ -494,6 +494,51 @@ C'est la question que les étapes suivantes peuvent creuser :
 - la fatigue, à l'étape 4 ;
 - la recherche, qui choisirait l'ordre des tâches, à l'étape 6.
 
+## La fatigue et les pauses, étape 4 (26/10)
+
+**La fatigue des médecins** (`src/pathway-fatigue.js`, des hypothèses dans `FATIGUE`, H43 à H49 de
+[hypotheses-a-verifier.md](recherche/hypotheses-a-verifier.md)). Elle compte les heures de chaque médecin depuis le
+début de sa garde ou sa dernière pause, et elle pèse plus la nuit. Ses effets :
+- elle ralentit les examens et la lecture des résultats : de 10 % après 12 h, de 25 % après 20 h, et de 10 % de plus
+  entre 0 h et 6 h ;
+- elle fait oublier un résultat de temps en temps : de 1 fois sur 100 à 1 sur 10 en fin de garde. Le résultat oublié
+  est relu 30 min plus tard.
+
+**Les pauses** : un repas de 30 min entre 11 h et 15 h et entre 19 h et 22 h, et 2 h de repos entre 1 h et 6 h. Une
+pause ôte 30 % de la fatigue, le repos 60 %. Deux médecins restent toujours en poste. Une règle les place :
+- **aucune pause** ;
+- **à l'heure fixe**, dès l'ouverture de la plage ;
+- **au creux de la salle d'attente** : quand 3 patients ou moins attendent, ou en fin de plage.
+
+**Les gardes** :
+- de 24 h, de 8 h à 8 h ;
+- ou deux équipes de 12 h, avec une relève à 20 h et à 8 h : 15 min pendant lesquelles l'équipe qui arrive ne prend
+  pas de patient.
+
+Sans fatigue dans les réglages, la journée est celle des étapes d'avant : les empreintes n'ont pas changé, et la
+fatigue a la sienne.
+
+Ce que donnent les règles, sur l'hôpital moyen pendant l'accident, en moyenne sur 10 journées
+(`npm run fatigue -- --accident --days 10`) :
+
+| Pauses | coût au moment | gain sur aucune pause, 24 h (IC 95 %) | oublis | sans pause, au plus | ralentissement |
+|---|---|---|---|---|---|
+| sans fatigue | 56 425 | +5 199 (+1 424 à +8 973) | — | — | — |
+| aucune pause, 24 h | 61 624 | — | 2,8 | 24 h | 11,8 % |
+| à l'heure fixe, 24 h | 70 208 | −8 585 (−12 684 à −4 486) | 2,0 | 8,5 h | 6,8 % |
+| au creux, 24 h | 64 352 | −2 728 (−4 695 à −762) | 2,1 | 17,3 h | 8,2 % |
+| aucune pause, 12 h | 60 386 | +1 238 (+109 à +2 366) | 1,4 | 12 h | 6,2 % |
+| au creux, 12 h | 63 796 | −2 172 (−3 875 à −469) | 1,5 | 12 h | 5,4 % |
+
+La fatigue coûte, mais une pause coûte plus sur le moment : le médecin en pause manque à la salle d'attente, et sur
+le coût du retard, ce manque pèse plus que les gestes ralentis et les résultats oubliés.
+
+Cela vient en partie des hypothèses (H43, H45), et en partie de ce que la mesure ignore : une erreur de soin due à la
+fatigue n'a pas de coût dans le modèle. Placer les pauses « au creux » réduit nettement leur coût par rapport à
+l'heure fixe.
+
+C'est une décision que la recherche pourra prendre à l'étape 6 : laquelle donner, à qui, et quand.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).

@@ -19,6 +19,7 @@ export const statsPanel = ({ state, counts }) =>
     el("button", { type: "button", "data-action": "compare" }, `La garde : ${counts()} gardes`),
     el("label", {}, "Le parcours : journées", el("select", { "data-stat": "days" }, ...DAYS.map((days) => el("option", { value: days, selected: Number(days) === state.pathwayDays }, `${days} journées de 24 h`)))),
     el("button", { type: "button", "data-action": "comparePathway" }, "Comparer les règles du parcours"),
+    el("button", { type: "button", "data-action": "compareFatigue" }, "Comparer les pauses des médecins"),
     el("p", { class: "hint" }, "Les mêmes patients pour chaque règle ; le gain, par paires, avec son intervalle à 95 %. Le parcours se joue sur le plan de l'onglet Parcours détaillé."),
   );
 
@@ -54,7 +55,24 @@ function gainsTable(gains) {
   return [el("h2", {}, gains.gainsTitle), el("p", { class: "hint" }, gains.gainsNote), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...gains.gainsHead.map((head, i) => el("th", { class: i > 0 ? "num" : null }, head)))), el("tbody", {}, ...rows)))];
 }
 
+const FATIGUE_HEAD = ["Pauses", "coût au moment", "gain sur aucune pause, 24 h (IC 95 %)", "passage médian", "résultats oubliés", "sans pause, au plus", "ralentissement", "repas", "repos"];
+
+const fatigueCells = (f) => (f ? [decimal(f.oversights, 1), `${decimal(f.longest, 1)} h`, `${decimal(100 * f.slowing, 1)} %`, decimal(f.meals, 1), decimal(f.rests, 1)] : ["—", "—", "—", "—", "—"]);
+
+const fatigueRow = (row) =>
+  el(
+    "tr",
+    {},
+    el("td", {}, row.name),
+    ...[decimal(row.lateCostNow), row.gain ? `${decimal(row.gain.mean)} (${decimal(row.gain.low)} à ${decimal(row.gain.high)})` : "—", `${decimal(row.stayMedian)} min`, ...fatigueCells(row.fatigue)].map((value) => el("td", { class: "num" }, value)),
+  );
+
+function fatigueTable({ rows, days, label }) {
+  const head = FATIGUE_HEAD.map((text, i) => el("th", { class: i > 0 ? "num" : null }, text));
+  return [el("h2", {}, `La fatigue des médecins et leurs pauses, sur les mêmes ${days} journées (${label})`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows.map(fatigueRow))))];
+}
+
 export function statsView({ state, counts }) {
-  const parts = [...comparison(state.compared, state.rule, counts()), ...(state.pathwayCompared ? pathwayTable(state.pathwayCompared) : []), ...gainsTable(state.gains)];
+  const parts = [...comparison(state.compared, state.rule, counts()), ...(state.pathwayCompared ? pathwayTable(state.pathwayCompared) : []), ...(state.fatigueCompared ? fatigueTable(state.fatigueCompared) : []), ...gainsTable(state.gains)];
   return parts.length ? parts : [el("p", { class: "hint" }, "Lancez une comparaison dans le panneau.")];
 }

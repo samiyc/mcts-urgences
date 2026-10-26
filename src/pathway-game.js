@@ -21,16 +21,16 @@ export const INTERN_MODES = Object.freeze({ human: "vous, au clavier", robot: "u
 
 /**
  * A game's settings by default: the medium hospital, the accident, the shift at the keyboard from 10 h to 14 h.
- * @type {Readonly<{ hospital: string, accident: boolean, seed: number, box: string, bed: string, plan: string | null, mode: string, from: number, to: number }>}
+ * @type {Readonly<{ hospital: string, accident: boolean, seed: number, box: string, bed: string, plan: string | null, mode: string, from: number, to: number, fatigue: object | null }>}
  */
-const GAME =Object.freeze({ hospital: "moyen", accident: true, seed: 1, box: "colour", bed: "oldest", plan: null, mode: "human", from: 120, to: 360 });
+const GAME = Object.freeze({ hospital: "moyen", accident: true, seed: 1, box: "colour", bed: "oldest", plan: null, mode: "human", from: 120, to: 360, fatigue: null });
 const given = (options) => Object.fromEntries(Object.entries(options).filter(([, value]) => value !== undefined));
 
 /** A new game at the day's start. `mode`: INTERN_MODES; `from`, `to`: the shift played at the keyboard. */
 export function startInternGame(options = {}) {
   const settings = { ...GAME, ...given(options) };
-  const { hospital, accident, seed, plan, mode } = settings;
-  const drawn = drawPathwayDay(seed, { hospital, accident, walk: true, intern: mode === "none" ? null : INTERN, ...(plan ? { plan } : {}) });
+  const { hospital, accident, seed, plan, mode, fatigue } = settings;
+  const drawn = drawPathwayDay(seed, { hospital, accident, walk: true, fatigue, intern: mode === "none" ? null : INTERN, ...(plan ? { plan } : {}) });
   return {
     settings: Object.fromEntries(Object.keys(GAME).map((key) => [key, settings[key]])),
     day: startPathway(drawn),

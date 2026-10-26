@@ -4,7 +4,8 @@ import { PATHWAY_PLANS, capacityOf, pathwayPlanOf } from "./pathway-plans.js";
 /**
  * Every number of the detailed pathway (Sami, 25/10/2026, docs/recherche/), in one place, over the simple shift's
  * (hypotheses.js). A figure with a source cites docs/recherche/ (DREES: the Urgences 2023 survey, a weekday in
- * June); the others are **hypotheses**, round figures for a plausible department, not medical data. Times are in
+ * June); the others are **hypotheses**, round figures for a plausible department, not medical data (each listed, with
+ * the question to ask a professional, in docs/recherche/hypotheses-a-verifier.md). Times are in
  * minutes, `t = 0` being `startHour` o'clock.
  */
 export const PATHWAY_DEFAULTS = Object.freeze({

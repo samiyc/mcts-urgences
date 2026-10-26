@@ -1,7 +1,8 @@
 /**
  * Every number of the model, in one place (Sami, 22/10/2026). **These are hypotheses, not medical data**:
  * round figures chosen to make a plausible emergency department for a demonstration, to be replaced by
- * published ones (docs/modele.md says which). The assistant organises queues and rooms; it never judges a
+ * published ones (docs/recherche/hypotheses-a-verifier.md lists each, with the question to ask a professional). The
+ * assistant organises queues and rooms; it never judges a
  * patient's care.
  *
  * Levels follow a five-colour triage such as Manchester's: 1 red (immediate), 2 orange (10 min), 3 yellow

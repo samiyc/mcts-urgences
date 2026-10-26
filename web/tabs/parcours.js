@@ -3,7 +3,9 @@ import { BED_LABELS, BED_RULES, pathwayMeasures, runPathway, startPathway } from
 import { drawPathwayDay } from "../../src/pathway-scenario.js";
 import { stepsOf } from "../../src/pathway-status.js";
 import { walkMeasures, walksOfDay } from "../../src/pathway-walk.js";
+import { BREAK_RULES } from "../../src/pathway-fatigue.js";
 import { INTERN_MODES, runInternGame, startInternGame } from "../../src/pathway-game.js";
+import { FATIGUE } from "../../src/pathway-hypotheses.js";
 import { RULE_LABELS, RULES } from "../../src/rules.js";
 import { el } from "../dom.js";
 import { panelOf } from "../knobs.js";
@@ -22,25 +24,32 @@ const store = createReplayStore("urgences-parcours");
 const SPEEDS = [["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
-export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none" });
+export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24" });
+/** The fatigue settings: off, or a break rule (pathway-fatigue.js); the shifts. */
+const FATIGUES = [["off", "pas de fatigue"], ...Object.entries(BREAK_RULES).map(([rule, label]) => [rule, `fatigue, ${label}`])];
+const TEAMS = [["24", "gardes de 24 h"], ["12", "deux équipes de 12 h"]];
 /** The interns the replayed day may have (the one at the keyboard is played below the day). */
 const DAY_INTERNS = Object.entries(INTERN_MODES).filter(([mode]) => mode !== "human");
 
 /** The plan shown: the one applied, else the hospital's. */
 const planText = ({ state, pathway }) => pathway.plan ?? planTextOf(PATHWAY_PLANS[state.hospital]);
 
+/** The doctors' fatigue the tab asks for (step 4): none, or FATIGUE with its break rule and its shifts. */
+export const fatigueOf = (pathway) => (pathway.fatigue === "off" ? null : { ...FATIGUE, breaks: pathway.fatigue, teams: Number(pathway.teams) });
+
 /** The day of the settings, played: with an intern (a robot, or at random: pathway-game.js), or without one. */
 function playedDay({ state, pathway }) {
   const plan = pathway.plan ? { plan: pathway.plan } : {};
-  if (pathway.intern !== "none") return runInternGame(startInternGame({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box, bed: pathway.bed, mode: pathway.intern, ...plan })).day;
-  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: pathway.walk, ...plan });
+  const fatigue = fatigueOf(pathway);
+  if (pathway.intern !== "none") return runInternGame(startInternGame({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box, bed: pathway.bed, mode: pathway.intern, fatigue, ...plan })).day;
+  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: pathway.walk, fatigue, ...plan });
   return runPathway(startPathway(drawn), { box: RULES[pathway.box], bed: BED_RULES[pathway.bed] });
 }
 
 /** The day for the settings now, played again only when they changed. */
 function runOf(ctx) {
   const { state, pathway } = ctx;
-  const key = JSON.stringify([state.hospital, state.accident, state.seed, pathway.box, pathway.bed, pathway.plan, pathway.walk, pathway.intern]);
+  const key = JSON.stringify([state.hospital, state.accident, state.seed, pathway.box, pathway.bed, pathway.plan, pathway.walk, pathway.intern, pathway.fatigue, pathway.teams]);
   if (pathway.run?.key === key) return pathway.run;
   const day = playedDay(ctx);
   const layout = pathwayPlanOf(day.settings.plan);
@@ -75,6 +84,8 @@ export const pathwayPanel = (ctx) =>
     el("label", {}, "Vitesse", selectOf("speed", SPEEDS, String(ctx.pathway.speed))),
     el("label", { class: "check" }, el("input", { type: "checkbox", "data-parcours": "walk", checked: ctx.pathway.walk || ctx.pathway.intern !== "none", disabled: ctx.pathway.intern !== "none" }), "Marche comptée (l'examen attend patient et médecin, le scanner un brancardier)"),
     el("label", {}, "L'interne de la journée", selectOf("intern", DAY_INTERNS, ctx.pathway.intern)),
+    el("label", {}, "La fatigue des médecins et leurs pauses", selectOf("fatigue", FATIGUES, ctx.pathway.fatigue)),
+    ctx.pathway.fatigue === "off" ? null : el("label", {}, "Les gardes", selectOf("teams", TEAMS, ctx.pathway.teams)),
     ...planFields(ctx),
   );
 
