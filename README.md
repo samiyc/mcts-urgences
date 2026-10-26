@@ -21,7 +21,7 @@ gauche, qui se replie :
 - **Garde simple** : la garde de 8 h et « Jouer la garde vous-même » ;
 - **Service en plan** : un soignant au clavier ;
 - **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, la marche comptée
-  ou non, un interne robot ou au hasard, la fatigue des médecins et leurs pauses ; et « L'interne au clavier », une vacation de 4 h jouée avec Z Q S D et E ;
+  ou non, un interne robot ou au hasard, la fatigue des médecins et leurs pauses, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au clavier », une vacation de 4 h jouée avec Z Q S D et E ;
 - **Replays** : les parties gardées et le dossier `replays/` ;
 - **Stats** : les règles comparées sur la garde et sur le parcours.
 

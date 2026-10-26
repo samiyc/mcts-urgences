@@ -560,6 +560,48 @@ dans le panneau :
 On y voit où un retard, une pause ou l'accident font monter les courbes. À la fin d'une vacation d'interne au
 clavier, la frise de la journée jouée est dessinée contre celle de l'interne robot.
 
+## La recherche sur le parcours, étape 6 (26/10)
+
+**La recherche** (`src/pathway-search.js`) est l'ISMCTS de mcts-commun, comme celle de la garde simple. Elle choisit
+qui prend une place et un médecin libres, sur une journée du parcours détaillé. Chaque itération copie la journée
+(`src/pathway-clone.js`) et retire au sort ce que le service ne sait pas :
+- le vrai niveau des patients pas encore vus, d'après la couleur du bracelet, avec le modèle d'erreur du tri de la
+  garde simple (`levelOdds`) ;
+- avec ce niveau, leur parcours caché : les examens qu'il leur faudra et leur sortie. L'isolement et l'âge restent
+  tels quels, car ils se voient à l'accueil ;
+- les arrivées pas encore annoncées, d'après les taux par heure.
+
+L'arbre a 2 choix de profondeur, puis la règle de la couleur joue la suite. Les lits sont donnés par la règle de la
+décision la plus ancienne. Chaque monde est noté au coût du retard au niveau du moment, sur les patients qui
+attendent ou arrivent dans les 2 h. Les choix de la racine sont jugés sur des mondes communs.
+
+La recherche ne joue pas une journée avec un interne, parce qu'un monde devrait jouer ses tâches aussi.
+
+**Un premier tri, à 50 itérations par choix** (`npm run pathway:search -- --days 16 --budget 50 [--accident]`,
+16 journées jouées côte à côte) :
+
+| Hôpital moyen | l'arrivée | la couleur | l'échéance | la recherche | la recherche contre l'échéance (IC 95 %) |
+|---|---|---|---|---|---|
+| avec l'accident | 51 309 | 54 735 | 50 920 | **32 443** | +18 476 (+9 066 à +27 886) |
+| jour ordinaire | 7 640 | 5 904 | 4 735 | **4 206** | +529 (−205 à +1 263) |
+
+Pendant l'accident, la recherche fait 36 % de moins que la meilleure règle, et l'intervalle ne passe pas par zéro.
+Un jour ordinaire, elle fait un peu mieux, mais l'intervalle contient zéro.
+
+C'est un tri rapide : la leçon de Lopin dit qu'il peut écarter une idée, pas la promouvoir. Deux mesures de nuit
+sont prêtes dans `night.json` : `parcours-moyen-accident` et `parcours-moyen`, 200 journées à 100 itérations,
+8 fils chacune.
+
+**Sur la page.** La recherche est une règle des box de l'onglet Parcours détaillé : elle joue la journée dans un
+worker (une demi-minute à 50 itérations), puis l'onglet rejoue exactement la même journée d'après ses choix. Stats la
+compare aux règles sur 8 journées, dans des workers.
+
+**Ce qui reste à décider par la recherche** ([ressources-rares.md](recherche/ressources-rares.md)) :
+- le lit d'aval, le scanner, le bloc et la sortie de SAUV ;
+- le déclenchement de l'HET ou du Plan blanc ;
+- les pauses des médecins, que l'étape 4 a montrées coûteuses ;
+- l'ordre des tâches de l'interne.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).

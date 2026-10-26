@@ -120,7 +120,10 @@ D'après [soignants.md](soignants.md) :
 - Elle se lit sur le replay d'une partie humaine comme sur une garde de robots, et deux stratégies peuvent
   s'afficher l'une contre l'autre sur la même garde.
 
-## Étape 6 : la recherche sur le parcours
+## Étape 6 : la recherche sur le parcours (le choix du box fait le 26/10, [modele.md](../modele.md), « La recherche sur le parcours »)
+
+Le choix du box est fait : un premier tri sur 16 journées est en faveur de la recherche pendant l'accident, et les
+mesures de nuit sont prêtes. Les autres décisions de la liste restent à faire.
 
 - Les décisions de machine du parcours ([ressources-rares.md](ressources-rares.md), dernière section) :
   - le box ;

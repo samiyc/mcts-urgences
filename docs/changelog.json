@@ -50,6 +50,20 @@
   ],
   "versions": [
     {
+      "version": "0.16",
+      "date": "26/10",
+      "title": "La recherche sur le parcours détaillé",
+      "commits": [
+        "3a9ad64",
+        "20311fb"
+      ],
+      "items": [
+        "La recherche (ISMCTS) choisit qui prend le box sur une journée du parcours : elle retire au sort le vrai niveau des patients pas encore vus, leur parcours caché et les arrivées à venir.",
+        "Un premier tri sur 16 journées de l'hôpital moyen pendant l'accident : 32 443 contre 50 920 pour la meilleure règle (l'échéance), l'écart de 9 066 à 27 886. Un jour ordinaire, un peu mieux, sans que l'écart soit sûr. Les mesures de nuit sur 200 journées sont dans night.json.",
+        "Sur la page : la recherche comme règle des box de l'onglet Parcours détaillé, jouée dans un worker ; dans Stats, contre les règles sur 8 journées."
+      ]
+    },
+    {
       "version": "0.15",
       "date": "26/10",
       "title": "La journée en une frise",
