@@ -24,14 +24,14 @@ function pick(rng, shares) {
 export const hourAt = (settings, t) => (settings.startHour + t / 60) % 24;
 
 /**
- * Arrival times over [from, to) of a Poisson process shaped by the hours of the day (thinning): `perHour` is the
+ * Arrival times over the shift of a Poisson process shaped by the hours of the day (thinning): `perHour` is the
  * mean rate from 8 h to 16 h, the simple shift's day (hypotheses.js), so that the day's doctors and boxes are as busy
  * as there; the night comes fewer.
  */
-function arrivalsByHour(rng, settings, perHour, from, to) {
+function arrivalsByHour(rng, settings, perHour) {
   const mean = settings.hourly.slice(8, 16).reduce((sum, one) => sum + one, 0) / 8;
   const top = Math.max(...settings.hourly) / mean;
-  return arrivals(rng, perHour * top, from, to).filter((at) => rng.next() < settings.hourly[Math.floor(hourAt(settings, at))] / mean / top);
+  return arrivals(rng, perHour * top, 0, settings.shift).filter((at) => rng.next() < settings.hourly[Math.floor(hourAt(settings, at))] / mean / top);
 }
 
 /** What the department will learn about a patient only along the way. */
@@ -88,8 +88,8 @@ export function drawPathwayDay(seed, options = {}) {
   const rng = createRng(seed);
   const crisis = settings.crisis;
   const comings = [
-    ...arrivalsByHour(rng, settings, settings.walkInRate, 0, settings.shift).map((arrival) => ({ arrival, source: "pied", mix: settings.walkInMix })),
-    ...arrivalsByHour(rng, settings, settings.ambulanceRate, 0, settings.shift).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
+    ...arrivalsByHour(rng, settings, settings.walkInRate).map((arrival) => ({ arrival, source: "pied", mix: settings.walkInMix })),
+    ...arrivalsByHour(rng, settings, settings.ambulanceRate).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
     ...(crisis ? Array.from({ length: crisis.size }, () => ({ arrival: crisis.at + crisis.over * rng.next(), source: "ambulance", mix: crisis.mix })) : []),
   ];
   const patients = comings

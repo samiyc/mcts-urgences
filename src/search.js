@@ -86,18 +86,35 @@ function trueWorld(shift, horizon) {
  */
 export function drawWorld(shift, rng, horizon = Infinity, peek = "") {
   const now = shift.events.now;
-  const { settings } = shift;
   const known = (patient) => patient.start !== null || patient.announcedAt <= now;
   const keepsFuture = peek === "future";
   const world = cloneShift(shift, (event) => (peek === "levels" || event.type !== "worsen") && (keepsFuture || event.type !== "arrive" || known(shift.patients.get(event.id))));
+  redrawKnown(world, rng, { known, peek });
+  if (!keepsFuture) addComings(world, rng);
+  world.pending = [...world.patients.values()].filter((patient) => patient.start === null && patient.arrival <= now + horizon).map((patient) => patient.id);
+  world.over = false;
+  return world;
+}
+
+/** The patients nobody knows of are left out (unless `peek` keeps the future); the known ones not yet seen redrawn. */
+function redrawKnown(world, rng, { known, peek }) {
   for (const [id, patient] of world.patients) {
-    if (!known(patient) && !keepsFuture) world.patients.delete(id);
-    else if (patient.start === null && peek !== "levels" && known(patient)) {
-      redraw(patient, rng, settings);
-      if (world.waiting.includes(id)) scheduleWorsening(world.events, patient, Math.max(now, patient.arrival + MAX_WAIT[patient.level]));
-    }
+    if (!known(patient) && peek !== "future") world.patients.delete(id);
+    else if (patient.start === null && peek !== "levels" && known(patient)) redrawWaiting(world, patient, rng);
   }
-  const comings = keepsFuture ? [] : [
+}
+
+/** A known patient not yet seen: their level drawn again from what is seen, and their worsening if waiting. */
+function redrawWaiting(world, patient, rng) {
+  redraw(patient, rng, world.settings);
+  if (world.waiting.includes(patient.id)) scheduleWorsening(world.events, patient, Math.max(world.events.now, patient.arrival + MAX_WAIT[patient.level]));
+}
+
+/** The patients nobody knows of yet, drawn from the rates until the shift's end. */
+function addComings(world, rng) {
+  const { settings } = world;
+  const now = world.events.now;
+  const comings = [
     ...arrivals(rng, settings.walkInRate, now, settings.shift).map((arrival) => ({ arrival, source: "pied", mix: settings.walkInMix })),
     ...arrivals(rng, settings.ambulanceRate, now + settings.announced, settings.shift).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
   ];
@@ -107,9 +124,6 @@ export function drawWorld(shift, rng, horizon = Infinity, peek = "") {
     world.patients.set(patient.id, patient);
     world.events.schedule(patient.arrival, { type: "arrive", id: patient.id });
   }
-  world.pending = [...world.patients.values()].filter((patient) => patient.start === null && patient.arrival <= now + horizon).map((patient) => patient.id);
-  world.over = false;
-  return world;
 }
 
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null);
@@ -207,6 +221,17 @@ function scaleOf(shift, rng, { horizon, measure }, runs = 6) {
   return Math.max(20, total / runs);
 }
 
+/** The seed of one choice: from the search's seed, the shift's clock and its waiting room, the nurse's apart. */
+const choiceSeed = (seed, shift, waiting, kind) => (Math.imul(seed, 0x9e3779b1) + Math.round(shift.events.now * 1000) * 31 + waiting[0].id * 7 + waiting.length + (kind === "nurse" ? 17 : 0)) >>> 0;
+
+/** The search's move as a rule's answer: the nurse's patient or nobody; a patient, a hold, or the colour rule's. */
+function answerOf(move, waiting, kind) {
+  const chosen = waiting.find((view) => view.id === move?.id);
+  if (kind === "nurse") return chosen ?? null;
+  if (move === WAIT || move?.id === HOLD) return { id: HOLD };
+  return chosen ?? RULES.colour(waiting);
+}
+
 /**
  * The search as a rule (simulate.js's signature, reading `context.shift`), for the boxes and, given as the
  * nurse rule too, for the nurse: a single waiting patient goes in at once; otherwise `budget` iterations,
@@ -216,11 +241,8 @@ export function searchRule(options = {}) {
   const { budget, depth, explore, width, horizon, seed, omniscient, measure } = { ...SEARCH_SETTINGS, ...options };
   return (waiting, { shift, kind }) => {
     if (kind !== "nurse" && waiting.length === 1 && !onItsWay(shift)) return waiting[0];
-    const salt = kind === "nurse" ? 17 : 0;
-    const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(shift.events.now * 1000) * 31 + waiting[0].id * 7 + waiting.length + salt) >>> 0);
+    const rng = createRng(choiceSeed(seed, shift, waiting, kind));
     const found = search(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, horizon, omniscient, measure }), { budget, rng, depth, explore, common: true });
-    if (kind === "nurse") return waiting.find((view) => view.id === found.move?.id) ?? null;
-    if (found.move === WAIT || found.move?.id === HOLD) return { id: HOLD };
-    return waiting.find((view) => view.id === found.move?.id) ?? RULES.colour(waiting);
+    return answerOf(found.move, waiting, kind);
   };
 }

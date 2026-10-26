@@ -41,6 +41,7 @@ for (const [name, measures] of Object.entries(runs)) {
   const [arrival, now] = [gain("lateCost"), gain("lateCostNow")];
   const cell = (key, g) => `${round(mean(measures.map((one) => one[key])))} (${round(g.mean)}, ${round(g.low)} à ${round(g.high)})`;
   const looks = mean(measures.map((one) => one.looks));
-  console.log(`${name.padEnd(40)} à l'arrivée ${cell("lateCost", arrival).padEnd(30)} au moment ${cell("lateCostNow", now).padEnd(32)} ${now.wins}/${now.ties}/${now.losses}${looks ? `  revus ${looks.toFixed(0)}, recolorés ${mean(measures.map((one) => one.recoloured)).toFixed(1)}` : ""}`);
+  const nurse = looks ? `  revus ${looks.toFixed(0)}, recolorés ${mean(measures.map((one) => one.recoloured)).toFixed(1)}` : "";
+  console.log(`${name.padEnd(40)} à l'arrivée ${cell("lateCost", arrival).padEnd(30)} au moment ${cell("lateCostNow", now).padEnd(32)} ${now.wins}/${now.ties}/${now.losses}${nurse}`);
 }
 console.log(`${shifts} gardes, ${Math.round((Date.now() - t0) / 1000)} s`);

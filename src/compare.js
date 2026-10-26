@@ -11,24 +11,35 @@ import { simulateShift } from "./simulate.js";
 const MEASURES = ["lateCost", "lateCostNow", "looks", "recoloured", "late", "worsened", "meanWait", "peakWaiting", "boxUse", "doctorUse", "patients"];
 const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
 
-export function compareRules({ shifts = 200, seed = 1, settings = {}, rules = RULES, nurseRule = null } = {}) {
+/** The share of reds and oranges seen in time. */
+function urgentInTime({ byLevel }) {
+  const count = byLevel[1].count + byLevel[2].count;
+  return count ? (byLevel[1].inTime * byLevel[1].count + byLevel[2].inTime * byLevel[2].count) / count : 1;
+}
+
+/** One rule's means over the shifts, and its gains on the arrival order's (`baseline`) when there is one. */
+function summaryOf(measures, baseline) {
+  const costs = (key) => measures.map((one) => one[key]);
+  return {
+    ...Object.fromEntries(MEASURES.map((key) => [key, mean(costs(key))])),
+    urgentInTime: mean(measures.map(urgentInTime)),
+    gain: baseline ? paired(baseline.map((one) => one.lateCost), costs("lateCost")) : null,
+    // The same, at the level of the moment (lateCostNow): the measure the search scores best on (22/10).
+    gainNow: baseline ? paired(baseline.map((one) => one.lateCostNow), costs("lateCostNow")) : null,
+  };
+}
+
+/** Each rule's measures on each shift. */
+function runsOf({ shifts, seed, settings, rules, nurseRule }) {
   const runs = Object.fromEntries(Object.keys(rules).map((name) => [name, []]));
   for (let i = 0; i < shifts; i += 1) {
     const patients = drawShift(seed + i, settings);
     for (const [name, rule] of Object.entries(rules)) runs[name].push(simulateShift(patients, rule, settings, nurseRule).measures);
   }
-  const baseline = runs.arrival?.map((one) => one.lateCost);
-  const baselineNow = runs.arrival?.map((one) => one.lateCostNow);
-  return Object.fromEntries(
-    Object.entries(runs).map(([name, measures]) => [
-      name,
-      {
-        ...Object.fromEntries(MEASURES.map((key) => [key, mean(measures.map((one) => one[key]))])),
-        urgentInTime: mean(measures.map((one) => (one.byLevel[1].count + one.byLevel[2].count ? (one.byLevel[1].inTime * one.byLevel[1].count + one.byLevel[2].inTime * one.byLevel[2].count) / (one.byLevel[1].count + one.byLevel[2].count) : 1))),
-        gain: baseline ? paired(baseline, measures.map((one) => one.lateCost)) : null,
-        // The same, at the level of the moment (lateCostNow): the measure the search scores best on (22/10).
-        gainNow: baselineNow ? paired(baselineNow, measures.map((one) => one.lateCostNow)) : null,
-      },
-    ]),
-  );
+  return runs;
+}
+
+export function compareRules({ shifts = 200, seed = 1, settings = {}, rules = RULES, nurseRule = null } = {}) {
+  const runs = runsOf({ shifts, seed, settings, rules, nurseRule });
+  return Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, summaryOf(measures, runs.arrival)]));
 }

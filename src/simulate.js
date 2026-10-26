@@ -106,26 +106,45 @@ function wakeNurse(shift) {
   }
 }
 
+/** The choice the shift is at, or null: "box", or "nurse" (a free nurse, someone to look at again; else her wake is set). */
+function choiceAt(shift) {
+  if (choiceNeeded(shift)) return "box";
+  if (shift.freeNurses > 0 && !shift.resting && shift.waiting.length > 0) {
+    if (candidatesOf(shift).length > 0) return "nurse";
+    wakeNurse(shift);
+  }
+  return null;
+}
+
+/** Handles the next event; false once none is left (a hold with nothing left to happen just ends). */
+function stepShift(shift) {
+  const next = shift.events.next();
+  if (!next) {
+    const held = shift.holding;
+    shift.holding = false;
+    return held;
+  }
+  const { type } = next.event;
+  HANDLERS[type](shift, shift.patients.get(next.event.id));
+  // A worsening is not seen, and a nurse's wake is only a clock: neither ends a hold.
+  if (type !== "worsen" && type !== "wake") shift.holding = false;
+  if (type !== "worsen") shift.resting = false;
+  return true;
+}
+
 /** Runs the shift to its next choice: "box" or "nurse" there (also kept as `shift.kind`), null once nothing is left to happen. */
 export function nextChoice(shift) {
   for (;;) {
-    if (choiceNeeded(shift)) return (shift.kind = "box");
-    if (shift.freeNurses > 0 && !shift.resting && shift.waiting.length > 0) {
-      if (candidatesOf(shift).length > 0) return (shift.kind = "nurse");
-      wakeNurse(shift);
+    const kind = choiceAt(shift);
+    if (kind) {
+      shift.kind = kind;
+      return kind;
     }
     shift.peakWaiting = Math.max(shift.peakWaiting, shift.waiting.length);
-    const next = shift.events.next();
-    if (!next && shift.holding) {
-      shift.holding = false;
-      continue;
+    if (!stepShift(shift)) {
+      shift.kind = null;
+      return null;
     }
-    if (!next) return (shift.kind = null);
-    const { type } = next.event;
-    HANDLERS[type](shift, shift.patients.get(next.event.id));
-    // A worsening is not seen, and a nurse's wake is only a clock: neither ends a hold.
-    if (type !== "worsen" && type !== "wake") shift.holding = false;
-    if (type !== "worsen") shift.resting = false;
   }
 }
 
