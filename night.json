@@ -140,6 +140,24 @@
       "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --het",
       "estimate": "30 min",
       "threads": 8
+    },
+    {
+      "id": "parcours-deces-moyen",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --deces --days 200 --budget 100",
+      "estimate": "30 min",
+      "threads": 8
+    },
+    {
+      "id": "parcours-deces-moyen-accident",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --deces --days 200 --budget 100",
+      "estimate": "45 min",
+      "threads": 8
+    },
+    {
+      "id": "parcours-circuit-court-moyen",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --circuit-court --days 200 --budget 100",
+      "estimate": "30 min",
+      "threads": 8
     }
   ]
 }
