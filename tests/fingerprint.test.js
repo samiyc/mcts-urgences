@@ -1,0 +1,67 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { ACCIDENT, DEFAULTS, HOSPITALS } from "../src/hypotheses.js";
+import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
+import { drawPathwayDay } from "../src/pathway-scenario.js";
+import { NURSE_RULES, RULES } from "../src/rules.js";
+import { drawShift } from "../src/scenario.js";
+import { searchRule } from "../src/search.js";
+import { simulateShift } from "../src/simulate.js";
+import { runWard, startWard, wardResult } from "../src/ward.js";
+
+/**
+ * The behaviour of the models, held in a few hashes (Sami, 26/10/2026, before the code went under the lint budget):
+ * a refactor must leave every one unchanged. A change meant to alter what a model does updates its hash here, and
+ * its commit says so, with the measures before and after.
+ */
+const EXPECTED = {
+  pathway: "2e49cbb9d4650d60",
+  shift: "2268a5261e750c8b",
+  ward: "57b01014292f8c4d",
+  search: "2bc22fa5048d24e8",
+};
+
+const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);
+const HOSPITAL_NAMES = Object.keys(HOSPITALS);
+const situations = () => HOSPITAL_NAMES.flatMap((hospital) => [false, true].map((accident) => ({ hospital, accident })));
+
+/** A day played under `rules`: each patient's course and the day's measures. */
+const played = (drawn, rules) => {
+  const day = runPathway(startPathway(drawn), rules);
+  return { patients: [...day.patients.values()], measures: pathwayMeasures(day) };
+};
+
+const FINGERPRINTS = {
+  pathway: () =>
+    situations().flatMap(({ hospital, accident }) =>
+      [1, 2, 3, 4, 5].flatMap((seed) => {
+        const drawn = drawPathwayDay(seed, { hospital, accident });
+        const boxes = Object.values(RULES).map((box) => played(drawn, { box, bed: BED_RULES.oldest }));
+        const beds = Object.values(BED_RULES).map((bed) => played(drawn, { box: RULES.colour, bed }));
+        return [...boxes, ...beds];
+      }),
+    ),
+  shift: () =>
+    situations().flatMap(({ hospital, accident }) => {
+      const settings = { ...DEFAULTS, ...HOSPITALS[hospital], ...(accident ? { crisis: ACCIDENT } : {}) };
+      const nursed = { ...settings, nurses: 1 };
+      return [1, 2, 3].flatMap((seed) => [
+        ...Object.values(RULES).map((rule) => simulateShift(drawShift(seed, settings), rule, settings)),
+        simulateShift(drawShift(seed, nursed), RULES.colour, nursed, NURSE_RULES.overdue),
+      ]);
+    }),
+  ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
+  search: () => {
+    const settings = { ...DEFAULTS, ...HOSPITALS.moyen, crisis: ACCIDENT };
+    return simulateShift(drawShift(1, settings), searchRule({ budget: 50, measure: "now" }), settings).measures;
+  },
+};
+
+describe("the fingerprints of the models (a refactor changes none)", () => {
+  for (const [name, compute] of Object.entries(FINGERPRINTS)) {
+    it(`keeps the ${name} unchanged`, () => {
+      assert.equal(digest(compute()), EXPECTED[name], `${name} : le comportement a changé`);
+    });
+  }
+});

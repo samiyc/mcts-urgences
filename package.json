@@ -5,16 +5,27 @@
   "description": "Un assistant d'organisation pour les urgences d'un hôpital en crise : ISMCTS / POMCP sur l'état caché des patients.",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.9"
   },
   "scripts": {
     "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check": "npm run lint && npm test",
     "compare": "node scripts/compare.js",
+    "pathway": "node scripts/pathway-compare.js",
     "page": "node node_modules/mcts-commun/bin/serve.js 4801"
   },
   "author": "Sami",
   "license": "UNLICENSED",
   "dependencies": {
     "mcts-commun": "file:../mcts-commun"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-sonarjs": "^4.2.1",
+    "globals": "^17.12.0"
   }
 }
