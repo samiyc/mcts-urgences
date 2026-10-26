@@ -1,5 +1,6 @@
 import { hourAt } from "./pathway-scenario.js";
 import { POOLS } from "./pathway-places.js";
+import { sample } from "./pathway-timeline.js";
 import { lateCostNow } from "./simulate.js";
 
 /** @typedef {import("./types.js").Day} Day */
@@ -8,6 +9,7 @@ import { lateCostNow } from "./simulate.js";
 
 /** Adds the minutes since the last event to each pool's use, and to the boarders' minutes in a place. */
 export function account(day, until) {
+  sample(day, until);
   const span = until - day.clock;
   for (const pool of POOLS) {
     day.used[pool] += span * day.busy[pool];

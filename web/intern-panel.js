@@ -7,6 +7,8 @@ import { decimal, fixed } from "./dom.js";
 import { pathwayPlan } from "./parcours-draw.js";
 import { dayClock } from "./parcours-view.js";
 import { createReplayStore, download, replayName } from "./replay-store.js";
+import { TIMELINE_LEGEND, timelinePlan } from "./timeline-draw.js";
+import { timelineOf } from "../src/pathway-timeline.js";
 
 /**
  * « L'interne au clavier » (Sami, 26/10/2026, the roadmap's step 3), in the tab « Parcours détaillé »: the day of the
@@ -58,7 +60,7 @@ function finish(ctx) {
   runInternGame(panel.game);
   const replay = internReplayOf(panel.game);
   store.keep(replay);
-  panel.ended = { replay, result: internResult(panel.game), benchmarks: null };
+  panel.ended = { replay, result: internResult(panel.game), timeline: timelineOf(panel.game.day), benchmarks: null };
   ctx.render();
   setTimeout(() => {
     panel.ended.benchmarks = internBenchmarks(replay);
@@ -131,7 +133,7 @@ const ROWS = [
 
 function endView(ctx) {
   const { el, panel } = ctx;
-  const { result, benchmarks } = panel.ended;
+  const { result, benchmarks, timeline } = panel.ended;
   const columns = [["vous", result], ["un interne robot", benchmarks?.robot], ["un interne au hasard", benchmarks?.random], ["pas d'interne", benchmarks?.none]];
   const rows = ROWS.map(([label, value]) => el("tr", {}, el("td", {}, label), ...columns.map(([, one]) => el("td", { class: "num" }, one ? value(one) : "…"))));
   return el(
@@ -140,6 +142,9 @@ function endView(ctx) {
     el("h2", {}, "Votre vacation d'interne est finie"),
     el("p", { class: "hint" }, "La même journée, les mêmes patients, la marche comptée ; hors de votre vacation, l'interne est un robot. Le coût du retard : l'attente avant l'examen, pondérée par la gravité du moment (moins, c'est mieux)."),
     el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, el("th", {}, ""), ...columns.map(([who]) => el("th", { class: "num" }, who)))), el("tbody", {}, ...rows))),
+    el("h3", {}, "Votre journée en une frise, contre celle de l'interne robot (tirets)"),
+    el("div", { class: "plan-wrap" }, timelinePlan(timeline, benchmarks?.robot.timeline ?? null)),
+    el("p", { class: "hint legend" }, TIMELINE_LEGEND),
     el("div", { class: "controls" }, el("button", { type: "button", class: "quiet", "data-intern": "download" }, "Télécharger le replay"), el("button", { type: "button", class: "quiet", "data-intern": "quit" }, "Fermer")),
   );
 }

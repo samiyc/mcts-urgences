@@ -159,6 +159,9 @@ export function startPathway(day) {
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
+    // The state every few minutes, for the day's timeline (pathway-timeline.js, step 5).
+    series: [],
+    nextSample: 0,
     trace: startTrace(capacity, Object.keys(PLACES), layoutOf(settings.plan)),
   };
 }

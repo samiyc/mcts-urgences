@@ -35,6 +35,7 @@ export function startFatigue(settings) {
   return {
     people: Array.from({ length: people }, (_, k) => ({ k, base: 0, since: shiftStartOf(settings, k), stretchFrom: shiftStartOf(settings, k), longest: 0, breaks: [], taken: new Set(), onBreak: null })),
     oversights: 0,
+    overlookedAt: [],
     slows: [],
   };
 }

@@ -3,6 +3,7 @@ import { CELL_METRES, INTERN } from "./pathway-hypotheses.js";
 import { busy, moveIntern, tasksHere, targetsOf, useHere } from "./pathway-intern.js";
 import { BED_RULES, pathwayMeasures, runPathway, runUntil, startPathway } from "./pathway.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
+import { timelineOf } from "./pathway-timeline.js";
 import { walkScene, walksOfDay } from "./pathway-walk.js";
 import { RULES } from "./rules.js";
 import { MOVES } from "./ward-keys.js";
@@ -159,9 +160,10 @@ export const openTasks = (game) => (game.day.intern?.tasks ?? []).map((task) => 
 
 export const internResult = (game) => ({ measures: pathwayMeasures(game.day), intern: game.day.intern ? internMeasures(game.day) : null });
 
-/** The same day with a robot intern, an intern at random and no intern, for the person's game to be read against. */
+/** The same day with a robot intern, an intern at random and no intern, for the person's game to be read against; each with its timeline. */
 export function internBenchmarks(settings) {
-  return Object.fromEntries(["robot", "random", "none"].map((mode) => [mode, internResult(runInternGame(startInternGame({ ...settings, mode })))]));
+  const played = (mode) => runInternGame(startInternGame({ ...settings, mode }));
+  return Object.fromEntries(["robot", "random", "none"].map((mode) => [mode, ((game) => ({ ...internResult(game), timeline: timelineOf(game.day) }))(played(mode))]));
 }
 
 export const internReplayOf = (game) => ({ format: INTERN_FORMAT, ...game.settings, inputs: game.inputs.map(({ step, key }) => ({ step, key })), savedAt: new Date().toISOString() });

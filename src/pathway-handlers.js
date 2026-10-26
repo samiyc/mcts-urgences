@@ -192,6 +192,7 @@ export const HANDLERS = {
     // A tired doctor overlooked the results: they are read again later (step 4).
     patient.overlooked = false;
     day.fatigue.oversights += 1;
+    day.fatigue.overlookedAt.push(now(day));
     day.events.schedule(now(day) + day.settings.fatigue.oversightDelay, { type: "reviewLate", id: patient.id });
   },
   reviewLate(day, patient) {

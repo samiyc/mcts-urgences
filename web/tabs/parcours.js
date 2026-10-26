@@ -9,6 +9,8 @@ import { FATIGUE } from "../../src/pathway-hypotheses.js";
 import { RULE_LABELS, RULES } from "../../src/rules.js";
 import { el } from "../dom.js";
 import { panelOf } from "../knobs.js";
+import { compareField, timelineClick, timelineSection } from "./parcours-compare.js";
+import { timelineOf } from "../../src/pathway-timeline.js";
 import { PATHWAY_LEGEND, dayClock, figures, lineAt, planAt, presentTable } from "../parcours-view.js";
 import { createReplayStore, download, replayName } from "../replay-store.js";
 
@@ -24,7 +26,7 @@ const store = createReplayStore("urgences-parcours");
 const SPEEDS = [["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
-export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24" });
+export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null });
 /** The fatigue settings: off, or a break rule (pathway-fatigue.js); the shifts. */
 const FATIGUES = [["off", "pas de fatigue"], ...Object.entries(BREAK_RULES).map(([rule, label]) => [rule, `fatigue, ${label}`])];
 const TEAMS = [["24", "gardes de 24 h"], ["12", "deux équipes de 12 h"]];
@@ -55,7 +57,7 @@ function runOf(ctx) {
   const layout = pathwayPlanOf(day.settings.plan);
   const walks = walksOfDay(day, layout);
   const end = Math.max(...[...day.patients.values()].map((patient) => patient.exitAt ?? day.clock));
-  pathway.run = { key, day, layout, walks, steps: stepsOf(day), measures: pathwayMeasures(day), walking: walkMeasures(walks), end };
+  pathway.run = { key, day, layout, walks, steps: stepsOf(day), measures: pathwayMeasures(day), walking: walkMeasures(walks), end, timeline: timelineOf(day) };
   pathway.t = Math.min(pathway.t, end);
   return pathway.run;
 }
@@ -86,6 +88,7 @@ export const pathwayPanel = (ctx) =>
     el("label", {}, "L'interne de la journée", selectOf("intern", DAY_INTERNS, ctx.pathway.intern)),
     el("label", {}, "La fatigue des médecins et leurs pauses", selectOf("fatigue", FATIGUES, ctx.pathway.fatigue)),
     ctx.pathway.fatigue === "off" ? null : el("label", {}, "Les gardes", selectOf("teams", TEAMS, ctx.pathway.teams)),
+    compareField(ctx.pathway),
     ...planFields(ctx),
   );
 
@@ -112,6 +115,7 @@ export function pathwayView(ctx) {
     el("div", { class: "pathway-present" }, presentTable(run, t)),
     el("h2", {}, "La journée"),
     figures(run),
+    ...timelineSection(ctx, run, playedDay),
     ctx.internPanel.view(),
   ];
 }
@@ -166,6 +170,12 @@ const DOES = {
 
 /** A click in the tab (`data-parcours-do`); true if it was the tab's. */
 export function pathwayClick(ctx, target) {
+  if (timelineClick(ctx, target)) {
+    pausePathway(ctx);
+    ctx.render();
+    document.getElementById("pathway")?.scrollIntoView({ behavior: "smooth" });
+    return true;
+  }
   const action = /** @type {HTMLElement | null} */ (target.closest?.("[data-parcours-do]"))?.dataset.parcoursDo;
   if (!DOES[action]) return false;
   DOES[action](ctx);
