@@ -39,6 +39,26 @@ D'après Santé publique France, pour la grippe :
 La bronchiolite remplit surtout les urgences pédiatriques, que le simulateur ne fait pas. Ce qui manque : la hausse
 des passages de tous motifs au pic, chez l'adulte (H57).
 
+## Les quatre ajouts, en chiffres
+
+- **Les décès** : la mortalité moyenne aux urgences est d'environ 0,2 % des passages, de 0,06 à 0,8 % selon les services
+  (l'étude multicentrique dirigée par E. Roupie en 1997, citée par une
+  [thèse de Lille, 2015](https://pepite-depot.univ-lille.fr/LIBRE/Th_Medecine/2015/2015LIL2M398.pdf)). En Angleterre,
+  sur plus de 5 millions de patients, une attente de plus de 5 h avant la décision d'hospitaliser est liée à plus de
+  décès à 30 jours
+  ([Le Quotidien du médecin](https://infectiologie.lequotidiendumedecin.fr/hopital/urgences/aux-urgences-lattente-peut-tuer-selon-une-etude-britannique)).
+- **L'interprète** : aux urgences adultes d'Arras, 278 consultations de patients allophones sur 21 909, et le traducteur
+  informel était le moyen de traduction le plus utilisé
+  ([thèse de Lille, 2025](https://pepite-depot.univ-lille.fr/LIBRE/Th_Medecine/2025/2025ULILM216.pdf)). Aucun délai
+  d'interprète par téléphone n'est publié.
+- **Le circuit court** : dans 58 % des services, il prend 13,5 % des patients
+  ([parcours-patient.md](parcours-patient.md)).
+- **Les accompagnants** : les personnes âgées arrivent plus souvent accompagnées (DREES, l'enquête de 2013), sans
+  pourcentage.
+- **Le nettoyage entre deux patients** (H62) : la SFHH demande un bionettoyage selon la procédure habituelle, y compris
+  sous précautions gouttelettes ([recommandations 2013](https://cdn2.splf.fr/wp-content/uploads/2013/12/Recommandation_SFHH_2013.pdf)) ;
+  aucune durée nationale n'est publiée.
+
 ## Plan blanc et HET, plus en détail
 
 - **L'HET** est un dispositif gradué, né d'une circulaire de 2006 : une veille, des seuils, une cellule de crise

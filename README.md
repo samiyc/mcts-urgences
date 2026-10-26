@@ -21,9 +21,10 @@ gauche, qui se replie :
 - **Garde simple** : la garde de 8 h et « Jouer la garde vous-même » ;
 - **Service en plan** : un soignant au clavier ;
 - **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, une saison
-  ordinaire ou le pic d'une épidémie d'hiver, la marche comptée ou non, un interne robot, au hasard ou décidé par une
-  règle, la fatigue des médecins et leurs pauses, l'ordre du scanner et du bloc, l'hôpital en tension (HET), le Plan
-  blanc et la sortie de SAUV par une règle, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au
+  ordinaire ou le pic d'une épidémie d'hiver, les accompagnants, les patients qui ne parlent pas français, le circuit
+  court et les décès, la marche comptée ou non, un interne robot, au hasard ou décidé par une règle, la fatigue des
+  médecins et leurs pauses, l'ordre du scanner et du bloc, l'hôpital en tension (HET), le Plan blanc et la sortie de
+  SAUV par une règle, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au
   clavier », une vacation de 4 h jouée avec Z Q S D et E ;
 - **Replays** : les parties gardées et le dossier `replays/` ;
 - **Stats** : les règles comparées sur la garde et sur le parcours.
@@ -39,7 +40,9 @@ sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul c�
 médecin ou l'infirmier de tri joué au clavier (Z Q S D et E) ; à la fin, la garde contre la même avec un robot à
 votre place ([`docs/modele.md`](docs/modele.md), « Le service en plan »).
 
-Le parcours détaillé, ses six étapes et leurs chiffres : [`docs/parcours.md`](docs/parcours.md).
+Le parcours détaillé, ses six étapes et leurs chiffres : [`docs/parcours.md`](docs/parcours.md) ; ce qui a suivi (la
+chambre d'isolement prêtée, le HET, les accompagnants, l'interprète, le circuit court, les décès) :
+[`docs/parcours-ajouts.md`](docs/parcours-ajouts.md).
 
 ## Développer
 

@@ -143,13 +143,10 @@ D'après [oublis.md](oublis.md) :
 - **fait** :
   - le Plan blanc, à l'étape 6 ;
   - les épidémies d'hiver, en scénario (le 26/10, [parcours.md](../parcours.md), « L'épidémie d'hiver ») ;
-  - la chambre d'isolement prêtée, d'après Sami (le 26/10, H61, « La chambre d'isolement prêtée ») ;
-  - le HET, un niveau de tension avant le Plan blanc (le 26/10, « L'hôpital en tension ») ;
-- **plus tard** :
-  - les accompagnants ;
-  - le circuit court, en règle de plus ;
-  - les décès ;
-  - l'interprète ;
+  - la chambre d'isolement prêtée, d'après Sami (le 26/10, H61, [parcours-ajouts.md](../parcours-ajouts.md)) ;
+  - le HET, un niveau de tension avant le Plan blanc (le 26/10, [parcours-ajouts.md](../parcours-ajouts.md)) ;
+  - les accompagnants, l'interprète, le circuit court et les décès (le 26/10, [parcours-ajouts.md](../parcours-ajouts.md),
+    « Les quatre ajouts ») ;
 - **pas ici** :
   - la pédiatrie ;
   - les couveuses et la réanimation néonatale : un autre service, peut-être un autre projet ;

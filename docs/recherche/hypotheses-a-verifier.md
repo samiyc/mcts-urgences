@@ -151,3 +151,23 @@ prévisible, engage tous les services et précède le Plan blanc ; ses seuils et
 | H64 | Ensuite, un lit de médecine de plus toutes les 4 h jusqu'à la fin de la journée (des sorties avancées, des transferts en soins de suite) | `HET.every`, `HET.flowWard` | Que gagne-t-on de lits, au fil des heures, avec des sorties anticipées ? | GL | à vérifier |
 | H65 | Un lit obtenu par le HET pèse comme 7 min 30 de retard d'un rouge (120) | `HET.bedCost` | Que coûte une admission programmée reportée, comparée à l'attente d'un patient ? | CDS, GL | à vérifier |
 | H66 | Le seuil de déclenchement : 3 patients qui attendent un lit (pour 12 box) | `HET.boarders`, `HET_RULES.threshold` | Sur quels indicateurs et quels seuils le HET se déclenche-t-il, et à quelle heure ? | CDS, URG | à vérifier |
+
+## Les quatre ajouts (`FAMILY`, `INTERPRETER`, `FAST_TRACK`, `DEATHS`, `src/pathway-hypotheses.js`)
+
+Les sources sont dans [oublis.md](oublis.md), « Les quatre ajouts, en chiffres » : la part des patients allophones
+(Arras), le circuit court (DREES), les décès (environ 0,2 % des passages). Ce qui suit n'en vient pas.
+
+| N° | Valeur prise | Dans le code | La question | Qui | Statut |
+|---|---|---|---|---|---|
+| H67 | 70 % des patients de 75 ans et plus viennent accompagnés, 35 % des autres | `FAMILY.share` | Quelle part des patients vient avec un proche, selon l'âge ? | IOA, CDS | à vérifier |
+| H68 | Informer la famille prend 5 min au médecin, à la lecture des résultats | `FAMILY.inform` | Combien de temps un médecin passe-t-il avec les familles, et à quel moment ? | URG | à vérifier |
+| H69 | Une personne de 75 ans et plus accompagnée, orientée vers l'UHCD, rentre chez elle une fois sur trois | `FAMILY.home` | Un proche présent permet-il souvent un retour à domicile plutôt qu'une nuit en UHCD ? | URG, CDS | à vérifier |
+| H70 | Un interprète par téléphone est joint en 5 min, au tri comme à l'examen, l'IOA ou le médecin en ligne | `INTERPRETER.connect` | En combien de temps joint-on un interprète, et que fait le soignant en attendant ? | IOA, URG | à vérifier |
+| H71 | Avec l'interprète, le tri et l'examen sont 1,5 fois plus longs | `INTERPRETER.slow` | De combien l'interprétariat allonge-t-il un tri ou un examen ? | IOA, URG | à vérifier |
+| H72 | Un accompagnant qui traduit allonge les gestes de 20 %, sans attente | `INTERPRETER.family` | Un proche qui traduit suffit-il, et que perd-on par rapport à un interprète ? | IOA, URG | à vérifier |
+| H73 | Le circuit court a une salle de consultation (deux au CHU), près du tri | `C` sur les plans, `src/pathway-plans.js` | Où se fait le circuit court, et avec combien de salles ? | CDS | à vérifier |
+| H74 | Il est tenu de 10 h à 22 h par un médecin pris à l'équipe (deux au CHU) | `FAST_TRACK.from`, `to`, `doctors` | Ses horaires, et qui le tient : un médecin de l'équipe, un médecin en plus, une infirmière de pratique avancée ? | CDS, URG | à vérifier |
+| H75 | Il voit les patients venus à pied, triés 4 ou 5, pas à isoler, dans l'ordre d'arrivée | `FAST_TRACK.fromColour`, `src/pathway-fast.js` | Qui oriente-t-on vers le circuit court, et sur quels critères ? | IOA | à vérifier |
+| H76 | À la fin de l'examen, un patient de niveau 1 meurt 4 fois sur 100, un niveau 2 2 fois sur 1 000 (pour environ 0,2 % des passages) | `DEATHS.base` | Combien de décès aux urgences, et pour quels patients ? | URG | à vérifier |
+| H77 | Le risque monte de 10 % par heure d'attente au-delà de l'attente maximale du niveau | `DEATHS.perHour` | De combien l'attente augmente-t-elle le risque de décès ? | URG | à vérifier |
+| H78 | Un décès retient le médecin 45 min (la réanimation, l'annonce à la famille), et la place 90 min de plus | `DEATHS.resus`, `after` | Combien de temps un décès immobilise-t-il un médecin et un box ? | URG, CDS | à vérifier |

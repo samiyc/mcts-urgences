@@ -12,6 +12,9 @@ sources sont dans chaque fichier du dossier, pas ici.
 - **Brancardier** : transporte les patients couchés (au scanner, au bloc, dans un service) et souvent les prélèvements.
 - **ASH** (agent des services hospitaliers) : le ménage et la remise en état d'un box entre deux patients.
 - **Agent d'accueil** : l'inscription administrative (l'identité, la carte Vitale) à l'arrivée.
+- **Accompagnant** : le proche qui vient avec le patient ; il attend, demande des nouvelles, traduit parfois.
+- **Allophone** : un patient qui ne parle pas la langue du service ; on le comprend par un proche qui traduit, ou par un interprète, souvent au téléphone.
+- **Bionettoyage** : le nettoyage et la désinfection d'une chambre ou d'un box avant le patient suivant ; plus long après un patient contagieux.
 - **Interne** : un médecin en formation, qui examine, prescrit et suit des patients sous la responsabilité d'un senior. C'est le rôle que Sami veut donner au joueur humain.
 - **Senior** : le médecin urgentiste diplômé, qui valide les décisions de l'interne.
 - **Trauma leader** : le médecin qui dirige une équipe autour d'un patient grave en SAUV ; il supervise, les autres font les gestes.

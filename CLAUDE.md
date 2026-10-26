@@ -12,8 +12,9 @@ where the ISMCTS was built and measured). The plan and the reasons live in lopin
 `docs/ismcts-ailleurs/` (`feuille-de-route.md` first).
 
 The detailed pathway (25/10/2026, `src/pathway*.js`), next to the simple shift and not replacing it: its steps and
-figures in `docs/parcours.md`, the research and its roadmap in `docs/recherche/` (README first), the estimated values
-to check with professionals in `docs/recherche/hypotheses-a-verifier.md`.
+figures in `docs/parcours.md`, what came after the roadmap in `docs/parcours-ajouts.md`, the research and its roadmap
+in `docs/recherche/` (README first), the estimated values to check with professionals in
+`docs/recherche/hypotheses-a-verifier.md`.
 
 ## Rules
 
