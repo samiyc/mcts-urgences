@@ -1,4 +1,5 @@
 import { cellAt, pathOf, roleOf, seatsOf, startCellOf } from "./pathway-cells.js";
+import { STEP } from "./ward-moves.js";
 
 /**
  * Where everyone is during a day of the detailed pathway (Sami, 26/10/2026, the roadmap's step 2), kept beside the
@@ -114,6 +115,20 @@ export function outOfScanner(day, patient) {
   day.trace.slots.scanner[day.trace.scanOf.get(patient.id)] = null;
   day.trace.scanOf.delete(patient.id);
   if (!day.settings.walk) locate(day, patient.id, placeOrSeat(day, patient));
+}
+
+/**
+ * Patient `id` walked with the intern from the moment they fetched them: their walk is the intern's cells since then
+ * (pathway-intern.js), one a step, and they are where the intern is.
+ */
+export function followedTo(day, patient) {
+  const { intern, trace } = day;
+  const path = intern.track.slice(intern.pickedAt).map((cell) => ({ ...cell }));
+  const walk = { who: patient.id, role: "patient", t0: (intern.pickedAt + 1) * STEP, path: path.length ? path : [{ ...intern.cell }], at: "intern", from: trace.where.get(patient.id)?.at ?? null };
+  trace.walks.push(walk);
+  trace.last.set(patient.id, walk);
+  trace.where.set(patient.id, { at: "intern", cell: { ...intern.cell } });
+  Object.assign(intern, { following: null, pickedAt: null });
 }
 
 /** A patient seated for their results, out of the box. */

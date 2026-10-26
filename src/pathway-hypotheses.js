@@ -55,6 +55,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
    * for the doctor's walk, the scanner for a stretcher-bearer (pathway-porters.js). Off, the day is step 1's.
    */
   walk: false,
+  /** The intern (INTERN, step 3), or none: without one, the day is the same as before. */
+  intern: null,
   /**
    * The care once the results are read, in the place (hypothesis; the simple shift's `stay` held the box for the
    * results as well, here they are their own steps).
@@ -119,6 +121,19 @@ export const PATHWAY_DEFAULTS = Object.freeze({
  * step 2 (pathway-walk.js); they make nobody wait before step 3, when walking counts.
  */
 export const PORTERS = Object.freeze({ proximite: 1, moyen: 2, chu: 3 });
+/**
+ * The intern (Sami, 26/10/2026, step 3; hypotheses, no source): the patients they follow at most, when each task is
+ * due after it is asked, the minutes it takes (the results: the senior's reading), the minutes of the care the
+ * department spends fetching a medication, and the share of patients needing one, by level.
+ */
+export const INTERN = Object.freeze({
+  patients: 4,
+  due: Object.freeze({ vitals: 30, sample: 15, tubes: 10, scanPick: 15, scanDrop: 10, result: 15, pharmacy: 15, med: 10 }),
+  take: Object.freeze({ vitals: 2, sample: 3, tubes: 0.5, scanPick: 0.5, scanDrop: 0.5, result: 5, pharmacy: 1, med: 1 }),
+  medInCare: 10,
+  needsMed: Object.freeze({ 1: 0.9, 2: 0.8, 3: 0.6, 4: 0.3, 5: 0.1 }),
+});
+
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
 export const CELL_METRES = 2;
 

@@ -1,4 +1,5 @@
 import { minutesOf } from "./pathway-cells.js";
+import { drop } from "./pathway-intern.js";
 import { doctorTo, intoSlot, outOfDepartment, outOfSlot } from "./pathway-trace.js";
 
 /**
@@ -30,6 +31,7 @@ export const byColour = (day) => (a, b) => day.patients.get(a).colour - day.pati
 export function exitPatient(day, patient, exit) {
   Object.assign(patient, { exit, exitAt: now(day), step: "out" });
   outOfDepartment(day, patient);
+  drop(day, patient.id);
 }
 
 /** The place a waiting patient would take now, or null: the SAUV for a red, the isolation room for an isolated one, else a box. */

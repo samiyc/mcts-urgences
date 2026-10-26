@@ -79,6 +79,12 @@ function bedsFreed(rng, settings) {
   );
 }
 
+/** Who needs a medication (the intern fetches it, step 3), drawn apart so that the rest of the day is drawn the same. */
+function withMedication(seed, patients, settings) {
+  const rng = createRng((Math.imul(seed, 2654435761) ^ 0x5bd1e995) >>> 0);
+  return patients.map((patient) => ({ ...patient, needs: { ...patient.needs, med: rng.next() < settings.intern.needsMed[patient.level] } }));
+}
+
 /**
  * A day of the pathway: `{ settings, patients, beds }`. `patients` by arrival, numbered from 1, each a patient of
  * scenario.js plus its hidden pathway; `beds` the times each ward frees a bed. `options`: `pathwaySettingsOf`'s.
@@ -97,5 +103,6 @@ export function drawPathwayDay(seed, options = {}) {
     .map((patient) => ({ ...patient, ...pathwayOf(rng, patient, settings) }))
     .sort((a, b) => a.arrival - b.arrival)
     .map((patient, i) => ({ id: i + 1, ...patient }));
-  return { settings, patients, beds: bedsFreed(rng, settings) };
+  const beds = bedsFreed(rng, settings);
+  return { settings, patients: settings.intern ? withMedication(seed, patients, settings) : patients, beds };
 }

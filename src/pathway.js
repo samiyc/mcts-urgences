@@ -2,6 +2,7 @@ import { createEvents } from "mcts-commun/events.js";
 import { HANDLERS } from "./pathway-handlers.js";
 import { account, keepPeaks } from "./pathway-measures.js";
 import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take, walkDelay } from "./pathway-places.js";
+import { drop, startIntern } from "./pathway-intern.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve } from "./pathway-serve.js";
@@ -54,6 +55,7 @@ export const STEPS = Object.freeze({
   uhcd: "en UHCD",
   bed: "attend un lit",
   leaving: "part dans son lit",
+  med: "attend son médicament",
   out: "sorti",
 });
 
@@ -138,6 +140,7 @@ export function startPathway(day) {
     clock: 0,
     queues: { register: [], triage: [], waiting: [], scanner: [], specialists: [], theatre: [], review: [], uhcd: [], transport: [] },
     porters: startPorters(settings),
+    intern: startIntern(settings, layoutOf(settings.plan)),
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
@@ -184,29 +187,41 @@ function bedDecision(day) {
  */
 const decisionAt = (day) => boxDecision(day) ?? bedDecision(day);
 
+/** Whether the day is over: past the overtime, or nothing left to happen and no task left to the intern. */
+const endsNow = (day, next, end) => (next ? next.at > end : (day.intern?.tasks.length ?? 0) === 0);
+
 /**
- * Runs the day to its next decision (see `decisionAt`), or null once nothing is left to happen (or the overtime is over).
+ * Runs the day to its next decision (see `decisionAt`), or null once nothing is left to happen (or the overtime is over),
+ * or once the next event is past `until` (the day goes on later: pathway-game.js plays it a step at a time).
  * @param {Day} day
+ * @param {number} [until]
  * @returns {Decision | null}
  */
-export function nextDecision(day) {
-  const end = day.settings.shift + day.settings.overtime;
+export function nextDecision(day, until = Infinity) {
   for (;;) {
     serve(day);
     const decision = decisionAt(day);
     if (decision) return decision;
     keepPeaks(day);
-    const next = day.events.peek();
-    if (!next || next.at > end) {
-      account(day, next ? end : day.clock);
-      day.over = true;
-      return null;
-    }
-    day.events.next();
-    account(day, next.at);
-    const { event } = next;
-    HANDLERS[event.type](day, event.id === undefined ? event : day.patients.get(event.id), event);
+    if (!handleNext(day, until)) return null;
   }
+}
+
+/** Handles the day's next event; false when the day is over, or its next event is past `until`. */
+function handleNext(day, until) {
+  const end = day.settings.shift + day.settings.overtime;
+  const next = day.events.peek();
+  if (endsNow(day, next, end)) {
+    account(day, next ? end : day.clock);
+    day.over = true;
+    return false;
+  }
+  if (!next || next.at > until) return false;
+  day.events.next();
+  account(day, next.at);
+  const { event } = next;
+  HANDLERS[event.type](day, event.id === undefined ? event : day.patients.get(event.id), event);
+  return true;
 }
 
 /**
@@ -221,6 +236,7 @@ export function decide(day, decision, id) {
   const place = patient && day.queues.waiting.includes(id) ? placeFor(day, patient) : null;
   if (!place || free(day, "doctors") <= 0) throw new Error("la règle doit choisir un patient qui attend, pour qui une place est libre");
   removeFrom(day.queues.waiting, id);
+  drop(day, id, ["vitals"]);
   const walked = moveTo(day, patient, place);
   take(day, "doctors");
   const fetched = doctorTo(day, id);
@@ -238,6 +254,23 @@ export function decide(day, decision, id) {
  */
 export function runPathway(day, { box, bed }) {
   for (let decision = nextDecision(day); decision; decision = nextDecision(day)) {
+    const context = { now: now(day), day };
+    const chosen = decision.kind === "box" ? box(decision.candidates, context) : bed(decision.candidates, context);
+    decide(day, decision, Number(chosen.id));
+  }
+  return day;
+}
+
+/**
+ * Plays `day` up to minute `until`, the choices by `rules` (runPathway's): the intern acts between two such calls.
+ * @param {Day} day
+ * @param {number} until
+ * @param {{ box: Rule, bed: BedRule }} rules
+ */
+export function runUntil(day, until, { box, bed }) {
+  if (day.over) return day;
+  day.events.schedule(until, { type: "tick" });
+  for (let decision = nextDecision(day, until); decision; decision = nextDecision(day, until)) {
     const context = { now: now(day), day };
     const chosen = decision.kind === "box" ? box(decision.candidates, context) : bed(decision.candidates, context);
     decide(day, decision, Number(chosen.id));

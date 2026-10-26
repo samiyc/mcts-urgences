@@ -1,8 +1,9 @@
 import { MAX_WAIT } from "./hypotheses.js";
 import { exitPatient, give, leavePlace, lognormal, now, removeFrom } from "./pathway-places.js";
 import { scheduleWorsening } from "./simulate.js";
+import { ask, assign, follows } from "./pathway-intern.js";
 import { requestTransport } from "./pathway-porters.js";
-import { cleanedSlot, doctorBack, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
+import { cleanedSlot, doctorBack, followedTo, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").Day} Day */
 /** @typedef {import("./types.js").PathwayPatient} PathwayPatient */
@@ -16,12 +17,21 @@ import { cleanedSlot, doctorBack, locate, outOfScanner, placeOrSeat, seated } fr
 function examsBack(day, patient) {
   if (patient.orderedAt === null) return startCare(day, patient);
   patient.step = "review";
+  // The intern reads their patients' results themselves.
+  if (follows(day, patient.id)) return ask(day, "result", patient.id);
   day.queues.review.push(patient.id);
 }
 
+/** The care, in the place; an intern's patient who needs a medication waits for it, then the care is shorter by its fetching. */
 function startCare(day, patient) {
+  if (follows(day, patient.id) && patient.needs.med && !patient.medGiven) {
+    patient.step = "med";
+    return ask(day, "pharmacy", patient.id);
+  }
   patient.step = "care";
-  day.events.schedule(now(day) + day.settings.care[patient.levelAtStart] * patient.stayFactor, { type: "careEnd", id: patient.id });
+  const care = day.settings.care[patient.levelAtStart] * patient.stayFactor;
+  const minutes = patient.medGiven ? Math.max(1, care - day.settings.intern.medInCare) : care;
+  day.events.schedule(now(day) + minutes, { type: "careEnd", id: patient.id });
 }
 
 /** The admission decided: the patient waits for a bed of their ward, in their place, or in the UHCD if one is free. */
@@ -36,17 +46,24 @@ function toWaiting(day, patient) {
   patient.step = "waiting";
   day.queues.waiting.push(patient.id);
   locate(day, patient.id, { at: "waiting" });
+  assign(day, patient);
   if (patient.patience < Infinity) day.events.schedule(now(day) + patient.patience, { type: "leave", id: patient.id });
 }
 
 /** The exams a doctor orders, in this order: the sample sent to the lab, the scanner, a specialist's advice. */
 /** @type {Array<[keyof PathwayPatient["needs"], (day: Day, patient: PathwayPatient) => void]>} */
 const EXAMS = [
-  ["bio", (day, patient) => day.events.schedule(now(day) + day.settings.sample + lognormal(day.settings.labTurnaround, patient.labFactor), { type: "examBack", id: patient.id })],
+  ["bio", (day, patient) => (follows(day, patient.id) ? ask(day, "sample", patient.id) : day.events.schedule(now(day) + day.settings.sample + lognormal(day.settings.labTurnaround, patient.labFactor), { type: "examBack", id: patient.id }))],
   // Walking counts: a stretcher-bearer takes the patient to the scanner first.
-  ["scan", (day, patient) => (day.settings.walk ? requestTransport(day, patient.id, { at: "scanner", slot: 0 }, "scan") : day.queues.scanner.push(patient.id))],
+  ["scan", (day, patient) => (follows(day, patient.id) ? ask(day, "scanPick", patient.id) : toScanner(day, patient))],
   ["advice", (day, patient) => day.queues.specialists.push(patient.id)],
 ];
+
+/** To the scanner: by a stretcher-bearer when walking counts, else at once into its queue. */
+function toScanner(day, patient) {
+  if (day.settings.walk) requestTransport(day, patient.id, { at: "scanner", slot: 0 }, "scan");
+  else day.queues.scanner.push(patient.id);
+}
 
 /** Where a patient goes once cared for (their hidden orientation); a ward is the default. */
 const ORIENTATIONS = {
@@ -67,6 +84,35 @@ const ORIENTATIONS = {
     day.queues.uhcd.push(patient.id);
   },
   ward: admit,
+};
+
+/** What each task of the intern does once done (pathway-intern.js). */
+const INTERN_DONE = {
+  vitals(day, patient) {
+    if (patient.step !== "waiting") return;
+    // The vitals show a worsening the bracelet did not: the colour is the level now.
+    if (patient.level < patient.colour) {
+      patient.colour = patient.level;
+      day.intern.recoloured += 1;
+    }
+    if (follows(day, patient.id)) ask(day, "vitals", patient.id);
+  },
+  sample: (day, patient) => ask(day, "tubes", patient.id),
+  tubes: (day, patient) => day.events.schedule(now(day) + lognormal(day.settings.labTurnaround, patient.labFactor), { type: "examBack", id: patient.id }),
+  scanPick: (day, patient) => ask(day, "scanDrop", patient.id),
+  scanDrop(day, patient) {
+    followedTo(day, patient);
+    day.queues.scanner.push(patient.id);
+  },
+  result(day, patient) {
+    patient.reviewedAt = now(day);
+    startCare(day, patient);
+  },
+  pharmacy: (day, patient) => ask(day, "med", patient.id),
+  med(day, patient) {
+    patient.medGiven = true;
+    startCare(day, patient);
+  },
 };
 
 export const HANDLERS = {
@@ -177,6 +223,12 @@ export const HANDLERS = {
   },
   /** A stretcher-bearer back at the base: free for the next transport (served at every event). */
   porterFree() {},
+  /** A step of the plan played by the intern (pathway-game.js): only the clock. */
+  tick() {},
+  /** A task of the intern done (pathway-intern.js), after its minutes: its effect. */
+  internDone(day, patient, event) {
+    INTERN_DONE[event.kind](day, patient);
+  },
   cleaned(day, event) {
     give(day, event.place);
     cleanedSlot(day, event.place, event.slot);

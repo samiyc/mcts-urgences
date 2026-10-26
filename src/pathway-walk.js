@@ -34,6 +34,9 @@ function porterFor(layout, porters, one) {
   return { wait: (toPatient.length - 1) * STEP, walks: [{ who: porter.who, role: "porter", t0: one.t0, path: toPatient }, along, back] };
 }
 
+/** The intern's cells, one a step (pathway-game.js), as one walk from the first step. */
+const internWalk = (day) => (day.intern?.track.length ? [{ who: "intern", role: "intern", t0: STEP, path: day.intern.track }] : []);
+
 /** The doctors of the day (its extra ones included) in their room, the stretcher-bearers at their base. */
 function idleOf(day, layout, team) {
   const doctors = day.settings.doctors + (day.settings.dayDoctors?.extra ?? 0);
@@ -47,7 +50,7 @@ function idleOf(day, layout, team) {
  */
 export function walksOfDay(day, layout, porters = day.settings.porters ?? 0) {
   /** @type {Walk[]} */
-  const walks = [...day.trace.walks];
+  const walks = [...day.trace.walks, ...internWalk(day)];
   const team = Array.from({ length: porters }, (_, k) => ({ who: `porter:${k}`, cell: layout.points.porters, freeAt: -Infinity }));
   const transports = day.settings.walk ? (day.trace.transports ?? []) : portersAfter(layout, team, walks);
   return { walks: walks.sort((a, b) => a.t0 - b.t0), transports, idle: idleOf(day, layout, team) };
@@ -71,6 +74,9 @@ export function walkScene({ walks, idle }, t) {
   return [...now.values()].filter(({ walk: one }) => !(one?.at === "out" && t >= endOf(one))).map(({ who, role, cell, walk: one }) => ({ who, role, ...(one ? cellAt(one, t) : cell) }));
 }
 
+/** The cells a walk changes (a walk with the intern holds a cell while they stand). */
+const cellsWalked = (one) => one.path.filter((cell, i) => i > 0 && (cell.x !== one.path[i - 1].x || cell.y !== one.path[i - 1].y)).length;
+
 const sum = (values) => values.reduce((total, value) => total + value, 0);
 
 /**
@@ -79,8 +85,8 @@ const sum = (values) => values.reduce((total, value) => total + value, 0);
  */
 export function walkMeasures({ walks, transports }) {
   const byRole = Object.fromEntries(
-    ["patient", "doctor", "porter"].map((role) => {
-      const steps = walks.filter((one) => one.role === role).map((one) => one.path.length - 1);
+    ["patient", "doctor", "porter", "intern"].map((role) => {
+      const steps = walks.filter((one) => one.role === role).map(cellsWalked);
       return [role, { metres: sum(steps) * CELL_METRES, minutes: sum(steps) * STEP, longest: Math.max(0, ...steps) * STEP }];
     }),
   );
