@@ -3,6 +3,7 @@ import { BED_LABELS, BED_RULES, pathwayMeasures, runPathway, startPathway } from
 import { drawPathwayDay } from "../../src/pathway-scenario.js";
 import { stepsOf } from "../../src/pathway-status.js";
 import { walkMeasures, walksOfDay } from "../../src/pathway-walk.js";
+import { INTERN_MODES, runInternGame, startInternGame } from "../../src/pathway-game.js";
 import { RULE_LABELS, RULES } from "../../src/rules.js";
 import { el } from "../dom.js";
 import { panelOf } from "../knobs.js";
@@ -21,18 +22,27 @@ const store = createReplayStore("urgences-parcours");
 const SPEEDS = [["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
-export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null });
+export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none" });
+/** The interns the replayed day may have (the one at the keyboard is played below the day). */
+const DAY_INTERNS = Object.entries(INTERN_MODES).filter(([mode]) => mode !== "human");
 
 /** The plan shown: the one applied, else the hospital's. */
 const planText = ({ state, pathway }) => pathway.plan ?? planTextOf(PATHWAY_PLANS[state.hospital]);
 
+/** The day of the settings, played: with an intern (a robot, or at random: pathway-game.js), or without one. */
+function playedDay({ state, pathway }) {
+  const plan = pathway.plan ? { plan: pathway.plan } : {};
+  if (pathway.intern !== "none") return runInternGame(startInternGame({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box, bed: pathway.bed, mode: pathway.intern, ...plan })).day;
+  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: pathway.walk, ...plan });
+  return runPathway(startPathway(drawn), { box: RULES[pathway.box], bed: BED_RULES[pathway.bed] });
+}
+
 /** The day for the settings now, played again only when they changed. */
 function runOf(ctx) {
   const { state, pathway } = ctx;
-  const key = JSON.stringify([state.hospital, state.accident, state.seed, pathway.box, pathway.bed, pathway.plan]);
+  const key = JSON.stringify([state.hospital, state.accident, state.seed, pathway.box, pathway.bed, pathway.plan, pathway.walk, pathway.intern]);
   if (pathway.run?.key === key) return pathway.run;
-  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, ...(pathway.plan ? { plan: pathway.plan } : {}) });
-  const day = runPathway(startPathway(drawn), { box: RULES[pathway.box], bed: BED_RULES[pathway.bed] });
+  const day = playedDay(ctx);
   const layout = pathwayPlanOf(day.settings.plan);
   const walks = walksOfDay(day, layout);
   const end = Math.max(...[...day.patients.values()].map((patient) => patient.exitAt ?? day.clock));
@@ -63,6 +73,8 @@ export const pathwayPanel = (ctx) =>
     el("label", {}, "Règle des box", selectOf("box", Object.keys(RULES).map((key) => [key, RULE_LABELS[key]]), ctx.pathway.box)),
     el("label", {}, "Règle des lits d'aval", selectOf("bed", Object.entries(BED_LABELS), ctx.pathway.bed)),
     el("label", {}, "Vitesse", selectOf("speed", SPEEDS, String(ctx.pathway.speed))),
+    el("label", { class: "check" }, el("input", { type: "checkbox", "data-parcours": "walk", checked: ctx.pathway.walk || ctx.pathway.intern !== "none", disabled: ctx.pathway.intern !== "none" }), "Marche comptée (l'examen attend patient et médecin, le scanner un brancardier)"),
+    el("label", {}, "L'interne de la journée", selectOf("intern", DAY_INTERNS, ctx.pathway.intern)),
     ...planFields(ctx),
   );
 
@@ -79,6 +91,8 @@ function controls(ctx, run) {
 }
 
 export function pathwayView(ctx) {
+  // A shift of the intern at the keyboard takes the view while it lasts.
+  if (ctx.internPanel.active()) return [ctx.internPanel.view()];
   const run = runOf(ctx);
   const t = ctx.pathway.t;
   return [
@@ -87,6 +101,7 @@ export function pathwayView(ctx) {
     el("div", { class: "pathway-present" }, presentTable(run, t)),
     el("h2", {}, "La journée"),
     figures(run),
+    ctx.internPanel.view(),
   ];
 }
 
@@ -147,11 +162,14 @@ export function pathwayClick(ctx, target) {
   return true;
 }
 
-/** A setting of the tab changed: a rule or the speed (the plan's text waits for « Appliquer »). */
+/** A setting's value: the speed a number, walking a box ticked, the others their text. */
+const valueOf = (name, target) => ({ speed: () => Number(target.value), walk: () => target.checked })[name]?.() ?? target.value;
+
+/** A setting of the tab changed: a rule, the speed, walking, the intern (the plan's text waits for « Appliquer »). */
 export function pathwayChange(ctx, target) {
   const name = target.dataset?.parcours;
   if (!name || name === "plan") return Boolean(name);
-  ctx.pathway[name] = name === "speed" ? Number(target.value) : target.value;
+  ctx.pathway[name] = valueOf(name, target);
   if (name !== "speed") pausePathway(ctx);
   ctx.render();
   return true;

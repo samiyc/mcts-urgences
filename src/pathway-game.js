@@ -3,6 +3,7 @@ import { CELL_METRES, INTERN } from "./pathway-hypotheses.js";
 import { busy, moveIntern, tasksHere, targetsOf, useHere } from "./pathway-intern.js";
 import { BED_RULES, pathwayMeasures, runPathway, runUntil, startPathway } from "./pathway.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
+import { walkScene, walksOfDay } from "./pathway-walk.js";
 import { RULES } from "./rules.js";
 import { MOVES } from "./ward-keys.js";
 import { STEP, walk, walkSteps } from "./ward-moves.js";
@@ -138,6 +139,23 @@ export function internMeasures(day) {
     metres: moves * CELL_METRES,
   };
 }
+
+/**
+ * Where each one is at the game's minute (pathway-walk.js's `walkScene`), the patient who follows the intern where
+ * the intern is; the intern marked `human` while the person plays.
+ */
+export function gameScene(game) {
+  const { day } = game;
+  const t = minuteOf(game);
+  const { following, cell } = day.intern ?? {};
+  return walkScene(walksOfDay(day, day.trace.layout), t).map((one) => {
+    if (one.who === "intern") return { ...one, ...cell, human: atKeyboard(game) };
+    return one.who === following ? { ...one, ...cell } : one;
+  });
+}
+
+/** The intern's open tasks, the one due first first: `[{ kind, id, due, late }]`, `late` once past due. */
+export const openTasks = (game) => (game.day.intern?.tasks ?? []).map((task) => ({ ...task, late: minuteOf(game) > task.due })).sort((a, b) => a.due - b.due);
 
 export const internResult = (game) => ({ measures: pathwayMeasures(game.day), intern: game.day.intern ? internMeasures(game.day) : null });
 

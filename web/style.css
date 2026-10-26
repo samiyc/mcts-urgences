@@ -172,3 +172,9 @@ main.layout.folded .sidebar { display: none; }
 .figure span { font-size: 0.8rem; color: var(--ink-2); }
 .present td, .present th { padding: 3px 8px; font-size: 0.85rem; }
 .present .worse { color: var(--rouge); font-weight: 700; }
+
+/* The intern at the keyboard (intern-panel.js, step 3). */
+.present tr.late td { color: var(--rouge); font-weight: 600; }
+.plan.pathway .me { fill: none; stroke: var(--accent); stroke-width: 3; }
+.sidebar label.check { display: flex; flex-direction: row; align-items: flex-start; gap: 8px; }
+.sidebar label.check input { width: auto; margin-top: 2px; }

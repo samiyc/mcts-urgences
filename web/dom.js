@@ -31,3 +31,4 @@ export function select(name, options, current) {
 }
 
 export const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
+export const decimal = (value, digits = 0) => value.toFixed(digits).replace(".", ",");

@@ -1,5 +1,6 @@
 import { COLOURS } from "../src/hypotheses.js";
 import { STEPS } from "../src/pathway.js";
+import { internMeasures } from "../src/pathway-game.js";
 import { statusAt } from "../src/pathway-status.js";
 import { walkScene } from "../src/pathway-walk.js";
 import { el } from "./dom.js";
@@ -57,8 +58,20 @@ export function lineAt(run, t) {
 
 const figure = (value, label) => el("div", { class: "figure" }, el("strong", {}, value), el("span", {}, label));
 
-/** The day's figures (pathwayMeasures) and what it walked (walkMeasures). */
-export function figures({ measures, walking }) {
+/** What the day's intern did (pathway-game.js), when it had one. */
+function internFigures(day) {
+  if (!day.intern) return [];
+  const one = internMeasures(day);
+  return [
+    figure(`${one.done} / ${one.late}`, `tâches de l'interne faites / en retard (${one.followed} patients suivis)`),
+    figure(`${decimal(one.lateness.mean, 1)} min`, "retard moyen d'une tâche"),
+    figure(String(one.recoloured), "aggravations repérées aux constantes"),
+    figure(`${decimal(one.metres / 1000, 1)} km`, "marchés par l'interne"),
+  ];
+}
+
+/** The day's figures (pathwayMeasures), what it walked (walkMeasures), and its intern's. */
+export function figures({ day, measures, walking }) {
   const { exits, stay, boarding, peak, maxWait } = measures;
   const { byRole } = walking;
   const km = (role) => `${decimal(byRole[role].metres / 1000, 1)} km`;
@@ -77,6 +90,7 @@ export function figures({ measures, walking }) {
     figure(km("doctor"), "marchés par les médecins"),
     figure(km("porter"), `marchés par les brancardiers (${walking.transports} transports)`),
     figure(`${walking.unported}`, `transports sans brancardier libre ; ${decimal(walking.porterWait.mean, 1)} min pour en avoir un`),
+    ...internFigures(day),
   );
 }
 

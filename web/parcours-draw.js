@@ -9,7 +9,8 @@ import { CELL, spotter } from "./ward-draw.js";
  */
 const CELL_CLASS = { "#": "wall", b: "bed", S: "sauv", I: "isolation", U: "uhcd", X: "machine", w: "seat", r: "results", A: "desk", T: "desk", D: "room", R: "room", B: "room", L: "room", P: "room", O: "door", H: "door", E: "door" };
 const LABELS = { A: "accueil", T: "tri", D: "méd.", R: "pause", B: "branc.", L: "labo", P: "pharma", O: "bloc", H: "asc.", E: "🚪", X: "scan", S: "SAUV", I: "iso", U: "UHCD" };
-const ICONS = { doctor: "🩺", porter: "🛏️" };
+const ICONS = { doctor: "🩺", porter: "🛏️", intern: "🧑‍⚕️" };
+const NAMES = { doctor: "Médecin", porter: "Brancardier" };
 
 function cells(root, lines) {
   lines.forEach((line, y) =>
@@ -32,10 +33,11 @@ function patientMark(patient, t, { cx, cy }) {
   return group;
 }
 
-function staffMark(one, { cx, cy }) {
+function staffMark(root, one, { cx, cy }) {
+  if (one.role === "intern" && one.human) root.append(svg("circle", { cx, cy, r: CELL / 2 - 1, class: "me" }));
   const icon = text(cx, cy + 6, ICONS[one.role], { class: "staff" });
-  icon.append(titled(one.role === "doctor" ? `Médecin ${Number(one.who.split(":")[1]) + 1}` : `Brancardier ${Number(one.who.split(":")[1]) + 1}`));
-  return icon;
+  icon.append(titled(one.role === "intern" ? "L'interne" : `${NAMES[one.role]} ${Number(String(one.who).split(":")[1]) + 1}`));
+  root.append(icon);
 }
 
 /** The plan at minute `t`: `layout` (pathwayPlanOf), the day's patients, and `scene` (walkScene at `t`). */
@@ -46,7 +48,8 @@ export function pathwayPlan({ layout, patients, scene, t, label }) {
   const spot = spotter();
   for (const one of scene) {
     const at = spot(one.x, one.y);
-    root.append(one.role === "patient" ? patientMark(patients.get(one.who), t, at) : staffMark(one, at));
+    if (one.role === "patient") root.append(patientMark(patients.get(one.who), t, at));
+    else staffMark(root, one, at);
   }
   return root;
 }

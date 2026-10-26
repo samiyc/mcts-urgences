@@ -7,7 +7,7 @@ import { downloadPathway, openPathwayReplay, pathwayKept } from "./parcours.js";
 /**
  * The tab « Replays » (Sami, 26/10/2026): the games kept in this browser, by kind (the shift played, the plan, the
  * days of the pathway), and the files the page server wrote to the project's replays/ (out of git). `ctx`: the page's
- * `state`, `render`, `openTab`, `player`, `wardPanel`, `pathway`.
+ * `state`, `render`, `openTab`, `player`, `wardPanel`, `internPanel`, `pathway`.
  */
 export const replaysPanel = () =>
   el("section", { class: "panel" }, el("h2", {}, "Les replays"), el("p", { class: "hint" }, "Chaque partie jouée se garde ici, dans ce navigateur, et dans le dossier replays/ du projet quand la page passe par son serveur (npm run page). Une journée du parcours se garde par « Garder cette journée » ; elle se rouvre avec ses réglages et son plan."));
@@ -52,6 +52,7 @@ export function replaysView(ctx) {
     el("section", { class: "player" }, el("h2", {}, "Les journées du parcours"), pathwayList()),
     ctx.player.keptView(),
     ctx.wardPanel.keptView(),
+    ctx.internPanel.keptView(),
     el("section", { class: "player" }, el("h2", {}, "Le dossier replays/ du projet"), serverList(ctx.state.serverReplays)),
   ];
 }
