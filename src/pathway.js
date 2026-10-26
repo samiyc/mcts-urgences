@@ -5,6 +5,12 @@ import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take } fro
 import { hourAt } from "./pathway-scenario.js";
 import { serve } from "./pathway-serve.js";
 
+/** @typedef {import("./types.js").BedRule} BedRule */
+/** @typedef {import("./types.js").Day} Day */
+/** @typedef {import("./types.js").Decision} Decision */
+/** @typedef {import("./types.js").PathwayPatient} PathwayPatient */
+/** @typedef {import("./types.js").Rule} Rule */
+
 /**
  * The detailed pathway (Sami, 25/10/2026, docs/recherche/feuille-de-route.md, step 1): a day of the department, each
  * patient followed from arrival to exit, next to the simple shift (simulate.js), which stays as it was. A
@@ -47,7 +53,11 @@ export const STEPS = Object.freeze({
   out: "sorti",
 });
 
-/** A drawn patient as the day starts following them. */
+/**
+ * A drawn patient as the day starts following them.
+ * @param {PathwayPatient} patient
+ * @returns {PathwayPatient}
+ */
 const followed = (patient) => ({
   ...patient,
   arrivalLevel: patient.level,
@@ -76,6 +86,7 @@ function scheduleArrivals(events, patients) {
 
 /** Each ward's free beds and waiting patients, and the beds it frees during the day. */
 function wardsOf(day, events) {
+  /** @type {Day["wards"]} */
   const wards = {};
   for (const [ward, { free: beds }] of Object.entries(day.settings.wards)) {
     wards[ward] = { free: beds, waiting: [] };
@@ -97,7 +108,11 @@ function scheduleDayDoctors(settings, events, capacity) {
 
 const perPool = () => Object.fromEntries(POOLS.map((pool) => [pool, 0]));
 
-/** The start of a day: `day` drawn by `drawPathwayDay` (pathway-scenario.js); nothing has happened yet. */
+/**
+ * The start of a day: `day` drawn by `drawPathwayDay` (pathway-scenario.js); nothing has happened yet.
+ * @param {{ settings: object, patients: PathwayPatient[], beds: Record<string, number[]> }} day
+ * @returns {Day}
+ */
 export function startPathway(day) {
   const { settings } = day;
   const events = createEvents();
@@ -163,7 +178,11 @@ function bedDecision(day) {
  */
 const decisionAt = (day) => boxDecision(day) ?? bedDecision(day);
 
-/** Runs the day to its next decision (see `decisionAt`), or null once nothing is left to happen (or the overtime is over). */
+/**
+ * Runs the day to its next decision (see `decisionAt`), or null once nothing is left to happen (or the overtime is over).
+ * @param {Day} day
+ * @returns {Decision | null}
+ */
 export function nextDecision(day) {
   const end = day.settings.shift + day.settings.overtime;
   for (;;) {
@@ -184,7 +203,12 @@ export function nextDecision(day) {
   }
 }
 
-/** Applies a decision: `id` takes the free place and a doctor ("box"), or the ward's bed ("bed"). */
+/**
+ * Applies a decision: `id` takes the free place and a doctor ("box"), or the ward's bed ("bed").
+ * @param {Day} day
+ * @param {Decision} decision
+ * @param {number} id
+ */
 export function decide(day, decision, id) {
   if (decision.kind === "bed") return giveBed(day, decision.ward, id);
   const patient = day.patients.get(id);
@@ -197,12 +221,17 @@ export function decide(day, decision, id) {
   day.events.schedule(now(day) + day.settings.exam[patient.level] * patient.examFactor, { type: "examEnd", id });
 }
 
-/** Plays `day` to its end: the box choices by `rules.box` (a rule of rules.js), the bed choices by `rules.bed` (BED_RULES). */
+/**
+ * Plays `day` to its end: the box choices by `rules.box` (a rule of rules.js), the bed choices by `rules.bed` (BED_RULES).
+ * @param {Day} day
+ * @param {{ box: Rule, bed: BedRule }} rules
+ * @returns {Day}
+ */
 export function runPathway(day, { box, bed }) {
   for (let decision = nextDecision(day); decision; decision = nextDecision(day)) {
     const context = { now: now(day), day };
     const chosen = decision.kind === "box" ? box(decision.candidates, context) : bed(decision.candidates, context);
-    decide(day, decision, chosen.id);
+    decide(day, decision, Number(chosen.id));
   }
   return day;
 }

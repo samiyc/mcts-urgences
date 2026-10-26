@@ -8,6 +8,9 @@ import { MAX_WAIT } from "./hypotheses.js";
 const first = (waiting, before) => waiting.reduce((best, patient) => (before(patient, best) ? patient : best));
 const deadlineOf = (patient) => patient.arrival + MAX_WAIT[patient.colour];
 
+/** @typedef {import("./types.js").Rule} Rule */
+
+/** @type {Readonly<Record<string, Rule>>} */
 export const RULES = Object.freeze({
   /** First come, first seen: the colour is ignored. */
   arrival: (waiting) => first(waiting, (a, b) => a.arrival < b.arrival),
@@ -23,6 +26,7 @@ const overdue = (patient, now) => now - patient.arrival - MAX_WAIT[patient.colou
 /**
  * Whom a free triage nurse looks at again (simulate.js: re-assessment), among the patients due for a look:
  * `(candidates, context) => view`, or null for nobody.
+ * @type {Readonly<Record<string, Rule>>}
  */
 export const NURSE_RULES = Object.freeze({
   /** A round of the waiting room: the patient left longest without a look, since arriving or the last one. */

@@ -17,7 +17,10 @@ function urgentInTime({ byLevel }) {
   return count ? (byLevel[1].inTime * byLevel[1].count + byLevel[2].inTime * byLevel[2].count) / count : 1;
 }
 
-/** One rule's means over the shifts, and its gains on the arrival order's (`baseline`) when there is one. */
+/**
+ * One rule's means over the shifts, and its gains on the arrival order's (`baseline`) when there is one.
+ * @returns {Record<string, any>}
+ */
 function summaryOf(measures, baseline) {
   const costs = (key) => measures.map((one) => one[key]);
   return {

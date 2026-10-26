@@ -119,8 +119,8 @@ function addComings(world, rng) {
     ...arrivals(rng, settings.ambulanceRate, now + settings.announced, settings.shift).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
   ];
   for (const [i, coming] of comings.entries()) {
-    const patient = { id: NEW + i, ...patientOf(rng, coming, settings), worsened: 0, worsenedAt: [], firstColour: null, looks: 0, reassessedAt: null, assessing: false, recoloured: false, start: null, examEnd: null, end: null, box: null };
-    patient.arrivalLevel = patient.level;
+    const drawn = patientOf(rng, coming, settings);
+    const patient = { id: NEW + i, ...drawn, arrivalLevel: drawn.level, worsened: 0, worsenedAt: [], firstColour: null, looks: 0, reassessedAt: null, assessing: false, recoloured: false, start: null, examEnd: null, end: null, box: null };
     world.patients.set(patient.id, patient);
     world.events.schedule(patient.arrival, { type: "arrive", id: patient.id });
   }
@@ -236,6 +236,7 @@ function answerOf(move, waiting, kind) {
  * The search as a rule (simulate.js's signature, reading `context.shift`), for the boxes and, given as the
  * nurse rule too, for the nurse: a single waiting patient goes in at once; otherwise `budget` iterations,
  * seeded from the shift's clock and its waiting room. For the nurse, null looks at nobody.
+ * @returns {import("./types.js").Rule}
  */
 export function searchRule(options = {}) {
   const { budget, depth, explore, width, horizon, seed, omniscient, measure } = { ...SEARCH_SETTINGS, ...options };

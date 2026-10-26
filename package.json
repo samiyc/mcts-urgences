@@ -12,10 +12,13 @@
     "test:coverage": "node --test --experimental-test-coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "check": "npm run lint && npm test",
+    "check": "npm run lint && npm run types && npm test",
     "compare": "node scripts/compare.js",
     "pathway": "node scripts/pathway-compare.js",
-    "page": "node node_modules/mcts-commun/bin/serve.js 4801"
+    "page": "node node_modules/mcts-commun/bin/serve.js 4801",
+    "types": "tsc -p .",
+    "prepare": "git config core.hooksPath .githooks",
+    "changelog": "node scripts/changelog.js"
   },
   "author": "Sami",
   "license": "UNLICENSED",
@@ -24,8 +27,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@types/node": "^20.19.43",
     "eslint": "^9.39.5",
     "eslint-plugin-sonarjs": "^4.2.1",
-    "globals": "^17.12.0"
+    "globals": "^17.12.0",
+    "typescript": "^5.9.3"
   }
 }

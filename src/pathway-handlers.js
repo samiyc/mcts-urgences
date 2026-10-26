@@ -2,6 +2,9 @@ import { MAX_WAIT } from "./hypotheses.js";
 import { exitPatient, give, leavePlace, lognormal, now, removeFrom } from "./pathway-places.js";
 import { scheduleWorsening } from "./simulate.js";
 
+/** @typedef {import("./types.js").Day} Day */
+/** @typedef {import("./types.js").PathwayPatient} PathwayPatient */
+
 /**
  * What each event of the detailed pathway (pathway.js) does to the day: an arrival, the end of a registration, of a
  * triage, of an exam, of a scan, of care, a bed freed, a place cleaned…
@@ -34,6 +37,7 @@ function toWaiting(day, patient) {
 }
 
 /** The exams a doctor orders, in this order: the sample sent to the lab, the scanner, a specialist's advice. */
+/** @type {Array<[keyof PathwayPatient["needs"], (day: Day, patient: PathwayPatient) => void]>} */
 const EXAMS = [
   ["bio", (day, patient) => day.events.schedule(now(day) + day.settings.sample + lognormal(day.settings.labTurnaround, patient.labFactor), { type: "examBack", id: patient.id })],
   ["scan", (day, patient) => day.queues.scanner.push(patient.id)],

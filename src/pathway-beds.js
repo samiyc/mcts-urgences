@@ -2,7 +2,12 @@
 
 const first = (list, before) => list.reduce((best, one) => (before(one, best) ? one : best));
 
-/** Who takes a bed a ward frees, among its waiting patients (views: `{ id, colour, admitAt, inBox, elderly }`). */
+/** @typedef {import("./types.js").BedRule} BedRule */
+
+/**
+ * Who takes a bed a ward frees, among its waiting patients (views: `{ id, colour, admitAt, inBox, elderly }`).
+ * @type {Readonly<Record<string, BedRule>>}
+ */
 export const BED_RULES = Object.freeze({
   /** The admission decided first. */
   oldest: (waiting) => first(waiting, (a, b) => a.admitAt < b.admitAt),

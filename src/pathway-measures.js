@@ -2,6 +2,8 @@ import { hourAt } from "./pathway-scenario.js";
 import { POOLS } from "./pathway-places.js";
 import { lateCostNow } from "./simulate.js";
 
+/** @typedef {import("./types.js").Day} Day */
+
 /** What the detailed pathway (pathway.js) counts as it goes, and the measures of a finished day. */
 
 /** Adds the minutes since the last event to each pool's use, and to the boarders' minutes in a place. */
@@ -88,6 +90,7 @@ const maxWaitOf = (day, seen) =>
  * - `turnaround`: the median from the exams ordered to the results read;
  * - `use` and `full`: each pool's busy share, and its share of time full; `busiest`, the pool most used;
  * - `worsened`: patients who got worse while waiting.
+ * @param {Day} day
  */
 export function pathwayMeasures(day) {
   const all = [...day.patients.values()];
