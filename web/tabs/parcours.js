@@ -5,6 +5,8 @@ import { stepsOf } from "../../src/pathway-status.js";
 import { walkMeasures, walksOfDay } from "../../src/pathway-walk.js";
 import { BREAK_RULES } from "../../src/pathway-fatigue.js";
 import { INTERN_MODES, runInternGame, startInternGame } from "../../src/pathway-game.js";
+import { INTERN_LABELS, INTERN_RULES } from "../../src/pathway-intern-decided.js";
+import { INTERN } from "../../src/pathway-hypotheses.js";
 import { FATIGUE } from "../../src/pathway-hypotheses.js";
 import { RULE_LABELS, RULES } from "../../src/rules.js";
 import { el } from "../dom.js";
@@ -32,7 +34,11 @@ export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: n
 const FATIGUES = [["off", "pas de fatigue"], ...Object.entries(BREAK_RULES).map(([rule, label]) => [rule, `fatigue, ${label}`])];
 const TEAMS = [["24", "gardes de 24 h"], ["12", "deux équipes de 12 h"]];
 /** The interns the replayed day may have (the one at the keyboard is played below the day). */
-const DAY_INTERNS = Object.entries(INTERN_MODES).filter(([mode]) => mode !== "human");
+const DAY_INTERNS = [
+  ...Object.entries(INTERN_MODES).filter(([mode]) => mode !== "human"),
+  // Decided a task at a time, by events (pathway-intern-decided.js, step 6), by a reference rule.
+  ...Object.entries(INTERN_LABELS).map(([rule, label]) => [`decided:${rule}`, `un interne décidé : ${label}`]),
+];
 
 /** The plan shown: the one applied, else the hospital's. */
 const planText = ({ state, pathway }) => pathway.plan ?? planTextOf(PATHWAY_PLANS[state.hospital]);
@@ -47,10 +53,17 @@ function playedDay(ctx) {
   const fatigue = fatigueOf(pathway);
   // The search does not play an intern's day: its box choices are the colour rule's there.
   const internBox = pathway.box === "search" ? "colour" : pathway.box;
+  if (pathway.intern.startsWith("decided:")) return decidedDay(ctx, { fatigue, plan, box: internBox });
   if (pathway.intern !== "none") return runInternGame(startInternGame({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: internBox, bed: pathway.bed, mode: pathway.intern, fatigue, ...plan })).day;
   const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: pathway.walk, fatigue, ...plan });
   const box = pathway.box === "search" ? searchedBox(ctx, fatigue) : RULES[pathway.box];
   return runPathway(startPathway(drawn), { box, bed: BED_RULES[pathway.bed] });
+}
+
+/** A day with the intern decided by events, their tasks ordered by a reference rule (walking counts). */
+function decidedDay({ state, pathway }, { fatigue, plan, box }) {
+  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: true, intern: INTERN, internDecided: true, fatigue, ...plan });
+  return runPathway(startPathway(drawn), { box: RULES[box], bed: BED_RULES[pathway.bed], intern: INTERN_RULES[pathway.intern.split(":")[1]] });
 }
 
 /** The day for the settings now, played again only when they changed. */
