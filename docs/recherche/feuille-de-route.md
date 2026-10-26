@@ -44,7 +44,7 @@ simple vient d'abord ; la recherche doit la battre.
 - Les règles de référence sont comparées sur les mêmes gardes (`node scripts/pathway-compare.js`).
 - Pas de page, pas de plan, pas de recherche : c'est le moteur des étapes suivantes.
 
-## Étape 2 : le plan détaillé (faite le 26/10, [modele.md](../modele.md), « Le plan détaillé »)
+## Étape 2 : le plan détaillé (faite le 26/10, [parcours.md](../parcours.md), « Le plan détaillé »)
 
 - Un plan par hôpital avec les pièces du parcours :
   - l'accueil et le tri ;
@@ -70,7 +70,7 @@ Les choix de Sami (26/10, avant de coder) :
 - **les brancardiers** : 1 à l'hôpital de proximité, 2 au moyen, 3 au CHU (hypothèse, sans source). Ils sont
   dessinés à l'étape 2 et ne font attendre qu'à partir de l'étape 3, quand la marche compte.
 
-## Étape 3 : l'interne au clavier (faite le 26/10, [modele.md](../modele.md), « La marche comptée et l'interne au clavier »)
+## Étape 3 : l'interne au clavier (faite le 26/10, [parcours.md](../parcours.md), « La marche comptée et l'interne au clavier »)
 
 Les choix de Sami (26/10) :
 - la marche compte pour tous, avec un interrupteur qui garde l'étape 1 identique ;
@@ -93,7 +93,7 @@ Les choix de Sami (26/10) :
 - À la fin, la garde contre la même avec un interne robot, comme pour le médecin au clavier (« Le service en
   plan » dans [modele.md](../modele.md)).
 
-## Étape 4 : la fatigue et les pauses (faite le 26/10, [modele.md](../modele.md), « La fatigue et les pauses »)
+## Étape 4 : la fatigue et les pauses (faite le 26/10, [parcours.md](../parcours.md), « La fatigue et les pauses »)
 
 Faite pour les médecins : l'interne et les infirmiers n'ont pas encore de fatigue. Les résultats lus en retard
 passent par les oublis.
@@ -109,7 +109,7 @@ D'après [soignants.md](soignants.md) :
 - **les transmissions** à la relève, pour une garde de 24 h en deux équipes ;
 - les indicateurs : les heures sans pause, les oublis, les résultats regardés en retard.
 
-## Étape 5 : le replay d'ensemble (faite le 26/10, [modele.md](../modele.md), « Le replay d'ensemble »)
+## Étape 5 : le replay d'ensemble (faite le 26/10, [parcours.md](../parcours.md), « Le replay d'ensemble »)
 
 - Une fois la garde finie, **une frise de toute la garde** :
   - les présents et les patients en attente ;
@@ -120,7 +120,7 @@ D'après [soignants.md](soignants.md) :
 - Elle se lit sur le replay d'une partie humaine comme sur une garde de robots, et deux stratégies peuvent
   s'afficher l'une contre l'autre sur la même garde.
 
-## Étape 6 : la recherche sur le parcours (le choix du box fait le 26/10, [modele.md](../modele.md), « La recherche sur le parcours »)
+## Étape 6 : la recherche sur le parcours (le choix du box fait le 26/10, [parcours.md](../parcours.md), « La recherche sur le parcours »)
 
 Le choix du box est fait : un premier tri sur 16 journées est en faveur de la recherche pendant l'accident, et les
 mesures de nuit sont prêtes. Les autres décisions de la liste restent à faire.

@@ -11,8 +11,9 @@ One of Sami's `mcts-*` repositories, created 22/10/2026, siblings in `E:\Dev\My 
 where the ISMCTS was built and measured). The plan and the reasons live in lopin's
 `docs/ismcts-ailleurs/` (`feuille-de-route.md` first).
 
-The detailed pathway (25/10/2026, `src/pathway*.js`), next to the simple shift and not replacing it: the research
-and its roadmap are in `docs/recherche/` (README first).
+The detailed pathway (25/10/2026, `src/pathway*.js`), next to the simple shift and not replacing it: its steps and
+figures in `docs/parcours.md`, the research and its roadmap in `docs/recherche/` (README first), the estimated values
+to check with professionals in `docs/recherche/hypotheses-a-verifier.md`.
 
 ## Rules
 
@@ -24,7 +25,8 @@ and its roadmap are in `docs/recherche/` (README first).
 - **A simple rule first**, measured on the same scenarios; a search must beat it, paired over the same
   scenarios, with its interval. A quick screen rejects, it never promotes (lopin's lesson).
 - **Markdown files stay under 800 lines**, this one under 300.
-- **`npm run check` passes before every commit** (the pre-commit hook runs it): lint, types, tests. Never skip the
+- **`npm run check` passes before every commit** (the pre-commit hook runs it; `TEST_CONCURRENCY=2` while measures
+  run): lint, types, tests. Never skip the
   hook. The tooling and its reasons: `docs/outillage.md`.
 - **The lint budget is lopin's** (`eslint.config.js`: 40 lines a function, 220 a file, complexity 8): a module that
   outgrows it is split along its seams, the limit is never raised.

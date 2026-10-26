@@ -36,6 +36,8 @@ sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul c�
 médecin ou l'infirmier de tri joué au clavier (Z Q S D et E) ; à la fin, la garde contre la même avec un robot à
 votre place ([`docs/modele.md`](docs/modele.md), « Le service en plan »).
 
+Le parcours détaillé, ses six étapes et leurs chiffres : [`docs/parcours.md`](docs/parcours.md).
+
 ## Développer
 
 `npm run check` lance le lint (le budget de complexité de lopin), les types (tsc sur le JSDoc) et les tests ; le
