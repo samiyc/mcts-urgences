@@ -65,7 +65,7 @@ export const STEPS = Object.freeze({
  * @param {PathwayPatient} patient
  * @returns {PathwayPatient}
  */
-const followed = (patient) => ({
+export const followed = (patient) => ({
   ...patient,
   arrivalLevel: patient.level,
   worsened: 0,

@@ -19,7 +19,8 @@
     "types": "tsc -p .",
     "prepare": "git config core.hooksPath .githooks",
     "changelog": "node scripts/changelog.js",
-    "fatigue": "node scripts/fatigue-compare.js"
+    "fatigue": "node scripts/fatigue-compare.js",
+    "pathway:search": "node scripts/pathway-search-compare.js"
   },
   "author": "Sami",
   "license": "UNLICENSED",

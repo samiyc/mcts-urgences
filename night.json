@@ -1,5 +1,5 @@
 {
-  "about": "Les mesures de nuit des urgences (Sami, 23/10/2026) : la recherche contre les règles, 200 gardes par situation, au niveau du moment (--now : la recherche y est notée, et le tableau le montre). Une par situation, un fil chacune : mcts-backlog --add-file mcts-urgences/night.json, puis mcts-backlog.",
+  "about": "Les mesures de nuit des urgences (Sami, 23/10/2026) : la recherche contre les règles, 200 gardes par situation, au niveau du moment (--now : la recherche y est notée, et le tableau le montre). Une par situation, un fil chacune : mcts-backlog --add-file mcts-urgences/night.json, puis mcts-backlog. Le parcours détaillé (26/10/2026, étape 6) : la recherche contre les règles des box, 200 journées de 24 h, 8 fils chacune (deux côte à côte tiennent sous les 18).",
   "jobs": [
     {
       "id": "urg-moyen",
@@ -20,6 +20,18 @@
       "id": "urg-chu-accident",
       "command": "npm run compare -- --hopital chu --shifts 200 --accident --search --now",
       "estimate": "20 min"
+    },
+    {
+      "id": "parcours-moyen-accident",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 100",
+      "estimate": "30 min",
+      "threads": 8
+    },
+    {
+      "id": "parcours-moyen",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100",
+      "estimate": "25 min",
+      "threads": 8
     }
   ]
 }

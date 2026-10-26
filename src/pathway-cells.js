@@ -45,9 +45,10 @@ export function startCellOf(layout, who) {
 }
 
 /** Seats given as patients sit and given back as they get up; standing at `fallback` once all are taken. */
-export function seatsOf(cells, fallback) {
-  const taken = new Map();
+export function seatsOf(cells, fallback, taken = new Map()) {
   return {
+    /** The same seats, given the same way, for a copy of the day (pathway-clone.js). */
+    clone: () => seatsOf(cells, fallback, new Map(taken)),
     take: (who) => {
       const used = new Set(taken.values());
       const index = cells.findIndex((_, i) => !used.has(i));

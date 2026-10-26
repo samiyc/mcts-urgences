@@ -28,14 +28,14 @@ export const hourAt = (settings, t) => (settings.startHour + t / 60) % 24;
  * mean rate from 8 h to 16 h, the simple shift's day (hypotheses.js), so that the day's doctors and boxes are as busy
  * as there; the night comes fewer.
  */
-function arrivalsByHour(rng, settings, perHour) {
+export function arrivalsByHour(rng, settings, perHour, { from = 0, to = settings.shift } = {}) {
   const mean = settings.hourly.slice(8, 16).reduce((sum, one) => sum + one, 0) / 8;
   const top = Math.max(...settings.hourly) / mean;
-  return arrivals(rng, perHour * top, 0, settings.shift).filter((at) => rng.next() < settings.hourly[Math.floor(hourAt(settings, at))] / mean / top);
+  return arrivals(rng, perHour * top, from, to).filter((at) => rng.next() < settings.hourly[Math.floor(hourAt(settings, at))] / mean / top);
 }
 
 /** What the department will learn about a patient only along the way. */
-function pathwayOf(rng, patient, settings) {
+export function pathwayOf(rng, patient, settings) {
   const { level } = patient;
   const orientation = pick(rng, settings.orientation[level]);
   const isolate = rng.next() < settings.isolate;
