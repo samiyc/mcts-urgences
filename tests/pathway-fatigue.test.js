@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { breakTimes, fatigueMeasures, internSlowOf, slowOf } from "../src/pathway-fatigue.js";
+import { BREAK_DECIDERS, DECIDED, breakTimes, fatigueMeasures, internSlowOf, slowOf } from "../src/pathway-fatigue.js";
+import { pathwaySearchBreakRule } from "../src/pathway-search.js";
 import { internResult, runInternGame, startInternGame } from "../src/pathway-game.js";
 import { FATIGUE, pathwaySettingsOf } from "../src/pathway-hypotheses.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
@@ -66,5 +67,30 @@ describe("the doctors' fatigue and breaks (src/pathway-fatigue.js, step 4)", () 
     const tired = internResult(runInternGame(startInternGame({ mode: "robot", seed: 1, fatigue: FATIGUE })));
     const fresh = internResult(runInternGame(startInternGame({ mode: "robot", seed: 1 })));
     assert.notDeepEqual(tired.intern, fresh.intern);
+  });
+
+  it("asks for the breaks one at a time when they are decided, every 15 min at most, and keeps its doctors", () => {
+    const asked = [];
+    const breaks = (candidates, context) => {
+      asked.push({ t: context.now, ...candidates });
+      return BREAK_DECIDERS.quiet(candidates, context);
+    };
+    const day = runPathway(startPathway(drawPathwayDay(2, { hospital: "moyen", accident: true, fatigue: { ...FATIGUE, breaks: DECIDED } })), { ...RULESET, breaks });
+    assert.ok(asked.length > 0);
+    const all = breaksOf(day);
+    assert.ok(all.length > 0);
+    for (const one of all) assert.ok(all.filter((other) => other.from <= one.from && other.to > one.from).length <= day.settings.doctors + day.settings.dayDoctors.extra - FATIGUE.minDoctors);
+  });
+
+  it("lets the search decide a break: now or later", () => {
+    let answer = null;
+    const search = pathwaySearchBreakRule({ budget: 8 });
+    const breaks = (candidates, context) => {
+      const chosen = answer ?? search(candidates, context);
+      answer ??= chosen;
+      return chosen;
+    };
+    runPathway(startPathway(drawPathwayDay(3, { hospital: "proximite", fatigue: { ...FATIGUE, breaks: DECIDED } })), { ...RULESET, breaks });
+    assert.ok(["now", "later"].includes(answer?.id));
   });
 });

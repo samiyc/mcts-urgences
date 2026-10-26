@@ -64,8 +64,9 @@
  */
 
 /**
- * A decision the day waits for: who takes a free place and a doctor, or who takes a bed a ward freed.
- * @typedef {{ kind: "box", candidates: View[] } | { kind: "bed", ward: string, candidates: BedView[] }} Decision
+ * A decision the day waits for: who takes a free place and a doctor, who takes a bed a ward freed, or whether a free
+ * doctor takes their break now (breaks decided one at a time, pathway-fatigue.js).
+ * @typedef {{ kind: "box", candidates: View[] } | { kind: "bed", ward: string, candidates: BedView[] } | { kind: "break", k: number, slot: string, candidates: Array<{ id: string }> }} Decision
  */
 
 export {};

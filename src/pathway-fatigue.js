@@ -27,13 +27,29 @@ export const BREAK_RULES = Object.freeze({
   quiet: "au creux de la salle d'attente",
 });
 
+/**
+ * Breaks decided one at a time (step 6): a free doctor whose window is open asks « now or later? » (`breakDecision`),
+ * every `ASK_EVERY` minutes at most, until the window's last start forces the break. `BREAK_DECIDERS` answer it as the
+ * reference rules would; the search answers it too (pathway-search.js).
+ */
+export const DECIDED = "decided";
+const ASK_EVERY = 15;
+const NOW = Object.freeze({ id: "now" });
+const LATER = Object.freeze({ id: "later" });
+export const BREAK_DECIDERS = Object.freeze({
+  /** Now while the waiting room is quiet, as the rule « au creux ». */
+  quiet: (_, { day }) => (day.queues.waiting.length <= day.settings.fatigue.quietWaiting ? NOW : LATER),
+  /** Now, as the rule « à l'heure fixe ». */
+  fixed: () => NOW,
+});
+
 const shiftStartOf = (settings, k) => (k < settings.doctors ? 0 : (settings.dayDoctors.from - settings.startHour) * 60);
 
 export function startFatigue(settings) {
   if (!settings.fatigue) return null;
   const people = settings.doctors + (settings.dayDoctors?.extra ?? 0);
   return {
-    people: Array.from({ length: people }, (_, k) => ({ k, base: 0, since: shiftStartOf(settings, k), stretchFrom: shiftStartOf(settings, k), longest: 0, breaks: [], taken: new Set(), onBreak: null })),
+    people: Array.from({ length: people }, (_, k) => ({ k, asked: new Map(), base: 0, since: shiftStartOf(settings, k), stretchFrom: shiftStartOf(settings, k), longest: 0, breaks: [], taken: new Set(), onBreak: null })),
     oversights: 0,
     overlookedAt: [],
     slows: [],
@@ -103,6 +119,8 @@ function wants(day, slot) {
   const t = day.events.now;
   if (rule === "none" || t < slot.from || t > slot.last + slot.minutes) return false;
   if (rule === "fixed" || t >= slot.last) return true;
+  // Decided one at a time (breakDecision), but forced at the window's last start, above.
+  if (rule === DECIDED) return false;
   return day.queues.waiting.length <= day.settings.fatigue.quietWaiting;
 }
 
@@ -117,6 +135,27 @@ export function serveBreaks(day, startBreak) {
       if (!person.taken.has(slot.key) && enough && isFree(day, person.k) && wants(day, slot)) startBreak(day, person, slot);
     }
   }
+}
+
+/** The break a free doctor may take now, asked as a decision when breaks are decided one at a time; null otherwise. */
+export function breakDecision(day) {
+  if (day.fatigue === null || day.settings.fatigue.breaks !== DECIDED) return null;
+  const t = day.events.now;
+  const enough = day.capacity.doctors - onBreak(day) - 1 >= day.settings.fatigue.minDoctors;
+  if (!enough) return null;
+  for (const slot of day.fatigue.slots) {
+    if (t < slot.from || t >= slot.last) continue;
+    const person = day.fatigue.people.find((one) => !one.taken.has(slot.key) && isFree(day, one.k) && t - (one.asked.get(slot.key) ?? -Infinity) >= ASK_EVERY);
+    if (person) return { kind: "break", k: person.k, slot: slot.key, candidates: [NOW, LATER] };
+  }
+  return null;
+}
+
+/** Applies a break decision: the break now (`startBreak`, pathway-serve.js), or asked again later. */
+export function decideBreak(day, decision, id, startBreak) {
+  const person = day.fatigue.people[decision.k];
+  if (id === "now") startBreak(day, person, day.fatigue.slots.find((slot) => slot.key === decision.slot));
+  else person.asked.set(decision.slot, day.events.now);
 }
 
 /** A break begins: the stretch without one ends, the fatigue kept for the break's end. */

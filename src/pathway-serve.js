@@ -69,7 +69,7 @@ function serveUhcd(day) {
 }
 
 /** A doctor goes on a break (pathway-fatigue.js): out of the pool, in the break room, back after its minutes. */
-function startBreak(day, person, slot) {
+export function startBreak(day, person, slot) {
   take(day, "doctors");
   day.trace.doctors[person.k] = "pause";
   locate(day, `doctor:${person.k}`, { at: "pause" });

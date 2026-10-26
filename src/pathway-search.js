@@ -1,6 +1,7 @@
 import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { LEVELS, MAX_WAIT } from "./hypotheses.js";
+import { BREAK_DECIDERS } from "./pathway-fatigue.js";
 import { BOARDING_COST } from "./pathway-hypotheses.js";
 import { hourAt } from "./pathway-scenario.js";
 import { BED_RULES, decide, followed, nextDecision } from "./pathway.js";
@@ -88,15 +89,22 @@ const allBedded = (world) => world.boarders.every((id) => world.patients.get(id)
 
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null || world.patients.get(id).exit !== null);
 
-/**
- * Plays the decision with `id`, then the day to its next decision: a box's, the bed decisions by the bed rule; or
- * either kind with `beds` (the search choosing the beds as well).
- */
-function advance(world, id, { bed, beds }) {
+/** Whether the search chooses this decision: a box's always; a bed's with `beds`; a break's with `breaks`. */
+const inTree = (decision, { beds, breaks }) => decision.kind === "box" || (beds && decision.kind === "bed") || (breaks && decision.kind === "break");
+
+/** A decision's answer by its rule in the worlds: the colour rule, the bed rule, the break « au creux ». */
+function ruled(world, decision, { bed }) {
+  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet }[decision.kind];
+  const chosen = rule(decision.candidates, { day: world });
+  return decision.kind === "break" ? chosen.id : Number(chosen.id);
+}
+
+/** Plays the decision with `id`, then the day to its next decision the search chooses, the others by their rule. */
+function advance(world, id, rules) {
   decide(world, world.decision, id);
   world.decision = nextDecision(world);
-  while (!beds && world.decision?.kind === "bed") {
-    decide(world, world.decision, Number(bed(world.decision.candidates).id));
+  while (world.decision && !inTree(world.decision, rules)) {
+    decide(world, world.decision, ruled(world, world.decision, rules));
     world.decision = nextDecision(world);
   }
   return world;
@@ -136,32 +144,39 @@ function shortlistOf(moves, width) {
   return [...new Map(ranked.map((move) => [move.key, move])).values()].slice(0, width);
 }
 
-/** The moves of the decision the world stands at: a box's patients, or (when the search chooses them) a bed's. */
-function movesOf(world, beds) {
+const BREAK_MOVES = Object.freeze([Object.freeze({ id: "now", key: "pause-maintenant", whole: true }), Object.freeze({ id: "later", key: "pause-plus-tard", whole: true })]);
+
+/** The moves of the decision the world stands at: a box's patients, or (when the search chooses them) a bed's, a break's. */
+const MOVES_OF = {
+  box: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: keyOf(view) })),
+  bed: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `lit-${view.id}`, whole: true })),
+  break: () => [...BREAK_MOVES],
+};
+
+function movesOf(world, rules) {
   const { decision } = world;
-  if (decision?.kind === "box") return decision.candidates.map((view) => ({ id: view.id, view, key: keyOf(view) }));
-  return beds && decision?.kind === "bed" ? decision.candidates.map((view) => ({ id: view.id, view, key: `lit-${view.id}`, bed: true })) : [];
+  return decision && inTree(decision, rules) ? MOVES_OF[decision.kind](decision) : [];
 }
 
-/** The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`: the bed decisions are moves too. */
-function problemFor({ scale, width, horizon, bed, beds = false, from = 0 }) {
-  const rules = { bed, beds };
+/**
+ * The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`, `breaks`: the bed decisions, the
+ * break decisions are moves too.
+ */
+function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, from = 0 }) {
+  const rules = { bed, beds, breaks };
   const cost = (world) => pendingCost(world) + (beds ? boardingCost(world, from) : 0);
   // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the horizon).
   const done = (world) => allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon);
   return {
     sample: (day, rng) => drawWorld(day, rng, horizon),
     actor: () => "service",
-    moves: (world) => movesOf(world, beds),
-    shortlist: (world, moves) => (moves[0]?.bed ? moves : shortlistOf(moves, width)),
+    moves: (world) => movesOf(world, rules),
+    shortlist: (world, moves) => (moves[0]?.whole ? moves : shortlistOf(moves, width)),
     key: (move) => move.key,
     play: (world, move) => advance(world, move.id, rules),
     over: (world) => done(world) || world.decision === null,
     rollout(world) {
-      while (!done(world) && world.decision) {
-        const rule = world.decision.kind === "box" ? RULES.colour : bed;
-        advance(world, Number(rule(world.decision.candidates).id), rules);
-      }
+      while (!done(world) && world.decision) advance(world, ruled(world, world.decision, rules), rules);
       return world;
     },
     score: (world) => scale / (scale + cost(world)),
@@ -169,11 +184,11 @@ function problemFor({ scale, width, horizon, bed, beds = false, from = 0 }) {
 }
 
 /** The colour rule's cost on a few worlds: the score's scale, so that the rule scores about ½. */
-function scaleOf(day, rng, { horizon, bed, beds = false }) {
+function scaleOf(day, rng, { horizon, bed, beds = false, breaks = false }) {
   const from = day.events.now;
   let total = 0;
   for (let i = 0; i < 3; i += 1) {
-    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, from }).rollout(drawWorld(day, rng, horizon));
+    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, breaks, from }).rollout(drawWorld(day, rng, horizon));
     total += pendingCost(world) + (beds ? boardingCost(world, from) : 0);
   }
   return Math.max(20, total / 3);
@@ -211,5 +226,22 @@ export function pathwaySearchBedRule(options = {}) {
     const scale = scaleOf(day, rng, { horizon, bed, beds: true });
     const found = search(day, problemFor({ scale, width, horizon, bed, beds: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
     return candidates.find((view) => view.id === found.move?.id) ?? bed(candidates);
+  };
+}
+
+/**
+ * The search deciding the breaks (step 6; runPathway's `breaks`, reading `context.day`): whether a free doctor takes
+ * their break now or is asked again later, the other decisions by their rules in the worlds. Scored on the late cost
+ * only: the fatigue a break takes away weighs there as the slower exams and the results overlooked, no more.
+ */
+export function pathwaySearchBreakRule(options = {}) {
+  const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
+  const bed = options.bed ?? BED_RULES.oldest;
+  return (candidates, { day }) => {
+    if (day.intern) throw new Error("la recherche du parcours ne joue pas une journée avec un interne");
+    const rng = createRng((Math.imul(seed, 0xc2b2ae35) + Math.round(day.events.now * 1000) * 41) >>> 0);
+    const scale = scaleOf(day, rng, { horizon, bed, breaks: true });
+    const found = search(day, problemFor({ scale, width, horizon, bed, breaks: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    return candidates.find((one) => one.id === found.move?.id) ?? BREAK_DECIDERS.quiet(candidates, { day });
   };
 }

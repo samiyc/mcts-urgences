@@ -1,7 +1,9 @@
 import { paired } from "mcts-commun/measure.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "./pathway.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
-import { pathwaySearchBedRule, pathwaySearchRule } from "./pathway-search.js";
+import { BREAK_DECIDERS, DECIDED, fatigueMeasures } from "./pathway-fatigue.js";
+import { FATIGUE } from "./pathway-hypotheses.js";
+import { pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchRule } from "./pathway-search.js";
 import { RULES } from "./rules.js";
 
 /**
@@ -26,6 +28,26 @@ export function playBedSearchDay({ seed, options, budget }) {
   const drawn = drawPathwayDay(seed, options);
   const bedOf = (name) => (name === "search" ? pathwaySearchBedRule({ budget }) : BED_RULES[name]);
   return Object.fromEntries(BED_SEARCHED.map((name) => [name, pathwayMeasures(runPathway(startPathway(drawn), { box: RULES.colour, bed: bedOf(name) }))]));
+}
+
+/** The breaks: none, the rule « au creux », the same decided one at a time, and the search deciding them (step 6). */
+export const BREAK_SEARCHED = Object.freeze(["none", "quiet", "decided", "search"]);
+
+/** One day: each way of taking the breaks, its measures and its fatigue's; the box rule « couleur ». */
+export function playBreakSearchDay({ seed, options, budget }) {
+  const ways = {
+    none: [{ ...FATIGUE, breaks: "none" }, undefined],
+    quiet: [{ ...FATIGUE, breaks: "quiet" }, undefined],
+    decided: [{ ...FATIGUE, breaks: DECIDED }, BREAK_DECIDERS.quiet],
+    search: [{ ...FATIGUE, breaks: DECIDED }, pathwaySearchBreakRule({ budget })],
+  };
+  return Object.fromEntries(
+    BREAK_SEARCHED.map((name) => {
+      const [fatigue, breaks] = ways[name];
+      const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, fatigue })), { box: RULES.colour, bed: BED_RULES.oldest, breaks });
+      return [name, { ...pathwayMeasures(day), fatigue: fatigueMeasures(day) }];
+    }),
+  );
 }
 
 /** The search's choices of a day, in order (each box decision's chosen id): the page replays the day from them. */

@@ -29,7 +29,7 @@ function copyFatigue(fatigue) {
   if (!fatigue) return null;
   return {
     ...fatigue,
-    people: fatigue.people.map((person) => ({ ...person, taken: new Set(person.taken), breaks: [...person.breaks], onBreak: person.onBreak && { ...person.onBreak } })),
+    people: fatigue.people.map((person) => ({ ...person, asked: new Map(person.asked), taken: new Set(person.taken), breaks: [...person.breaks], onBreak: person.onBreak && { ...person.onBreak } })),
     overlookedAt: [],
     slows: [],
   };
