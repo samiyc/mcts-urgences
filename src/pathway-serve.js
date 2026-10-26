@@ -42,11 +42,15 @@ function intoUhcd(day, patient) {
 }
 
 /** The first patient waiting for a bed who still holds a place outside the UHCD, or undefined. */
-const boarderOf = (day) =>
-  Object.values(day.wards)
-    .flatMap((ward) => ward.waiting)
-    .map((id) => day.patients.get(id))
-    .find((patient) => patient.place && patient.place !== "uhcd");
+function boarderOf(day) {
+  for (const ward of Object.values(day.wards)) {
+    for (const id of ward.waiting) {
+      const patient = day.patients.get(id);
+      if (patient.place && patient.place !== "uhcd") return patient;
+    }
+  }
+  return undefined;
+}
 
 /** The UHCD: its own patients first, then (if the settings say so) the patients waiting for a bed, from a box. */
 function serveUhcd(day) {

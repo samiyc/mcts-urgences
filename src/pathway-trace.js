@@ -64,6 +64,11 @@ export function positionOf(day, who, t = day.events.now) {
  */
 export function locate(day, who, to, at = day.events.now) {
   const { trace } = day;
+  // A world of the search where walking does not count: where one goes is kept, not the walk (pathway-clone.js).
+  if (trace.light) {
+    trace.where.set(who, to);
+    return 0;
+  }
   trace.seats.waiting.leave(who);
   trace.seats.results.leave(who);
   const from = positionOf(day, who, at);

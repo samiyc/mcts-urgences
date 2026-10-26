@@ -15,8 +15,12 @@ export function account(day, until) {
     day.used[pool] += span * day.busy[pool];
     if (day.busy[pool] >= day.capacity[pool]) day.full[pool] += span;
   }
-  const boarders = Object.values(day.wards).flatMap((ward) => ward.waiting.map((id) => day.patients.get(id)));
-  for (const patient of boarders) if (patient.place && patient.place !== "uhcd") patient.boxBoarding += span;
+  for (const ward of Object.values(day.wards)) {
+    for (const id of ward.waiting) {
+      const patient = day.patients.get(id);
+      if (patient.place && patient.place !== "uhcd") patient.boxBoarding += span;
+    }
+  }
   day.clock = until;
 }
 
