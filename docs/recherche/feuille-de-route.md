@@ -109,7 +109,7 @@ D'après [soignants.md](soignants.md) :
 - **les transmissions** à la relève, pour une garde de 24 h en deux équipes ;
 - les indicateurs : les heures sans pause, les oublis, les résultats regardés en retard.
 
-## Étape 5 : le replay d'ensemble
+## Étape 5 : le replay d'ensemble (faite le 26/10, [modele.md](../modele.md), « Le replay d'ensemble »)
 
 - Une fois la garde finie, **une frise de toute la garde** :
   - les présents et les patients en attente ;

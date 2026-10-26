@@ -539,6 +539,27 @@ l'heure fixe.
 
 C'est une décision que la recherche pourra prendre à l'étape 6 : laquelle donner, à qui, et quand.
 
+## Le replay d'ensemble, étape 5 (26/10)
+
+**La frise de toute la journée** (`src/pathway-timeline.js`, `web/timeline-draw.js`). Le modèle relève l'état
+du service toutes les 10 min, sans rien changer à ce qui se passe. Une fois la journée finie, la frise montre :
+- les patients présents, ceux qui attendent un box et ceux qui attendent un lit ;
+- une bande par ressource (box, SAUV, UHCD, scanner, médecins), pleine quand elle est saturée ;
+- les moments qui comptent : les aggravations, les départs sans être vus, les ambulances réorientées, les résultats
+  oubliés, les pauses des médecins, et l'accident en ocre.
+
+Un clic sur une heure y amène le plan de l'onglet.
+
+**Deux façons de jouer la même journée.** La même journée, jouée autrement, se dessine en tirets par-dessus, au choix
+dans le panneau :
+- une autre règle des box ou des lits ;
+- avec ou sans la marche ;
+- avec ou sans la fatigue ;
+- avec ou sans interne.
+
+On y voit où un retard, une pause ou l'accident font monter les courbes. À la fin d'une vacation d'interne au
+clavier, la frise de la journée jouée est dessinée contre celle de l'interne robot.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).

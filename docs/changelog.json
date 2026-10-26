@@ -50,6 +50,19 @@
   ],
   "versions": [
     {
+      "version": "0.15",
+      "date": "26/10",
+      "title": "La journée en une frise",
+      "commits": [
+        "82fbde6"
+      ],
+      "items": [
+        "Sous la journée du parcours, une frise de toute la garde : les patients présents, ceux qui attendent un box, ceux qui attendent un lit, les ressources saturées, et les aggravations, départs sans être vus, réorientations, résultats oubliés, pauses et l'accident.",
+        "La même journée jouée autrement se dessine en tirets, au choix : une autre règle, la marche, la fatigue, un interne. Un clic sur une heure y amène le plan.",
+        "À la fin d'une vacation d'interne, la frise de votre journée contre celle de l'interne robot."
+      ]
+    },
+    {
       "version": "0.14",
       "date": "26/10",
       "title": "La fatigue des médecins, leurs pauses",
