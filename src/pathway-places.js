@@ -1,4 +1,5 @@
 import { minutesOf } from "./pathway-cells.js";
+import { overlooks, slowOf } from "./pathway-fatigue.js";
 import { drop } from "./pathway-intern.js";
 import { doctorTo, intoSlot, outOfDepartment, outOfSlot } from "./pathway-trace.js";
 
@@ -66,5 +67,8 @@ export const walkDelay = (day, steps) => (day.settings.walk ? minutesOf(steps) :
 export function startReview(day, id) {
   take(day, "doctors");
   const fetched = doctorTo(day, id);
-  day.events.schedule(now(day) + walkDelay(day, fetched) + day.settings.review, { type: "reviewEnd", id });
+  const k = day.trace.doctors.indexOf(id);
+  const patient = day.patients.get(id);
+  if (overlooks(day, k, patient)) patient.overlooked = true;
+  day.events.schedule(now(day) + walkDelay(day, fetched) + day.settings.review * slowOf(day, k), { type: "reviewEnd", id });
 }

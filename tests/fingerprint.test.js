@@ -8,6 +8,7 @@ import { NURSE_RULES, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
 import { simulateShift } from "../src/simulate.js";
+import { compareBreakRules } from "../src/pathway-fatigue-compare.js";
 import { internResult, runInternGame, startInternGame } from "../src/pathway-game.js";
 import { runWard, startWard, wardResult } from "../src/ward.js";
 
@@ -23,6 +24,7 @@ const EXPECTED = {
   search: "2bc22fa5048d24e8",
   walked: "fbb1948d953628b7",
   intern: "b7c5c4ec55099e7b",
+  fatigue: "d8e50eff3ec52174",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);
@@ -59,6 +61,8 @@ const FINGERPRINTS = {
     situations().flatMap(({ hospital, accident }) => [1, 2].map((seed) => played(drawPathwayDay(seed, { hospital, accident, walk: true }), { box: RULES.colour, bed: BED_RULES.oldest }))),
   // The intern (step 3): a robot and one at random, a day each.
   intern: () => ["robot", "random"].map((mode) => internResult(runInternGame(startInternGame({ mode, seed: 1 })))),
+  // Fatigue and breaks (step 4): every rule, both teams, 3 days with the accident.
+  fatigue: () => compareBreakRules({ days: 3, accident: true }),
   ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
   search: () => {
     const settings = { ...DEFAULTS, ...HOSPITALS.moyen, crisis: ACCIDENT };

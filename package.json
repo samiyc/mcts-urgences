@@ -18,7 +18,8 @@
     "page": "node node_modules/mcts-commun/bin/serve.js 4801",
     "types": "tsc -p .",
     "prepare": "git config core.hooksPath .githooks",
-    "changelog": "node scripts/changelog.js"
+    "changelog": "node scripts/changelog.js",
+    "fatigue": "node scripts/fatigue-compare.js"
   },
   "author": "Sami",
   "license": "UNLICENSED",

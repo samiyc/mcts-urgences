@@ -85,6 +85,12 @@ function withMedication(seed, patients, settings) {
   return patients.map((patient) => ({ ...patient, needs: { ...patient.needs, med: rng.next() < settings.intern.needsMed[patient.level] } }));
 }
 
+/** The chance each patient's results be overlooked by a tired doctor (step 4), drawn apart like the medication. */
+function withOversight(seed, patients) {
+  const rng = createRng((Math.imul(seed, 2246822519) ^ 0x27d4eb2f) >>> 0);
+  return patients.map((patient) => ({ ...patient, oversightRoll: rng.next() }));
+}
+
 /**
  * A day of the pathway: `{ settings, patients, beds }`. `patients` by arrival, numbered from 1, each a patient of
  * scenario.js plus its hidden pathway; `beds` the times each ward frees a bed. `options`: `pathwaySettingsOf`'s.
@@ -104,5 +110,6 @@ export function drawPathwayDay(seed, options = {}) {
     .sort((a, b) => a.arrival - b.arrival)
     .map((patient, i) => ({ id: i + 1, ...patient }));
   const beds = bedsFreed(rng, settings);
-  return { settings, patients: settings.intern ? withMedication(seed, patients, settings) : patients, beds };
+  const followed = settings.intern ? withMedication(seed, patients, settings) : patients;
+  return { settings, patients: settings.fatigue ? withOversight(seed, followed) : followed, beds };
 }

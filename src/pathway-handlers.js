@@ -3,6 +3,7 @@ import { exitPatient, give, leavePlace, lognormal, now, removeFrom } from "./pat
 import { scheduleWorsening } from "./simulate.js";
 import { ask, assign, follows } from "./pathway-intern.js";
 import { requestTransport } from "./pathway-porters.js";
+import { STAFF_HANDLERS } from "./pathway-staff.js";
 import { cleanedSlot, doctorBack, followedTo, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").Day} Day */
@@ -187,6 +188,13 @@ export const HANDLERS = {
     give(day, "doctors");
     doctorBack(day, patient.id);
     patient.reviewedAt = now(day);
+    if (!patient.overlooked) return startCare(day, patient);
+    // A tired doctor overlooked the results: they are read again later (step 4).
+    patient.overlooked = false;
+    day.fatigue.oversights += 1;
+    day.events.schedule(now(day) + day.settings.fatigue.oversightDelay, { type: "reviewLate", id: patient.id });
+  },
+  reviewLate(day, patient) {
     startCare(day, patient);
   },
   careEnd(day, patient) {
@@ -221,10 +229,7 @@ export const HANDLERS = {
     if (event.next === "scan") day.queues.scanner.push(patient.id);
     else HANDLERS.examBack(day, patient);
   },
-  /** A stretcher-bearer back at the base: free for the next transport (served at every event). */
-  porterFree() {},
-  /** A step of the plan played by the intern (pathway-game.js): only the clock. */
-  tick() {},
+  ...STAFF_HANDLERS,
   /** A task of the intern done (pathway-intern.js), after its minutes: its effect. */
   internDone(day, patient, event) {
     INTERN_DONE[event.kind](day, patient);

@@ -2,6 +2,7 @@ import { createEvents } from "mcts-commun/events.js";
 import { HANDLERS } from "./pathway-handlers.js";
 import { account, keepPeaks } from "./pathway-measures.js";
 import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take, walkDelay } from "./pathway-places.js";
+import { breakTimes, slowOf, startFatigue } from "./pathway-fatigue.js";
 import { drop, startIntern } from "./pathway-intern.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
@@ -112,6 +113,19 @@ function scheduleDayDoctors(settings, events, capacity) {
   }
 }
 
+/** The doctors' fatigue (step 4), its windows for breaks and its handovers scheduled; null without fatigue. */
+function startFatigueOf(settings, events) {
+  const fatigue = startFatigue(settings);
+  if (!fatigue) return null;
+  const end = settings.shift + settings.overtime;
+  // The breaks of the day simulated; its overtime finishes the work.
+  fatigue.slots = breakTimes(settings).filter((slot) => slot.from < settings.shift);
+  for (const slot of fatigue.slots) for (const at of [slot.from, slot.last]) events.schedule(at, { type: "breakCheck" });
+  // A team ends its shift (24 h, or 12 h): the next one takes over.
+  for (let at = settings.fatigue.teams * 60; at < end; at += settings.fatigue.teams * 60) events.schedule(at, { type: "handover" });
+  return fatigue;
+}
+
 const perPool = () => Object.fromEntries(POOLS.map((pool) => [pool, 0]));
 
 /**
@@ -141,6 +155,7 @@ export function startPathway(day) {
     queues: { register: [], triage: [], waiting: [], scanner: [], specialists: [], theatre: [], review: [], uhcd: [], transport: [] },
     porters: startPorters(settings),
     intern: startIntern(settings, layoutOf(settings.plan)),
+    fatigue: startFatigueOf(settings, events),
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
@@ -243,7 +258,8 @@ export function decide(day, decision, id) {
   // The exam starts once the patient and the doctor are both at the place (at once unless walking counts).
   const start = now(day) + walkDelay(day, Math.max(walked, fetched));
   Object.assign(patient, { start, levelAtStart: patient.level, step: "exam" });
-  day.events.schedule(start + day.settings.exam[patient.level] * patient.examFactor, { type: "examEnd", id });
+  const exam = day.settings.exam[patient.level] * patient.examFactor * slowOf(day, day.trace.doctors.indexOf(id));
+  day.events.schedule(start + exam, { type: "examEnd", id });
 }
 
 /**

@@ -57,6 +57,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   walk: false,
   /** The intern (INTERN, step 3), or none: without one, the day is the same as before. */
   intern: null,
+  /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
+  fatigue: null,
   /**
    * The care once the results are read, in the place (hypothesis; the simple shift's `stay` held the box for the
    * results as well, here they are their own steps).
@@ -132,6 +134,30 @@ export const INTERN = Object.freeze({
   take: Object.freeze({ vitals: 2, sample: 3, tubes: 0.5, scanPick: 0.5, scanDrop: 0.5, result: 5, pharmacy: 1, med: 1 }),
   medInCare: 10,
   needsMed: Object.freeze({ 1: 0.9, 2: 0.8, 3: 0.6, 4: 0.3, 5: 0.1 }),
+});
+
+/**
+ * The doctors' fatigue and breaks (Sami, 26/10/2026, step 4; hypotheses H43 to H49, docs/recherche/hypotheses-a-verifier.md;
+ * the shape after Landrigan 2004 and the « repos de sécurité », soignants.md, not the figures):
+ * - `breaks`: the rule (pathway-fatigue.js's BREAK_RULES); `teams`: one shift of 24 h, or two of 12 h;
+ * - `slow`: how much slower, at hours of fatigue, `[[hours, share]]`; `night`: more from 0 h to 6 h;
+ * - `oversight`: the chance a reading overlooks the results, `base + perHour × hours`; read again `oversightDelay` later;
+ * - `minutes` and `rest`: each break's length and the share of fatigue it takes away;
+ * - `minDoctors`: always this many doctors at work; `quietWaiting`: « quiet » is this many waiting or fewer;
+ * - `handover`: the minutes of a handover between 12 h teams.
+ */
+export const FATIGUE = Object.freeze({
+  breaks: "quiet",
+  teams: 24,
+  slow: Object.freeze([Object.freeze([0, 0]), Object.freeze([12, 0.1]), Object.freeze([20, 0.25]), Object.freeze([28, 0.4])]),
+  night: 0.1,
+  oversight: Object.freeze({ base: 0.01, perHour: 0.004 }),
+  oversightDelay: 30,
+  minutes: Object.freeze({ repas: 30, repos: 120 }),
+  rest: Object.freeze({ repas: 0.3, repos: 0.6 }),
+  minDoctors: 2,
+  quietWaiting: 3,
+  handover: 15,
 });
 
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */

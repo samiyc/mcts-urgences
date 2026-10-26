@@ -45,6 +45,7 @@ function cellOf(trace, who, to) {
     results: () => trace.seats.results.take(who),
     room: () => points.room,
     base: () => points.porters,
+    pause: () => points.pause ?? points.room,
     patient: () => trace.where.get(to.id)?.cell ?? points.room,
     out: () => points[to.door] ?? points.entrance,
   };

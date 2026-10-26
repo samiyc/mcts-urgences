@@ -1,4 +1,6 @@
+import { beginBreak, serveBreaks } from "./pathway-fatigue.js";
 import { serveTransports } from "./pathway-porters.js";
+import { locate } from "./pathway-trace.js";
 import { intoScanner } from "./pathway-trace.js";
 import { byColour, exitPatient, free, leavePlace, lognormal, moveTo, now, startReview, take } from "./pathway-places.js";
 
@@ -62,11 +64,21 @@ function serveUhcd(day) {
   }
 }
 
+/** A doctor goes on a break (pathway-fatigue.js): out of the pool, in the break room, back after its minutes. */
+function startBreak(day, person, slot) {
+  take(day, "doctors");
+  day.trace.doctors[person.k] = "pause";
+  locate(day, `doctor:${person.k}`, { at: "pause" });
+  beginBreak(day, person, slot);
+  day.events.schedule(now(day) + slot.minutes, { type: "breakEnd", k: person.k });
+}
+
 export function serve(day) {
   const { queues, settings } = day;
   startEach(day, { queue: queues.register, pool: "reception", type: "registerEnd", endAt: (t) => t + settings.register });
   startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage });
   serveTransports(day);
+  serveBreaks(day, startBreak);
   queues.scanner.sort(byColour(day));
   startEach(day, { queue: queues.scanner, pool: "scanner", type: "scanEnd", endAt: (t) => t + settings.scan, onStart: intoScanner });
   queues.specialists.sort(byColour(day));
