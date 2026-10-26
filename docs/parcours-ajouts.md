@@ -62,23 +62,24 @@ seulement les urgences, et vise à éviter le Plan blanc ([oublis.md](recherche/
 Sur la page, « L'hôpital en tension (HET) » de l'onglet Parcours détaillé, et un trait orange foncé sur la frise ; dans
 les scripts, `npm run pathway:search -- --het`.
 
-**Les mesures**, sur les mêmes 200 journées de l'hôpital moyen, à 50 itérations (le coût : le retard plus les lits
-obtenus à leur poids ; les jobs `parcours-het-*`) :
+**Les mesures**, sur les mêmes 200 journées de l'hôpital moyen, à 50 itérations (les jobs `parcours-het-*`). Un
+premier coût ne comptait que le retard et les lits obtenus ; la recherche, notée aussi sur l'attente d'un lit, y perdait
+pendant l'accident (−439, de −486 à −393). Sami : le HET étant fait pour les lits, la mesure compte aussi l'attente d'un
+lit, comme la note (`boardingCostOf`, `BOARDING_COST`). Le coût est donc le retard, l'attente d'un lit et les lits
+obtenus :
 
-| Journée | jamais | au seuil | la recherche | la recherche contre jamais (IC 95 %) | lits obtenus (seuil ; recherche) | attente d'un lit la plus longue (jamais ; recherche) |
+| Journée | jamais | au seuil | la recherche | la recherche contre jamais (IC 95 %) | contre le seuil | lits obtenus (seuil ; recherche) |
 |---|---|---|---|---|---|---|
-| ordinaire | 3 051 | 3 062 | 3 099 | −48 (−301 à +205) | 0,9 ; 1,8 | 746 ; 627 min |
-| accident | 32 657 | 32 848 | 33 096 | **−439** (−486 à −393) | 1,7 ; 3,9 | 1 121 ; 1 004 min |
-| pic de l'épidémie | 8 288 | 7 836 | 7 581 | +706 (−191 à +1 603) | 2,6 ; 3,7 | 1 419 ; 1 227 min |
+| ordinaire | 9 480 | 8 669 | **7 985** | +1 495 (+960 à +2 030) | +684 (+472 à +896) | 0,9 ; 1,8 |
+| accident | 44 147 | 42 961 | **42 347** | +1 800 (+1 360 à +2 241) | +614 (+376 à +852) | 1,7 ; 3,9 |
+| pic de l'épidémie | 25 834 | 21 370 | **19 691** | +6 142 (+4 825 à +7 459) | +1 679 (+1 282 à +2 076) | 2,5 ; 3,7 |
 
-- **Le seuil** déclenche tard, vers 1 h du matin en moyenne : les patients qui attendent un lit s'accumulent le soir.
-  Il ne sert qu'au pic de l'épidémie.
-- **La recherche** ne gagne rien de sûr. Pendant l'accident, elle coûte même plus que de ne jamais déclencher. Au pic
-  de l'épidémie, elle bat le seuil (+254, de +17 à +492), sans battre « jamais » de façon sûre.
-- **Pourquoi** : sa note compte aussi l'attente d'un lit des patients qui en attendent un, que la mesure ne compte pas.
-  Elle déclenche donc plus souvent, et raccourcit l'attente d'un lit la plus longue (de 1 121 à 1 004 min pendant
-  l'accident). Mais les lits obtenus coûtent plus que le retard qu'ils évitent. Le but du HET étant les lits, la mesure
-  devrait sans doute compter l'attente d'un lit, comme la note : c'est à décider.
+- **Le HET sert** : même au seuil, qui déclenche tard (vers 1 h du matin), il fait mieux que de ne jamais le
+  déclencher. Il sert surtout au pic de l'épidémie : l'attente d'un lit y passe de 17 475 à 12 055 avec la recherche.
+- **La recherche déclenche plus tôt et plus souvent que le seuil** : deux fois plus de lits obtenus. Elle bat le seuil
+  dans les trois situations. Le retard aux urgences change peu ; ce sont les lits qui comptent, comme le veut le HET.
+- L'attente d'un lit la plus longue baisse de 1 121 à 1 004 min pendant l'accident, de 1 419 à 1 227 au pic de
+  l'épidémie.
 
 ## Les quatre ajouts (26/10 au soir, Sami)
 
@@ -146,4 +147,13 @@ l'écart sur la journée sans ajout et son IC 95 %) :
   avec un soignant en plus serait une autre mesure.
 - **Les décès** : 0,37 par jour un jour ordinaire, 0,98 pendant l'accident. Le coût monte de leur poids (868 pour
   0,37 décès à 1 920 l'unité, plus le temps qu'ils immobilisent).
+
+**La recherche des box avec les ajouts** (200 journées, 100 itérations, les jobs `parcours-deces-*` et
+`parcours-circuit-court-*`) :
+- **avec les décès**, un jour ordinaire : **2 755** contre 3 628 pour l'échéance (+873, de +399 à +1 346) ; pendant
+  l'accident, **22 463** contre 34 465 pour la couleur, la meilleure règle ce jour-là (+12 002, de +10 014 à +13 990). Le
+  poids des décès est dans sa note : elle garde son gain ;
+- **avec le circuit court**, un jour ordinaire : **3 388** contre 4 380 pour l'échéance (+992, de +395 à +1 589). Elle
+  bat les règles, mais reste loin des 2 189 qu'elle fait sans circuit court : un médecin pris à l'équipe coûte plus que
+  ce que le circuit court rend.
 
