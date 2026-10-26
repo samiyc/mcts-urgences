@@ -80,6 +80,12 @@ export function timelinePlan(timeline, other = null) {
   const top = Math.max(5, ...[timeline, other].filter(Boolean).flatMap((one) => one.series.map((s) => s.present)));
   const root = svg("svg", { viewBox: `0 0 ${W} 280`, class: "timeline-plan", role: "img", "aria-label": "La journée en une frise" });
   if (timeline.markers.crisis) root.append(svg("rect", { x: x(timeline.markers.crisis.from), y: 0, width: x(timeline.markers.crisis.to) - x(timeline.markers.crisis.from), height: 280, class: "crisis" }));
+  if (timeline.markers.alert) {
+    const { at, staffAt } = timeline.markers.alert;
+    const line = svg("rect", { x: x(at) - 1, y: 0, width: 2, height: 280, class: "tl-alert" });
+    line.append(titled(`Plan blanc déclenché ; les médecins rappelés arrivent ${Math.round(staffAt - at)} min plus tard`));
+    root.append(line);
+  }
   curves(root, { timeline, other, x, top });
   const after = marks(root, { timeline, x, y: strips(root, { timeline, x }) + 4 });
   hours(root, { timeline, x, height: Math.min(280, after + 14) });
@@ -87,4 +93,4 @@ export function timelinePlan(timeline, other = null) {
 }
 
 export const TIMELINE_LEGEND =
-  "Trait plein : la journée jouée ; tirets : la même journée jouée autrement (à choisir dans le panneau). Noir : présents, rouge : attendent un box, bleu : attendent un lit. Une bande pleine : la ressource est saturée. En dessous : les aggravations (rouge), les départs sans être vus (orange), les ambulances réorientées (bleu), les résultats oubliés (jaune), les pauses des médecins (gris). En ocre : l'accident. Un clic sur une heure y amène le plan.";
+  "Trait plein : la journée jouée ; tirets : la même journée jouée autrement (à choisir dans le panneau). Noir : présents, rouge : attendent un box, bleu : attendent un lit. Une bande pleine : la ressource est saturée. En dessous : les aggravations (rouge), les départs sans être vus (orange), les ambulances réorientées (bleu), les résultats oubliés (jaune), les pauses des médecins (gris). En ocre : l'accident ; un trait violet : le plan blanc déclenché. Un clic sur une heure y amène le plan.";

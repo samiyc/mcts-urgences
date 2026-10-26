@@ -188,6 +188,7 @@ main.layout.folded .sidebar { display: none; }
 .timeline-plan .tl-line.other { stroke-dasharray: 5 4; opacity: 0.7; }
 .timeline-plan .tl-full { fill: var(--accent); opacity: 0.75; }
 .timeline-plan .tl-break { fill: var(--ink-2); }
+.timeline-plan .tl-alert { fill: #7b3fa0; }
 .timeline-plan .tl-axis { font: 10px system-ui, sans-serif; fill: var(--ink-2); }
 .timeline-plan .crisis { fill: var(--crisis); }
 .timeline-plan .fill.rouge { fill: var(--rouge); } .timeline-plan .fill.orange { fill: var(--orange); } .timeline-plan .fill.bleu { fill: var(--bleu); } .timeline-plan .fill.jaune { fill: var(--jaune); }
