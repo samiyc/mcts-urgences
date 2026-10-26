@@ -1,0 +1,186 @@
+{
+  "about": "Le journal des versions de la page (web/changelog.html), refait par npm run changelog : le tableau de ce que gagne la recherche, puis une version par entrée, la plus récente d'abord, avec ses commits.",
+  "repo": "mcts-urgences",
+  "name": "Urgences en garde",
+  "back": "les urgences",
+  "intro": "Des patients arrivent avec une couleur de tri qui estime leur gravité ; une recherche (ISMCTS) choisit qui passe, en imaginant leur gravité réelle et les arrivées à venir.",
+  "gainsTitle": "Ce que gagne la recherche (ISMCTS)",
+  "gainsNote": "Coût d'une garde au niveau du moment (l'attente pondérée par la gravité qu'a le patient pendant qu'il attend ; moins, c'est mieux), 200 gardes tirées par situation, mêmes patients pour toutes les règles, la recherche notée à ce coût (npm run compare -- --search --now). Mesures de nuit du 23/10 au soir, jouées par l'ordonnanceur commun (mcts-backlog). La dernière colonne : l'écart de la recherche sur l'ordre d'arrivée, à 95 %.",
+  "gainsHead": [
+    "Situation",
+    "l'arrivée",
+    "la couleur",
+    "l'échéance",
+    "la recherche",
+    "recherche contre l'arrivée"
+  ],
+  "gainsRows": [
+    [
+      "hôpital moyen, jour ordinaire",
+      "2 113",
+      "2 007",
+      "1 416",
+      "<strong>1 255</strong>",
+      "+858 (+697 à +1 019)"
+    ],
+    [
+      "hôpital moyen, accident",
+      "<strong>39 318</strong>",
+      "56 196",
+      "51 193",
+      "39 626",
+      "−309 (−1 769 à +1 151)"
+    ],
+    [
+      "hôpital de proximité, accident",
+      "98 347",
+      "119 693",
+      "116 749",
+      "<strong>95 803</strong>",
+      "+2 544 (+429 à +4 660)"
+    ],
+    [
+      "grand CHU, accident",
+      "9 810",
+      "13 147",
+      "7 470",
+      "<strong>6 921</strong>",
+      "+2 889 (+2 467 à +3 312)"
+    ]
+  ],
+  "versions": [
+    {
+      "version": "0.10",
+      "date": "25/10",
+      "title": "Le parcours détaillé du patient",
+      "commits": [
+        "39572ed",
+        "95a05c2"
+      ],
+      "items": [
+        "Les recherches dans docs/recherche/ : le glossaire, le parcours du patient avec les durées de l'enquête Urgences 2023 de la DREES, les ressources rares au-delà des lits, les soignants et la fatigue, les indicateurs, ce qui manquait, et la feuille de route en six étapes.",
+        "Le parcours détaillé, étape 1 (à côté de la garde simple) : une journée de 24 h, chaque patient de l'arrivée à la sortie (inscription, tri, place et médecin, biologie, scanner, avis, lecture des résultats, soins ; domicile, UHCD, lit d'aval, bloc, transfert), le boarding dans le box, les lits libérés vers midi.",
+        "Les indicateurs max (node scripts/pathway-compare.js) : pendant l'accident, la couleur prend les rouges plus vite mais fait partir cinq fois plus de patients sans être vus que l'ordre d'arrivée."
+      ]
+    },
+    {
+      "version": "0.9",
+      "date": "23/10, tard",
+      "title": "Les premières parties de Sami, l'allure rouge et blanc",
+      "commits": [
+        "76fa7b3",
+        "89f5ccf",
+        "e928c9f",
+        "f3c5ab0"
+      ],
+      "items": [
+        "Les parties gardées par la page s'écrivent aussi dans replays/, hors de git, par le serveur de la page.",
+        "L'analyse des écarts d'une garde dont l'infirmier est la recherche : de plusieurs heures à 8 s.",
+        "Les premières parties de Sami dans docs/modele.md : il joue surtout la couleur, la règle qui perd pendant un accident ; en infirmier sur le plan, il bat les deux infirmiers robots.",
+        "L'allure commune des projets (mcts-commun, web/theme.css) : un bandeau rouge et blanc, une croix rouge devant le titre, les réglages en carte, des sections pliables bien visibles (une barre, un chevron, « Ouvrir / Fermer »)."
+      ]
+    },
+    {
+      "version": "0.8",
+      "date": "23/10, soir",
+      "title": "Le service en plan, un soignant au clavier",
+      "commits": [
+        "8002bbc"
+      ],
+      "items": [
+        "La garde sur un plan du service où patients et soignants marchent (6 s par case) : l'examen commence quand le patient et le médecin sont au lit.",
+        "Vous jouez un médecin (E au lit d'un box ; le patient d'un collègue pas encore commencé, et vous échangez) ou l'infirmier de tri (E à côté d'un patient à revoir), avec Z Q S D ; à la fin, la même garde avec un robot à votre place.",
+        "La marche coûte : hôpital moyen pendant l'accident, 62 261 sans marche, 73 900 sur le plan (la couleur, 20 gardes)."
+      ]
+    },
+    {
+      "version": "0.7",
+      "date": "23/10, soir",
+      "title": "Les mesures au niveau du moment",
+      "commits": [
+        "7f5c91c",
+        "d99f176"
+      ],
+      "items": [
+        "npm run compare -- --search --now : la recherche notée au coût du moment, et le tableau à ce coût ; 200 gardes par situation.",
+        "La couleur devient la pire règle pendant un accident ; la recherche est la meilleure, ou à égalité avec l'arrivée, partout."
+      ]
+    },
+    {
+      "version": "0.6",
+      "date": "23/10, soir",
+      "title": "Jouer la garde soi-même",
+      "commits": [
+        "0276a54",
+        "fc75616",
+        "538b1d6",
+        "2c38f19",
+        "84ce8cc"
+      ],
+      "items": [
+        "Vous décidez qui entre dans un box libre, seul ou aidé par l'assistant (le patient que la recherche ferait entrer) ; à la fin, votre garde contre les règles et l'assistant seul, sur les mêmes patients.",
+        "Les gardes jouées se gardent et se téléchargent en replays ; « Analyser mes choix » montre les plus coûteux avec le recul, et combien ont suivi l'assistant.",
+        "Les mesures de nuit (night.json), jouées par l'ordonnanceur commun de mcts-commun."
+      ]
+    },
+    {
+      "version": "0.5",
+      "date": "23/10",
+      "title": "La garde, minute par minute",
+      "commits": [
+        "2565340"
+      ],
+      "items": [
+        "Le plan animé de la garde : l'entrée et ses ambulances, la salle d'attente, les box, les soignants, les patients qui s'aggravent en attendant."
+      ]
+    },
+    {
+      "version": "0.4",
+      "date": "23/10",
+      "title": "La comparaison dans des workers",
+      "commits": [
+        "d903bcc",
+        "7efacf5"
+      ],
+      "items": [
+        "La comparaison avec la recherche joue ses gardes côte à côte, sur tous les cœurs moins deux : environ 11 s pour 12 gardes."
+      ]
+    },
+    {
+      "version": "0.3",
+      "date": "22/10, soir",
+      "title": "La réévaluation et le coût du moment",
+      "commits": [
+        "fbd3af6"
+      ],
+      "items": [
+        "Une infirmière de tri revoit les patients en attente ; la gravité se compte au moment où l'on attend. Pendant un accident, la recherche fait alors 49 625 contre 69 471 pour la couleur."
+      ]
+    },
+    {
+      "version": "0.2",
+      "date": "22/10",
+      "title": "La recherche",
+      "commits": [
+        "fb0f7ff",
+        "3877dac"
+      ],
+      "items": [
+        "La recherche (ISMCTS) sur des mondes communs ; ce qu'il faudrait savoir pour faire mieux (les vrais niveaux des patients présents)."
+      ]
+    },
+    {
+      "version": "0.1",
+      "date": "22/10",
+      "title": "La garde, ses règles et sa page",
+      "commits": [
+        "9cce8cb",
+        "6cd69d4",
+        "f6f7e20"
+      ],
+      "items": [
+        "Un simulateur de garde, trois règles de référence (l'arrivée, la couleur, l'échéance), et la page."
+      ]
+    }
+  ]
+}
