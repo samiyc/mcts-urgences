@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { breakTimes, fatigueMeasures, slowOf } from "../src/pathway-fatigue.js";
+import { breakTimes, fatigueMeasures, internSlowOf, slowOf } from "../src/pathway-fatigue.js";
+import { internResult, runInternGame, startInternGame } from "../src/pathway-game.js";
 import { FATIGUE, pathwaySettingsOf } from "../src/pathway-hypotheses.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
@@ -55,5 +56,15 @@ describe("the doctors' fatigue and breaks (src/pathway-fatigue.js, step 4)", () 
 
   it("changes nothing without fatigue", () => {
     for (const seed of [1, 2]) assert.deepEqual(pathwayMeasures(played(seed, null)), pathwayMeasures(played(seed, undefined)));
+  });
+
+  it("slows the intern as their day goes on, when fatigue counts", () => {
+    const day = startPathway(drawPathwayDay(1, { fatigue: FATIGUE }));
+    assert.equal(internSlowOf(day), 1);
+    // 18 h into the day (2 h at night): 18 h of fatigue on the curve, the night's extra.
+    assert.ok(internSlowOf({ ...day, events: { now: 18 * 60 } }) > 1.2);
+    const tired = internResult(runInternGame(startInternGame({ mode: "robot", seed: 1, fatigue: FATIGUE })));
+    const fresh = internResult(runInternGame(startInternGame({ mode: "robot", seed: 1 })));
+    assert.notDeepEqual(tired.intern, fresh.intern);
   });
 });

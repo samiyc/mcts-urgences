@@ -1,3 +1,4 @@
+import { internSlowOf } from "./pathway-fatigue.js";
 import { positionOf } from "./pathway-trace.js";
 
 /**
@@ -92,7 +93,8 @@ export function useHere(day) {
   const now = day.events.now;
   intern.tasks = intern.tasks.filter((one) => one !== task);
   intern.done.push({ ...task, at: now });
-  const minutes = day.settings.intern.take[task.kind] ?? 0;
+  // A tired intern takes longer (pathway-fatigue.js), when fatigue counts.
+  const minutes = (day.settings.intern.take[task.kind] ?? 0) * internSlowOf(day);
   intern.busyUntil = now + minutes;
   if (task.kind === "scanPick") Object.assign(intern, { following: task.id, pickedAt: intern.track.length });
   day.events.schedule(now + minutes, { type: "internDone", id: task.id, kind: task.kind });

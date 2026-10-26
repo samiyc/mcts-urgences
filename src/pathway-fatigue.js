@@ -65,6 +65,16 @@ export function slowOf(day, k) {
   return factor;
 }
 
+/**
+ * How much slower the intern works now (1 without fatigue): on call since the day began, with no break (an intern on
+ * call takes none here), on the doctors' curve (step 4, H50).
+ */
+export function internSlowOf(day) {
+  if (!day.fatigue) return 1;
+  const { slow, night } = day.settings.fatigue;
+  return 1 + slowing(slow, day.events.now / 60) + (atNight(day.settings, day.events.now) ? night : 0);
+}
+
 /** Whether doctor `k`, reading patient's results now, overlooks them (read again later): more likely as fatigue grows. */
 export function overlooks(day, k, patient) {
   if (!day.fatigue || !day.fatigue.people[k]) return false;

@@ -14,7 +14,7 @@ import { el } from "./dom.js";
 import { createLive } from "./live.js";
 import { createPlayer } from "./player.js";
 import { gardePanel, gardeView, planPanel, planView } from "./tabs/garde.js";
-import { createPathwayState, pathwayChange, pathwayClick, pathwayInput, pathwayPanel, pathwayView } from "./tabs/parcours.js";
+import { createPathwayState, fatigueOf, pathwayChange, pathwayClick, pathwayInput, pathwayPanel, pathwayView } from "./tabs/parcours.js";
 import { replaysClick, replaysPanel, replaysView } from "./tabs/replays.js";
 import { statsPanel, statsView } from "./tabs/stats.js";
 import { clock } from "./view.js";
@@ -108,7 +108,7 @@ const player = createPlayer({
 const wardPanel = createWardPanel({ el, current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse, rule: state.rule }), render: () => render() });
 const counts = () => (searching() ? COMPARED_WITH_SEARCH : COMPARED);
 const pathway = createPathwayState();
-const internPanel = createInternPanel({ el, current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box, bed: pathway.bed, plan: pathway.plan }), render: () => render() });
+const internPanel = createInternPanel({ el, current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box === "search" ? "colour" : pathway.box, bed: pathway.bed, plan: pathway.plan, fatigue: fatigueOf(pathway) }), render: () => render() });
 const ctx = { el, state, settingsOf, live, player, wardPanel, internPanel, pathway, counts, render: () => render(), openTab: (name) => openTab(name) };
 const TABS = { garde: [gardePanel, gardeView], plan: [planPanel, planView], parcours: [pathwayPanel, pathwayView], replays: [replaysPanel, replaysView], stats: [statsPanel, statsView] };
 /** The tabs the simple shift's work holds up: the shift itself, and the comparisons. */
