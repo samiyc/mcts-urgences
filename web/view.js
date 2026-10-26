@@ -117,6 +117,37 @@ export function colourAt(patient, t) {
 /** The true level at minute `t`: the arrival's, one up for each worsening by then. */
 export const levelAt = (patient, t) => patient.arrivalLevel - patient.worsenedAt.filter((at) => at <= t).length;
 
+/** Whether the nurse is looking at `patient` at minute `t`. */
+const lookedAt = (patient, t) => (patient.lookedAt ?? []).some((look) => look.from <= t && t < look.to);
+const startedBy = (patient, t) => patient.start <= t;
+
+/** The waiting room at minute `t`, the earliest first (see `sceneAt`). */
+function waitingAt(patients, t) {
+  return patients
+    .filter((patient) => patient.arrival <= t && !startedBy(patient, t))
+    .sort((a, b) => a.arrival - b.arrival || a.id - b.id)
+    .map((patient) => {
+      const colour = colourAt(patient, t);
+      const level = levelAt(patient, t);
+      const wait = t - patient.arrival;
+      return { id: patient.id, source: patient.source, colour: COLOURS[colour], truth: COLOURS[level], worse: level < colour, wait, overdue: wait > MAX_WAIT[colour], looked: lookedAt(patient, t), recent: wait < 5 };
+    });
+}
+
+/** Each box at minute `t`, with its patient if any (see `sceneAt`). */
+function boxesAt(patients, settings, t) {
+  return Array.from({ length: settings.boxes }, (_, box) => {
+    const patient = patients.find((one) => one.box === box && one.start <= t && t < one.end);
+    if (!patient) return { box, patient: null };
+    const level = patient.levelAtStart ?? patient.level;
+    const stay = Math.max(1e-9, patient.end - patient.start);
+    return {
+      box,
+      patient: { id: patient.id, colour: COLOURS[patient.colour], truth: COLOURS[level], worse: level < patient.colour, phase: t < patient.examEnd ? "exam" : "care", progress: Math.min(1, (t - patient.start) / stay), examShare: (patient.examEnd - patient.start) / stay },
+    };
+  });
+}
+
 /**
  * The department at minute `t` of a played shift (Sami, 23/10/2026: see what really happens in the hospital),
  * rebuilt from the patients' courses:
@@ -127,46 +158,12 @@ export const levelAt = (patient, t) => patient.arrivalLevel - patient.worsenedAt
  * - `coming`: the ambulances announced, not there yet; the doctors and nurses busy; the patients gone.
  */
 export function sceneAt(patients, settings, t) {
-  const name = (level) => COLOURS[level];
-  const waiting = patients
-    .filter((patient) => patient.arrival <= t && !(patient.start <= t))
-    .sort((a, b) => a.arrival - b.arrival || a.id - b.id)
-    .map((patient) => {
-      const colour = colourAt(patient, t);
-      const level = levelAt(patient, t);
-      const wait = t - patient.arrival;
-      return {
-        id: patient.id,
-        source: patient.source,
-        colour: name(colour),
-        truth: name(level),
-        worse: level < colour,
-        wait,
-        overdue: wait > MAX_WAIT[colour],
-        looked: (patient.lookedAt ?? []).some((look) => look.from <= t && t < look.to),
-        recent: wait < 5,
-      };
-    });
-  const boxes = Array.from({ length: settings.boxes }, (_, box) => {
-    const patient = patients.find((one) => one.box === box && one.start <= t && t < one.end);
-    if (!patient) return { box, patient: null };
-    return {
-      box,
-      patient: {
-        id: patient.id,
-        colour: name(patient.colour),
-        truth: name(patient.levelAtStart ?? patient.level),
-        worse: (patient.levelAtStart ?? patient.level) < patient.colour,
-        phase: t < patient.examEnd ? "exam" : "care",
-        progress: Math.min(1, (t - patient.start) / Math.max(1e-9, patient.end - patient.start)),
-        examShare: (patient.examEnd - patient.start) / Math.max(1e-9, patient.end - patient.start),
-      },
-    };
-  });
+  const waiting = waitingAt(patients, t);
+  const boxes = boxesAt(patients, settings, t);
   const announced = settings.announced ?? 0;
   const coming = patients.filter((patient) => patient.source === "ambulance" && patient.arrival > t && patient.arrival - announced <= t).sort((a, b) => a.arrival - b.arrival).map((patient) => ({ id: patient.id, in: Math.ceil(patient.arrival - t) }));
   const doctorsBusy = boxes.filter((one) => one.patient?.phase === "exam").length;
-  const nursesBusy = waiting.filter((one) => one.looked).length + patients.filter((patient) => patient.start !== null && patient.start <= t && (patient.lookedAt ?? []).some((look) => look.from <= t && t < look.to)).length;
+  const nursesBusy = waiting.filter((one) => one.looked).length + patients.filter((patient) => patient.start !== null && patient.start <= t && lookedAt(patient, t)).length;
   return {
     t,
     clock: clock(t),
