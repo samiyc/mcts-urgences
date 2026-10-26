@@ -4,6 +4,8 @@ import { account, keepPeaks } from "./pathway-measures.js";
 import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take } from "./pathway-places.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve } from "./pathway-serve.js";
+import { PLACES } from "./pathway-plans.js";
+import { doctorTo, startTrace } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").BedRule} BedRule */
 /** @typedef {import("./types.js").Day} Day */
@@ -136,6 +138,7 @@ export function startPathway(day) {
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
+    trace: startTrace(capacity, Object.keys(PLACES)),
   };
 }
 
@@ -217,6 +220,7 @@ export function decide(day, decision, id) {
   removeFrom(day.queues.waiting, id);
   moveTo(day, patient, place);
   take(day, "doctors");
+  doctorTo(day, id);
   Object.assign(patient, { start: now(day), levelAtStart: patient.level, step: "exam" });
   day.events.schedule(now(day) + day.settings.exam[patient.level] * patient.examFactor, { type: "examEnd", id });
 }

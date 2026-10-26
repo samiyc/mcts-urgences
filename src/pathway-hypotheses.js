@@ -1,4 +1,5 @@
 import { ACCIDENT, DEFAULTS, HOSPITALS } from "./hypotheses.js";
+import { PATHWAY_PLANS, capacityOf, pathwayPlanOf } from "./pathway-plans.js";
 
 /**
  * Every number of the detailed pathway (Sami, 25/10/2026, docs/recherche/), in one place, over the simple shift's
@@ -108,8 +109,31 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   divertAt: 20,
 });
 
-/** The pathway's settings for `hospital`, with the accident or not: the rates of hypotheses.js, the capacities scaled on its boxes. */
-export function pathwaySettingsOf({ hospital = "moyen", accident = false, ...overrides } = {}) {
+/**
+ * The stretcher-bearers of each hospital (Sami, 26/10/2026, hypothesis: no source found), drawn on the plan from
+ * step 2 (pathway-walk.js); they make nobody wait before step 3, when walking counts.
+ */
+export const PORTERS = Object.freeze({ proximite: 1, moyen: 2, chu: 3 });
+/** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
+export const CELL_METRES = 2;
+
+/** The places a plan sets (the boxes, the SAUV, the isolation, the UHCD, the scanners) over the hospital's. */
+function placesOf(settings, plan) {
+  const { boxes, ...places } = capacityOf(pathwayPlanOf(plan));
+  return { ...settings, boxes, capacity: { ...settings.capacity, ...places } };
+}
+
+/**
+ * The pathway's settings for `hospital`, with the accident or not: the rates of hypotheses.js, the capacities scaled
+ * on its boxes. `plan` (a plan's text, pathway-plans.js), when given, sets the places instead; the hospital's own plan
+ * is kept otherwise, for drawing the day.
+ */
+export function pathwaySettingsOf({ hospital = "moyen", accident = false, plan = null, ...overrides } = {}) {
+  const settings = scaledSettings(hospital, accident, overrides);
+  return plan ? { ...placesOf(settings, plan), plan } : settings;
+}
+
+function scaledSettings(hospital, accident, overrides) {
   const base = { ...PATHWAY_DEFAULTS, ...HOSPITALS[hospital] };
   const scale = base.boxes / PATHWAY_DEFAULTS.boxes;
   const scaled = (value) => Math.max(1, Math.round(value * scale));
@@ -119,6 +143,9 @@ export function pathwaySettingsOf({ hospital = "moyen", accident = false, ...ove
     wards: Object.fromEntries(Object.entries(base.wards).map(([name, ward]) => [name, { free: Math.round(ward.free * scale), perDay: ward.perDay * scale }])),
     divertAt: Math.round(base.divertAt * scale),
     dayDoctors: { ...base.dayDoctors, extra: Math.round(base.dayDoctors.extra * scale) },
+    hospital,
+    plan: PATHWAY_PLANS[hospital],
+    porters: PORTERS[hospital],
     ...(accident ? { crisis: ACCIDENT } : {}),
     ...overrides,
   };

@@ -1,3 +1,5 @@
+import { doctorTo, intoSlot, outOfDepartment, outOfSlot } from "./pathway-trace.js";
+
 /**
  * The places, the people and the machines of the detailed pathway (pathway.js): the pools a patient takes and gives
  * back, the queues, the moves between places, and the cleaning after one.
@@ -26,6 +28,7 @@ export const byColour = (day) => (a, b) => day.patients.get(a).colour - day.pati
 
 export function exitPatient(day, patient, exit) {
   Object.assign(patient, { exit, exitAt: now(day), step: "out" });
+  outOfDepartment(day, patient);
 }
 
 /** The place a waiting patient would take now, or null: the SAUV for a red, the isolation room for an isolated one, else a box. */
@@ -40,8 +43,9 @@ export function leavePlace(day, patient) {
   if (!patient.place) return;
   const place = patient.place;
   patient.place = null;
+  const slot = outOfSlot(day, place, patient.id);
   const cleaning = patient.isolate && place === "boxes" ? day.settings.cleanIsolated : day.settings.clean;
-  day.events.schedule(now(day) + cleaning, { type: "cleaned", place });
+  day.events.schedule(now(day) + cleaning, { type: "cleaned", place, slot });
 }
 
 /** Moves a patient into `place` (a pool), from wherever they were. */
@@ -49,10 +53,12 @@ export function moveTo(day, patient, place) {
   if (patient.place) leavePlace(day, patient);
   take(day, place);
   patient.place = place;
+  intoSlot(day, place, patient.id);
 }
 
 /** A doctor reads a patient's results. */
 export function startReview(day, id) {
   take(day, "doctors");
+  doctorTo(day, id);
   day.events.schedule(now(day) + day.settings.review, { type: "reviewEnd", id });
 }

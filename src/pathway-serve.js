@@ -1,3 +1,4 @@
+import { intoScanner } from "./pathway-trace.js";
 import { byColour, exitPatient, free, leavePlace, lognormal, moveTo, now, startReview, take } from "./pathway-places.js";
 
 /**
@@ -6,11 +7,13 @@ import { byColour, exitPatient, free, leavePlace, lognormal, moveTo, now, startR
  */
 
 /** Starts the queue's patients in order while `pool` has room, each one's end at `endAt(t)`. */
-function startEach(day, { queue, pool, type, endAt }) {
+function startEach(day, { queue, pool, type, endAt, onStart = null }) {
   const t = now(day);
   while (queue.length && free(day, pool) > 0) {
     take(day, pool);
-    day.events.schedule(endAt(t), { type, id: queue.shift() });
+    const id = queue.shift();
+    onStart?.(day, id);
+    day.events.schedule(endAt(t), { type, id });
   }
 }
 
@@ -63,7 +66,7 @@ export function serve(day) {
   startEach(day, { queue: queues.register, pool: "reception", type: "registerEnd", endAt: (t) => t + settings.register });
   startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage });
   queues.scanner.sort(byColour(day));
-  startEach(day, { queue: queues.scanner, pool: "scanner", type: "scanEnd", endAt: (t) => t + settings.scan });
+  startEach(day, { queue: queues.scanner, pool: "scanner", type: "scanEnd", endAt: (t) => t + settings.scan, onStart: intoScanner });
   queues.specialists.sort(byColour(day));
   startEach(day, { queue: queues.specialists, pool: "specialists", type: "adviceEnd", endAt: (t) => t + settings.adviceDelay + settings.advice });
   serveTheatre(day);

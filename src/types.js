@@ -48,8 +48,17 @@
  *   wards: Record<string, { free: number, waiting: number[] }>,
  *   capacity: Record<string, number>, busy: Record<string, number>, used: Record<string, number>, full: Record<string, number>,
  *   clock: number, queues: Record<string, number[]>, diverted: Set<number>,
- *   peak: { waiting: number, present: number, urgent: number }, over: boolean,
+ *   peak: { waiting: number, present: number, urgent: number }, over: boolean, trace: Trace,
  * }} Day
+ */
+
+/**
+ * Where everyone is during the day (pathway-trace.js): the places by number, the doctors, the moves.
+ * @typedef {{ t: number, who: number | string, to: { at: string, slot?: number, id?: number, door?: string } }} Move
+ * @typedef {{
+ *   slots: Record<string, Array<number | string | null>>, doctors: Array<number | null>, where: Map<number | string, Move["to"]>,
+ *   moves: Move[], placeOf: Map<number, number>, scanOf: Map<number, number>,
+ * }} Trace
  */
 
 /**

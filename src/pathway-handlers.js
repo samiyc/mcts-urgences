@@ -1,6 +1,7 @@
 import { MAX_WAIT } from "./hypotheses.js";
 import { exitPatient, give, leavePlace, lognormal, now, removeFrom } from "./pathway-places.js";
 import { scheduleWorsening } from "./simulate.js";
+import { cleanedSlot, doctorBack, locate, outOfScanner, seated } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").Day} Day */
 /** @typedef {import("./types.js").PathwayPatient} PathwayPatient */
@@ -33,6 +34,7 @@ function admit(day, patient) {
 function toWaiting(day, patient) {
   patient.step = "waiting";
   day.queues.waiting.push(patient.id);
+  locate(day, patient.id, { at: "waiting" });
   if (patient.patience < Infinity) day.events.schedule(now(day) + patient.patience, { type: "leave", id: patient.id });
 }
 
@@ -77,11 +79,13 @@ export const HANDLERS = {
     if (patient.source === "ambulance" && patient.colour === 1) return toWaiting(day, patient);
     patient.step = "register";
     day.queues.register.push(patient.id);
+    locate(day, patient.id, { at: "reception" });
   },
   registerEnd(day, patient) {
     give(day, "reception");
     patient.step = "triage";
     day.queues.triage.push(patient.id);
+    locate(day, patient.id, { at: "triage" });
   },
   triageEnd(day, patient) {
     give(day, "ioa");
@@ -102,6 +106,7 @@ export const HANDLERS = {
   },
   examEnd(day, patient) {
     give(day, "doctors");
+    doctorBack(day, patient.id);
     patient.examEnd = now(day);
     const ordered = EXAMS.filter(([need]) => patient.needs[need]);
     if (ordered.length) patient.orderedAt = now(day);
@@ -112,7 +117,9 @@ export const HANDLERS = {
     if (patient.pending === 0) return examsBack(day, patient);
     patient.step = "exams";
     // A patient who walked in and is not urgent waits for the results seated, out of the box.
-    if (day.settings.seated && patient.source === "pied" && patient.colour >= 3) leavePlace(day, patient);
+    if (!day.settings.seated || patient.source !== "pied" || patient.colour < 3) return;
+    leavePlace(day, patient);
+    seated(day, patient);
   },
   examBack(day, patient) {
     patient.pending -= 1;
@@ -120,6 +127,7 @@ export const HANDLERS = {
   },
   scanEnd(day, patient) {
     give(day, "scanner");
+    outOfScanner(day, patient);
     HANDLERS.examBack(day, patient);
   },
   adviceEnd(day, patient) {
@@ -128,6 +136,7 @@ export const HANDLERS = {
   },
   reviewEnd(day, patient) {
     give(day, "doctors");
+    doctorBack(day, patient.id);
     patient.reviewedAt = now(day);
     startCare(day, patient);
   },
@@ -160,6 +169,7 @@ export const HANDLERS = {
   },
   cleaned(day, event) {
     give(day, event.place);
+    cleanedSlot(day, event.place, event.slot);
   },
 };
 
