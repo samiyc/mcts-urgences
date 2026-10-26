@@ -64,6 +64,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   queueDecided: false,
   /** The crisis plan, the « Plan blanc » (ALERT, step 6), or none: without it, the day is the same as before. */
   alert: null,
+  /** The hospital in tension, the « HET » (HET, pathway-het.js), or none: without it, the day is the same as before. */
+  het: null,
   /** Moving a patient out of the SAUV for a red decided (pathway-sauv.js, step 6), instead of never. */
   sauvDecided: false,
   /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
@@ -196,6 +198,14 @@ export const INTERN_LATE = Object.freeze({ perMinute: 4 });
  * by putting off planned admissions, and what a doctor-hour called back weighs against the late cost (a red's
  * minute is 16).
  */
+/**
+ * The hospital in tension, the « HET » (Sami, 26/10/2026; hypotheses H63 to H66): for the medium hospital (the others
+ * scaled on their boxes), the minutes the wards take to organise, the beds they give at once by putting off planned
+ * admissions, then one bed of `flowWard` every `every` minutes (patients out sooner), what each bed weighs against
+ * the late cost (a red's minute is 16), and the patients waiting for a bed that trigger it at the threshold.
+ */
+export const HET = Object.freeze({ delay: 60, beds: Object.freeze({ medecine: 1, chirurgie: 1 }), flowWard: "medecine", every: 240, bedCost: 120, boarders: 3 });
+
 export const ALERT = Object.freeze({ recall: 2, delay: 60, beds: Object.freeze({ medecine: 2, chirurgie: 1, cardiologie: 1 }), doctorHour: 240 });
 
 /**

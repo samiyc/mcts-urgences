@@ -1,6 +1,7 @@
 import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { ALERT_RULES } from "./pathway-alert.js";
+import { HET_RULES } from "./pathway-het.js";
 import { BREAK_DECIDERS } from "./pathway-fatigue.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
@@ -113,5 +114,23 @@ export function pathwaySearchSauvRule(options = {}) {
     const scale = scaleOf(day, rng, { horizon, bed, sauvs: true });
     const found = search(day, problemFor({ scale, width, horizon, bed, sauvs: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
     return candidates.find((view) => view.id === found.move?.id) ?? SAUV_RULES.never(candidates);
+  };
+}
+
+/**
+ * The search deciding whether to trigger the HET now (runPathway's `het`, a day with `het`): the other decisions by
+ * their rules in its worlds, played over the horizon, scored on the late cost, the wait for a bed of those waiting for
+ * one, and the beds the HET gives (HET.bedCost, H65).
+ */
+export function pathwaySearchHetRule(options = {}) {
+  const { budget, depth, explore, width, seed } = { ...PATHWAY_SEARCH, ...options };
+  const horizon = options.horizon ?? 240;
+  const bed = options.bed ?? BED_RULES.oldest;
+  return (candidates, { day }) => {
+    if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
+    const rng = createRng((Math.imul(seed, 0x2545f491) + Math.round(day.events.now * 1000) * 61) >>> 0);
+    const scale = scaleOf(day, rng, { horizon, bed, hets: true });
+    const found = search(day, problemFor({ scale, width, horizon, bed, hets: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    return candidates.find((one) => one.id === found.move?.id) ?? HET_RULES.threshold(candidates, { day });
   };
 }

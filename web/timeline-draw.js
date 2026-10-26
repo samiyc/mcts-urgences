@@ -86,6 +86,12 @@ export function timelinePlan(timeline, other = null) {
     line.append(titled(`Plan blanc déclenché ; les médecins rappelés arrivent ${Math.round(staffAt - at)} min plus tard`));
     root.append(line);
   }
+  if (timeline.markers.het) {
+    const { at, beds } = timeline.markers.het;
+    const line = svg("rect", { x: x(at) - 1, y: 0, width: 2, height: 280, class: "tl-het" });
+    line.append(titled(`HET déclenché ; les services ont rendu ${beds} lits`));
+    root.append(line);
+  }
   curves(root, { timeline, other, x, top });
   const after = marks(root, { timeline, x, y: strips(root, { timeline, x }) + 4 });
   hours(root, { timeline, x, height: Math.min(280, after + 14) });
@@ -93,4 +99,4 @@ export function timelinePlan(timeline, other = null) {
 }
 
 export const TIMELINE_LEGEND =
-  "Trait plein : la journée jouée ; tirets : la même journée jouée autrement (à choisir dans le panneau). Noir : présents, rouge : attendent un box, bleu : attendent un lit. Une bande pleine : la ressource est saturée. En dessous : les aggravations (rouge), les départs sans être vus (orange), les ambulances réorientées (bleu), les résultats oubliés (jaune), les pauses des médecins (gris). En ocre : l'accident ; un trait violet : le plan blanc déclenché. Un clic sur une heure y amène le plan.";
+  "Trait plein : la journée jouée ; tirets : la même journée jouée autrement (à choisir dans le panneau). Noir : présents, rouge : attendent un box, bleu : attendent un lit. Une bande pleine : la ressource est saturée. En dessous : les aggravations (rouge), les départs sans être vus (orange), les ambulances réorientées (bleu), les résultats oubliés (jaune), les pauses des médecins (gris). En ocre : l'accident ; un trait orange foncé : le HET déclenché ; un trait violet : le plan blanc déclenché. Un clic sur une heure y amène le plan.";

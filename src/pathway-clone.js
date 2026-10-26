@@ -60,6 +60,7 @@ export function cloneDay(day, keep = () => true) {
     fatigue: copyFatigue(day.fatigue),
     intern: copyIntern(day.intern),
     alert: day.alert && { ...day.alert },
+    het: day.het && { ...day.het, given: [...day.het.given] },
     isolation: day.isolation && { ...day.isolation },
     series: [],
     nextSample: Infinity,

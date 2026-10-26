@@ -6,6 +6,7 @@ import { BOARDING_COST, INTERN_LATE } from "./pathway-hypotheses.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
 import { ALERT_RULES, recalledHours } from "./pathway-alert.js";
+import { HET_RULES, hetBedsSince } from "./pathway-het.js";
 import { epidemicComings, epidemicPatient } from "./pathway-epidemic.js";
 import { SAUV_RULES } from "./pathway-sauv.js";
 import { idOf } from "./pathway.js";
@@ -100,12 +101,12 @@ const allBedded = (world) => world.boarders.every((id) => world.patients.get(id)
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null || world.patients.get(id).exit !== null);
 
 /** Whether the search chooses this decision: a box's always; a bed's with `beds`; a break's with `breaks`. */
-const IN_TREE = { box: () => true, bed: (rules) => rules.beds, break: (rules) => rules.breaks, intern: (rules) => rules.interns, queue: (rules) => rules.queues, alert: (rules) => rules.alerts, sauv: (rules) => rules.sauvs };
+const IN_TREE = { box: () => true, bed: (rules) => rules.beds, break: (rules) => rules.breaks, intern: (rules) => rules.interns, queue: (rules) => rules.queues, alert: (rules) => rules.alerts, het: (rules) => rules.hets, sauv: (rules) => rules.sauvs };
 const inTree = (decision, rules) => Boolean(IN_TREE[decision.kind](rules));
 
 /** A decision's answer by its rule in the worlds: the colour rule, the bed rule, the break « au creux ». */
 function ruled(world, decision, { bed }) {
-  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet, intern: INTERN_RULES.dueFirst, queue: QUEUE_RULES.colour, alert: ALERT_RULES.threshold, sauv: SAUV_RULES.never }[decision.kind];
+  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet, intern: INTERN_RULES.dueFirst, queue: QUEUE_RULES.colour, alert: ALERT_RULES.threshold, het: HET_RULES.threshold, sauv: SAUV_RULES.never }[decision.kind];
   return idOf(decision, rule(decision.candidates, { day: world }));
 }
 
@@ -162,6 +163,7 @@ const MOVES_OF = {
   bed: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `lit-${view.id}`, whole: true })),
   break: () => [...BREAK_MOVES],
   alert: () => [{ id: "now", key: "plan-maintenant", whole: true }, { id: "later", key: "plan-plus-tard", whole: true }],
+  het: () => [{ id: "now", key: "het-maintenant", whole: true }, { id: "later", key: "het-plus-tard", whole: true }],
   sauv: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `sauv-${view.id}`, whole: true })),
   intern: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `tâche-${view.id}`, whole: true })),
   queue: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `${decision.pool}-${view.id}`, whole: true })),
@@ -184,22 +186,36 @@ function internLateness(world) {
   return INTERN_LATE.perMinute * (done + open);
 }
 
-/** A world's cost: the late cost, the wait for a bed when the search chooses beds, the intern's lateness for their tasks. */
-const costOf = (world, { beds, interns, alerts }, from) => pendingCost(world) + (beds ? boardingCost(world, from) : 0) + (interns ? internLateness(world) : 0) + (alerts ? alertCost(world, from) : 0);
+/**
+ * A world's cost: the late cost, the wait for a bed when the search chooses beds or the HET, the intern's lateness for
+ * their tasks, the crisis plan's doctor-hours, the HET's beds (HET.bedCost, H65).
+ * @param {any} world
+ * @param {SearchFlags} flags
+ * @param {number} from
+ */
+const costOf = (world, { beds, interns, alerts, hets }, from) => pendingCost(world) + (beds || hets ? boardingCost(world, from) : 0) + (interns ? internLateness(world) : 0) + (alerts ? alertCost(world, from) : 0) + (hets ? hetBedsSince(world, from) * world.settings.het.bedCost : 0);
 
 /** The doctor-hours the crisis plan called back over the world, at their weight (ALERT.doctorHour, H55). */
 const alertCost = (world, from) => (recalledHours(world, world.events.now) - recalledHours(world, from)) * world.settings.alert.doctorHour;
 
 /**
+ * The decisions the search chooses besides the box's, each absent or false when it does not.
+ * @typedef {{ beds?: boolean, breaks?: boolean, interns?: boolean, queues?: boolean, alerts?: boolean, hets?: boolean, sauvs?: boolean }} SearchFlags
+ */
+
+/**
  * The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`, `breaks`: the bed decisions, the
  * break decisions are moves too.
+ * @param {{ scale: number, width: number, horizon: number, bed: Function, from?: number } & SearchFlags} options
  */
-export function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, interns = false, queues = false, alerts = false, sauvs = false, from = 0 }) {
-  const rules = { bed, beds, breaks, interns, queues, alerts, sauvs };
+export function problemFor({ scale, width, horizon, bed, from = 0, ...flags }) {
+  /** @type {SearchFlags & { bed: Function }} */
+  const rules = { bed, ...flags };
+  const { beds, interns, alerts, hets } = rules;
   const cost = (world) => costOf(world, rules, from);
   // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the
   // horizon); choosing the intern's tasks, over the horizon.
-  const done = (world) => (interns || alerts ? world.events.now > from + horizon : allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon));
+  const done = (world) => (interns || alerts || hets ? world.events.now > from + horizon : allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon));
   return {
     sample: (day, rng) => drawWorld(day, rng, horizon),
     actor: () => "service",
@@ -216,13 +232,18 @@ export function problemFor({ scale, width, horizon, bed, beds = false, breaks = 
   };
 }
 
-/** The colour rule's cost on a few worlds: the score's scale, so that the rule scores about ½. */
-export function scaleOf(day, rng, { horizon, bed, beds = false, breaks = false, interns = false, queues = false, alerts = false, sauvs = false }) {
+/**
+ * The colour rule's cost on a few worlds: the score's scale, so that the rule scores about ½.
+ * @param {any} day
+ * @param {any} rng
+ * @param {{ horizon: number, bed: Function } & SearchFlags} options
+ */
+export function scaleOf(day, rng, { horizon, bed, ...flags }) {
   const from = day.events.now;
   let total = 0;
   for (let i = 0; i < 3; i += 1) {
-    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, breaks, interns, queues, alerts, sauvs, from }).rollout(drawWorld(day, rng, horizon));
-    total += costOf(world, { beds, interns, alerts }, from);
+    const world = problemFor({ scale: 1, width: 1, horizon, bed, from, ...flags }).rollout(drawWorld(day, rng, horizon));
+    total += costOf(world, flags, from);
   }
   return Math.max(20, total / 3);
 }

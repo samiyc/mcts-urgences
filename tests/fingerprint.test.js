@@ -10,6 +10,9 @@ import { searchRule } from "../src/search.js";
 import { simulateShift } from "../src/simulate.js";
 import { compareBreakRules } from "../src/pathway-fatigue-compare.js";
 import { pathwaySearchRule } from "../src/pathway-search.js";
+import { pathwaySearchHetRule } from "../src/pathway-search-rules.js";
+import { HET_RULES } from "../src/pathway-het.js";
+import { HET } from "../src/pathway-hypotheses.js";
 import { internResult, runInternGame, startInternGame } from "../src/pathway-game.js";
 import { runWard, startWard, wardResult } from "../src/ward.js";
 
@@ -28,6 +31,7 @@ const EXPECTED = {
   fatigue: "9e82a932b8b806b1",
   pathwaySearch: "0bdc497e0fe40ebb",
   epidemic: "0b02e321b46028a9",
+  het: "cd3d771f8c5c191b",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);
@@ -72,6 +76,11 @@ const FINGERPRINTS = {
   epidemic: () => [
     ...HOSPITAL_NAMES.flatMap((hospital) => [1, 2].map((seed) => played(drawPathwayDay(seed, { hospital, epidemic: true }), { box: RULES.colour, bed: BED_RULES.oldest }))),
     played(drawPathwayDay(3, { hospital: "proximite", epidemic: true }), { box: pathwaySearchRule({ budget: 10 }), bed: BED_RULES.oldest }),
+  ],
+  // The hospital in tension (26/10/2026): at the threshold, two days of the epidemic, and the search on one.
+  het: () => [
+    ...[1, 2].map((seed) => played(drawPathwayDay(seed, { epidemic: true, het: HET }), { box: RULES.colour, bed: BED_RULES.oldest, het: HET_RULES.threshold })),
+    played(drawPathwayDay(3, { hospital: "proximite", epidemic: true, het: HET }), { box: RULES.colour, bed: BED_RULES.oldest, het: pathwaySearchHetRule({ budget: 10 }) }),
   ],
   ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
   search: () => {

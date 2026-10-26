@@ -138,3 +138,16 @@ Ce qui suit n'y est pas.
 | H60 | Les services, pleins de la saison, ne rendent que 3 lits sur 4 : au début de la journée et au fil du jour | `EPIDEMIC.beds` | Combien de lits d'aval manquent en plein hiver, par rapport au reste de l'année ? | GL, CDS | à vérifier |
 | H61 | La chambre d'isolement se prête, libre, à un patient trié 4 ou 5 de moins de 75 ans ; un patient à isoler la reprend | `isolationLent`, `src/pathway-isolation.js` | Met-on un patient ordinaire dans la chambre d'isolement quand elle est libre ? | IOA, CDS | corrigée le 26/10 par Sami : oui, des patients légers et plutôt jeunes, faciles à déplacer ; on échange les places si le patient à isoler est déjà en box, sinon le patient sorti repasse par la file |
 | H62 | Un patient en plein examen le finit avant de sortir de la chambre ; un échange de places se fait sans nettoyage entre les deux | `reclaimIsolation`, `src/pathway-isolation.js` | En combien de temps libère-t-on la chambre, et la nettoie-t-on entre deux patients échangés ? | IOA, CDS | à vérifier |
+
+## L'hôpital en tension (`HET`, `src/pathway-hypotheses.js`)
+
+Ce qui est sourcé ([oublis.md](oublis.md), « Plan blanc et HET, plus en détail ») : le HET vise un manque de lits
+prévisible, engage tous les services et précède le Plan blanc ; ses seuils et ses mesures sont propres à chaque
+établissement. Les chiffres qui suivent ne le sont pas.
+
+| N° | Valeur prise | Dans le code | La question | Qui | Statut |
+|---|---|---|---|---|---|
+| H63 | Une fois le HET déclenché, les services s'organisent en 1 h, puis rendent 2 lits (médecine, chirurgie) en reportant des admissions programmées | `HET.delay`, `HET.beds` | En combien de temps un HET libère-t-il des lits, et combien ? | GL, CDS | à vérifier |
+| H64 | Ensuite, un lit de médecine de plus toutes les 4 h jusqu'à la fin de la journée (des sorties avancées, des transferts en soins de suite) | `HET.every`, `HET.flowWard` | Que gagne-t-on de lits, au fil des heures, avec des sorties anticipées ? | GL | à vérifier |
+| H65 | Un lit obtenu par le HET pèse comme 7 min 30 de retard d'un rouge (120) | `HET.bedCost` | Que coûte une admission programmée reportée, comparée à l'attente d'un patient ? | CDS, GL | à vérifier |
+| H66 | Le seuil de déclenchement : 3 patients qui attendent un lit (pour 12 box) | `HET.boarders`, `HET_RULES.threshold` | Sur quels indicateurs et quels seuils le HET se déclenche-t-il, et à quelle heure ? | CDS, URG | à vérifier |

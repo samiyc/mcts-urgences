@@ -3,7 +3,7 @@
  * the department's state taken every `EVERY` minutes as the day goes (`sample`, from pathway-measures.js's
  * `account`, which changes nothing), and once the day is over the timeline (`timelineOf`): the patients present,
  * waiting for a box, waiting for a bed, the places full, and the moments that count (worsenings, patients gone
- * unseen, ambulances sent elsewhere, results overlooked, breaks, the accident, the intern's shift, the crisis plan).
+ * unseen, ambulances sent elsewhere, results overlooked, breaks, the accident, the intern's shift, the HET, the crisis plan).
  */
 export const EVERY = 10;
 
@@ -26,6 +26,12 @@ export function sample(day, until) {
   }
 }
 
+/** When the HET and the crisis plan came on, if they did. */
+const plansOf = (day) => ({
+  het: day.het?.on ? { at: day.het.at, bedsAt: day.het.bedsAt, beds: day.het.given.length } : null,
+  alert: day.alert?.on ? { at: day.alert.at, staffAt: day.alert.staffAt } : null,
+});
+
 /** The moments of the day that count, each `[t]` or `[{ from, to }]`. */
 function markersOf(day) {
   const patients = [...day.patients.values()];
@@ -37,7 +43,7 @@ function markersOf(day) {
     overlooked: day.fatigue?.overlookedAt ?? [],
     breaks: day.fatigue ? day.fatigue.people.flatMap((person) => person.breaks.map(({ from, to }) => ({ from, to, k: person.k }))) : [],
     crisis: crisis ? { from: crisis.at, to: crisis.at + crisis.over } : null,
-    alert: day.alert?.on ? { at: day.alert.at, staffAt: day.alert.staffAt } : null,
+    ...plansOf(day),
   };
 }
 

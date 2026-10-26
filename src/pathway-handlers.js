@@ -4,6 +4,7 @@ import { scheduleWorsening } from "./simulate.js";
 import { ask, assign, follows } from "./pathway-intern.js";
 import { requestTransport } from "./pathway-porters.js";
 import { STAFF_HANDLERS } from "./pathway-staff.js";
+import { HET_HANDLERS } from "./pathway-het.js";
 import { cleanedSlot, doctorBack, followedTo, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").Day} Day */
@@ -231,6 +232,7 @@ export const HANDLERS = {
     else HANDLERS.examBack(day, patient);
   },
   ...STAFF_HANDLERS,
+  ...HET_HANDLERS,
   /** A task of the intern done (pathway-intern.js), after its minutes: its effect. */
   internDone(day, patient, event) {
     INTERN_DONE[event.kind](day, patient);
