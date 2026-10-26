@@ -240,24 +240,30 @@ pause ôte 30 % de la fatigue, le repos 60 %. Deux médecins restent toujours en
 **Les gardes** :
 - de 24 h, de 8 h à 8 h ;
 - ou deux équipes de 12 h, avec une relève à 20 h et à 8 h : 15 min pendant lesquelles l'équipe qui arrive ne prend
-  pas de patient.
+  pas de patient. Ce qui se dit peut se perdre : un patient dont les résultats sont en cours ou attendent d'être lus
+  est oublié 1 fois sur 20 (`handoverLoss`, H56), et ses résultats sont relus 30 min plus tard. Sur les 3 journées
+  de l'empreinte, personne n'est touché ; avec une perte d'1 fois sur 2, 16 résultats sont oubliés au lieu de 5.
+
+**L'infirmier d'accueil** (l'IOA) fatigue aussi : son tri prend plus de temps au fil de son poste de 12 h (de 8 h
+à 20 h, puis de 20 h à 8 h) et la nuit (`ioaSlowOf`, H53). L'interne ralentit lui aussi, sans pause (H50).
 
 Sans fatigue dans les réglages, la journée est celle des étapes d'avant : les empreintes n'ont pas changé, et la
 fatigue a la sienne.
 
 Ce que donnent les règles, sur l'hôpital moyen pendant l'accident, en moyenne sur 10 journées
-(`npm run fatigue -- --accident --days 10`) :
+(`npm run fatigue -- --accident --days 10`, refait le 26/10 avec l'IOA et les pertes à la relève) :
 
 | Pauses | coût au moment | gain sur aucune pause, 24 h (IC 95 %) | oublis | sans pause, au plus | ralentissement |
 |---|---|---|---|---|---|
-| sans fatigue | 56 425 | +5 199 (+1 424 à +8 973) | — | — | — |
-| aucune pause, 24 h | 61 624 | — | 2,8 | 24 h | 11,8 % |
-| à l'heure fixe, 24 h | 70 208 | −8 585 (−12 684 à −4 486) | 2,0 | 8,5 h | 6,8 % |
-| au creux, 24 h | 64 352 | −2 728 (−4 695 à −762) | 2,1 | 17,3 h | 8,2 % |
-| aucune pause, 12 h | 60 386 | +1 238 (+109 à +2 366) | 1,4 | 12 h | 6,2 % |
-| au creux, 12 h | 63 796 | −2 172 (−3 875 à −469) | 1,5 | 12 h | 5,4 % |
+| sans fatigue | 56 425 | +4 846 (+1 317 à +8 374) | — | — | — |
+| aucune pause, 24 h | 61 270 | — | 2,8 | 24 h | 11,7 % |
+| à l'heure fixe, 24 h | 70 876 | −9 606 (−12 977 à −6 235) | 2,0 | 8,7 h | 6,7 % |
+| au creux, 24 h | 64 543 | −3 273 (−5 184 à −1 362) | 2,0 | 17,1 h | 8,0 % |
+| aucune pause, 12 h | 60 725 | +545 (−373 à +1 463) | 1,7 | 12 h | 6,2 % |
+| au creux, 12 h | 64 166 | −2 895 (−4 647 à −1 144) | 1,7 | 12 h | 5,4 % |
 
-La fatigue coûte, mais une pause coûte plus sur le moment : le médecin en pause manque à la salle d'attente, et sur
+Deux équipes de 12 h sans pause ne font plus sûrement mieux qu'une garde de 24 h : l'intervalle passe par zéro
+depuis que l'IOA fatigue et que la relève peut perdre un patient (l'un, l'autre ou les deux). La fatigue coûte, mais une pause coûte plus sur le moment : le médecin en pause manque à la salle d'attente, et sur
 le coût du retard, ce manque pèse plus que les gestes ralentis et les résultats oubliés.
 
 Cela vient en partie des hypothèses (H43, H45), et en partie de ce que la mesure ignore : une erreur de soin due à la
