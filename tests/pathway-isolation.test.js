@@ -21,11 +21,11 @@ describe("the isolation room lent (pathway-isolation.js, H61)", () => {
     }
   });
 
-  it("gives the room back to a patient to isolate: swapped from a box, or the borrower moved out", () => {
+  it("gives the room back to a patient to isolate: the borrower moved out, the room cleaned, then theirs", () => {
     const days = Array.from({ length: 30 }, (_, i) => played(1 + i, { epidemic: true }));
-    const swaps = days.reduce((sum, day) => sum + day.isolation.swaps, 0);
     const moved = days.reduce((sum, day) => sum + day.isolation.moved, 0);
-    assert.ok(swaps > 0 && moved > 0, `${swaps} ${moved}`);
+    const back = days.reduce((sum, day) => sum + day.isolation.back, 0);
+    assert.ok(moved > 0 && back > 0, `${moved} ${back}`);
     // Taken back, the room goes to patients to isolate: over the days, more of them go into it than without lending.
     const isolatedIn = (list) => list.reduce((sum, day) => sum + new Set(roomTakers(day).filter((patient) => patient.isolate)).size, 0);
     const never = Array.from({ length: 30 }, (_, i) => played(1 + i, { epidemic: true, isolationLent: null }));

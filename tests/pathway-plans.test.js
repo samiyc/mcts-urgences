@@ -54,7 +54,7 @@ describe("the plans of the detailed pathway (src/pathway-plans.js)", () => {
 
 /**
  * The places taken by a patient while another still held them, from the day's moves: `["boxes:3 à 412"]`. The moves
- * of one instant go together, those who leave first: two patients may swap their places (pathway-isolation.js).
+ * of one instant go together, those who leave first.
  */
 function doubleBooked(day) {
   const holder = new Map();

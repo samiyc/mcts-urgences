@@ -22,15 +22,15 @@ import { runWard, startWard, wardResult } from "../src/ward.js";
  * its commit says so, with the measures before and after.
  */
 const EXPECTED = {
-  pathway: "497506e1fded3e7d",
+  pathway: "fcc1ce236ad7e3c7",
   shift: "2268a5261e750c8b",
   ward: "57b01014292f8c4d",
   search: "2bc22fa5048d24e8",
-  walked: "3cb2943dc7e2acfe",
+  walked: "a59f8ec32aa3b27f",
   intern: "2f8e26fa3de22379",
   fatigue: "9e82a932b8b806b1",
   pathwaySearch: "0bdc497e0fe40ebb",
-  epidemic: "0b02e321b46028a9",
+  epidemic: "e79be809e5f092a1",
   het: "cd3d771f8c5c191b",
 };
 

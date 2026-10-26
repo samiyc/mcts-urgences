@@ -107,19 +107,6 @@ export function outOfSlot(day, pool, id) {
 
 export const cleanedSlot = (day, pool, slot) => (day.trace.slots[pool][slot] = null);
 
-/** Two patients swap their places (the isolation room taken back, pathway-isolation.js), no cleaning between. */
-export function swapSlots(day, a, b) {
-  const [placeA, placeB] = [a.place, b.place];
-  const [slotA, slotB] = [day.trace.placeOf.get(a.id), day.trace.placeOf.get(b.id)];
-  day.trace.slots[placeA][slotA] = b.id;
-  day.trace.slots[placeB][slotB] = a.id;
-  day.trace.placeOf.set(a.id, slotB);
-  day.trace.placeOf.set(b.id, slotA);
-  Object.assign(a, { place: placeB });
-  Object.assign(b, { place: placeA });
-  locate(day, a.id, { at: placeB, slot: slotB });
-  locate(day, b.id, { at: placeA, slot: slotA });
-}
 
 /** Where a patient sits between two things: their place, or the seats for the results once out of it. */
 export const placeOrSeat = (day, patient) => (patient.place ? { at: patient.place, slot: day.trace.placeOf.get(patient.id) } : { at: "results" });

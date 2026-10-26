@@ -1,15 +1,14 @@
 import { free, leavePlace, moveTo } from "./pathway-places.js";
-import { seated, swapSlots } from "./pathway-trace.js";
+import { seated } from "./pathway-trace.js";
 
 /**
  * The isolation room lent (Sami, 26/10/2026, H61): free, and nobody to isolate waiting for it, it takes a light
  * (triaged 4 or 5) and young (under 75) patient, easily moved (`borrows`, pathway-places.js's `placeFor`). A patient to
- * isolate takes it back at once, the borrower being examined or not:
- * - the patient to isolate already in a box: the two swap places, each keeping their care;
- * - waiting: the borrower moves to a free box, or else to a chair (as a light patient who walked in waits for the
- *   results, pathway-handlers.js), and the room, cleaned, goes to the patient to isolate by the box rule;
- * - the room free again, a patient to isolate whom a box holds moves into it (the box cleaned after them).
- * The borrower being examined stays until the exam's end: a few minutes for a light patient.
+ * isolate takes it back, waiting or already in a box: the borrower moves to a free box, or else to a chair (as a
+ * light patient who walked in waits for the results, pathway-handlers.js). The room is cleaned, then goes to the patient
+ * to isolate: by the box rule if they wait, at once if a box holds them (that box cleaned after them). No two patients
+ * swap places without a cleaning between (Sami, H62: a place is always cleaned before the next patient). The borrower
+ * being examined stays until the exam's end: a few minutes for a light patient.
  */
 
 /** Whether a patient to isolate waits for the isolation room, in the waiting room or in a box. */
@@ -24,8 +23,8 @@ export function borrows(day, patient) {
   return Boolean(lent) && !patient.isolate && patient.colour >= lent.fromColour && !patient.elderly && !isolatedWanting(day);
 }
 
-/** The counts of the room lent: patients it took in, swaps, borrowers moved out, patients to isolate moved in from a box. */
-export const startIsolation = (settings) => (settings.isolationLent ? { lent: 0, swaps: 0, moved: 0, back: 0 } : null);
+/** The counts of the room lent: patients it took in, borrowers moved out, patients to isolate moved in from a box. */
+export const startIsolation = (settings) => (settings.isolationLent ? { lent: 0, moved: 0, back: 0 } : null);
 
 /** A patient taking the isolation room, counted when they borrow it. */
 export function noteLent(day, patient, place) {
@@ -61,10 +60,6 @@ export function reclaimIsolation(day) {
   for (const id of [...day.trace.slots.isolation]) {
     const borrower = movable(day, id);
     if (!borrower) continue;
-    const isolated = isolatedInBox(day);
-    if (isolated) {
-      swapSlots(day, isolated, borrower);
-      day.isolation.swaps += 1;
-    } else if (day.queues.waiting.some((waiting) => day.patients.get(waiting).isolate)) moveOut(day, borrower);
+    if (isolatedWanting(day)) moveOut(day, borrower);
   }
 }

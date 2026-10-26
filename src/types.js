@@ -50,7 +50,7 @@
  *   clock: number, queues: Record<string, number[]>, diverted: Set<number>,
  *   peak: { waiting: number, present: number, urgent: number }, over: boolean, trace: Trace,
  *   porters: Array<{ who: string, freeAt: number }>, intern: object | null, fatigue: object | null,
- *   series: object[], nextSample: number, alert: object | null, het: { on: boolean, at: number | null, bedsAt: number | null, asked: number, given: number[] } | null, isolation: { lent: number, swaps: number, moved: number, back: number } | null,
+ *   series: object[], nextSample: number, alert: object | null, het: { on: boolean, at: number | null, bedsAt: number | null, asked: number, given: number[] } | null, isolation: { lent: number, moved: number, back: number } | null,
  * }} Day
  */
 

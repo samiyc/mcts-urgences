@@ -467,32 +467,34 @@ la file, où la règle (ou la recherche) donne les box à ceux qui en ont le plu
 Le modèle le fait (`src/pathway-isolation.js`, `isolationLent`) :
 - **le prêt** : libre, et sans patient à isoler qui l'attende, la chambre prend un patient trié 4 ou 5 de moins de
   75 ans, de préférence à un box ;
-- **le patient à isoler déjà en box** : les deux échangent leurs places, et chacun garde ses soins en cours ;
-- **le patient à isoler en attente** : celui qui occupe la chambre part dans un box libre, ou sinon sur un fauteuil,
-  comme un patient léger venu à pied qui attend ses résultats ; la chambre, nettoyée, revient au patient à isoler par
-  la règle des box ;
-- **la chambre de nouveau libre** : un patient à isoler resté en box y passe, et son box est nettoyé après lui.
+- **un patient à isoler la veut**, qu'il attende ou soit déjà en box : celui qui occupe la chambre part dans un box
+  libre, ou sinon sur un fauteuil, comme un patient léger venu à pied qui attend ses résultats ;
+- **la chambre est nettoyée**, puis elle revient au patient à isoler : par la règle des box s'il attend, aussitôt s'il
+  est en box, et ce box est nettoyé après lui (45 min).
 
-Ce que le modèle a dû choisir (H62) : un patient en plein examen finit son examen avant de sortir, quelques minutes
-pour un patient léger ; un échange de places se fait sans nettoyage entre les deux.
+Un patient en plein examen le finit avant de sortir, quelques minutes pour un patient léger (H62). Un premier modèle
+échangeait les places sans nettoyage ; Sami : « s'il y a changement de lit, j'imagine qu'il y a toujours une phase de
+nettoyage ? ». C'est ce que demande la SFHH : un bionettoyage selon la procédure habituelle avant tout nouveau patient,
+sans durée nationale publiée. L'échange a donc été retiré, et chaque place est nettoyée.
 
 Sur l'hôpital moyen, la chambre est prêtée 17 fois par jour en moyenne, et reprise moins d'une fois par jour, pour
-3,6 patients à isoler. **Ce que gagne le prêt**, par l'échéance sur les mêmes 200 journées (la chambre jamais prêtée
+3,6 patients à isoler (les chiffres qui suivent : avec les deux nettoyages). **Ce que gagne le prêt**, par l'échéance sur les mêmes 200 journées (la chambre jamais prêtée
 contre prêtée, IC 95 %) :
 
 | Situation | jamais prêtée | prêtée | le gain |
 |---|---|---|---|
-| hôpital moyen, jour ordinaire | 3 443 | 2 757 | +686 (+324 à +1 048) |
-| hôpital moyen, accident | 37 389 | 31 648 | +5 740 (+4 654 à +6 827) |
-| hôpital moyen, pic de l'épidémie | 9 343 | 7 748 | +1 595 (+862 à +2 327) |
-| hôpital de proximité, accident | 59 144 | 49 532 | +9 611 (+7 690 à +11 532) |
-| grand CHU, accident | 5 595 | 3 990 | +1 605 (+811 à +2 399) |
+| hôpital moyen, jour ordinaire | 3 443 | 2 760 | +683 (+321 à +1 045) |
+| hôpital moyen, accident | 37 389 | 31 714 | +5 675 (+4 600 à +6 750) |
+| hôpital moyen, pic de l'épidémie | 9 343 | 7 811 | +1 532 (+825 à +2 238) |
+| hôpital de proximité, accident | 59 144 | 49 536 | +9 608 (+7 687 à +11 528) |
+| grand CHU, accident | 5 595 | 3 988 | +1 607 (+813 à +2 400) |
 
 La chambre vide d'un jour ordinaire était une place perdue : la prêter vaut un box de plus, et plus encore quand le
 service déborde. Les empreintes du parcours ont changé (le parcours, la marche, l'interne, la fatigue, la recherche,
 l'épidémie) ; les mesures des sections d'avant datent du modèle sans prêt.
 
-**La recherche des box, avec la chambre prêtée** (200 journées, 100 itérations, les jobs `parcours-pret-*`) : un jour
+**La recherche des box, avec la chambre prêtée** (200 journées, 100 itérations, les jobs `parcours-pret-*`, mesurée
+avec l'échange sans nettoyage, qui changeait à peine le coût) : un jour
 ordinaire, **2 189** contre 2 757 pour l'échéance (−21 %, +568, de +193 à +943) ; pendant l'accident, **20 114** contre
 31 648 (−36 %, +11 534, de +9 513 à +13 555). Le gain de la recherche tient avec le prêt.
 
