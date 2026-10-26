@@ -1,12 +1,14 @@
 import { beginBreak, serveBreaks } from "./pathway-fatigue.js";
 import { serveTransports } from "./pathway-porters.js";
+import { decidedQueue, startTheatre } from "./pathway-queues.js";
 import { locate } from "./pathway-trace.js";
 import { intoScanner } from "./pathway-trace.js";
-import { byColour, exitPatient, free, leavePlace, lognormal, moveTo, now, startReview, take } from "./pathway-places.js";
+import { byColour, free, lognormal, moveTo, now, startReview, take } from "./pathway-places.js";
 
 /**
  * Everything of the detailed pathway (pathway.js) that follows a fixed order, done at once: the reception, the
- * triage, the scanner, the specialists, the theatre, the UHCD, the results read. No rule chooses here.
+ * triage, the scanner, the specialists, the theatre, the UHCD, the results read. No rule chooses here, but for the
+ * scanner and the theatre when their order is decided (pathway-queues.js).
  */
 
 /** Starts the queue's patients in order while `pool` has room, each one's end at `endAt(t)`. */
@@ -22,15 +24,10 @@ function startEach(day, { queue, pool, type, endAt, onStart = null }) {
 
 /** The theatre: reds first (NCEPOD: immediate before urgent), then the order of the decisions. */
 function serveTheatre(day) {
-  const { queues, settings } = day;
+  const { queues } = day;
+  if (decidedQueue(day, "theatre")) return;
   queues.theatre.sort((a, b) => day.patients.get(a).arrivalLevel - day.patients.get(b).arrivalLevel);
-  while (queues.theatre.length && free(day, "theatre") > 0) {
-    const patient = day.patients.get(queues.theatre.shift());
-    take(day, "theatre");
-    day.events.schedule(now(day) + lognormal(settings.theatre, patient.theatreFactor), { type: "theatreEnd" });
-    leavePlace(day, patient);
-    exitPatient(day, patient, "bloc");
-  }
+  while (queues.theatre.length && free(day, "theatre") > 0) startTheatre(day, day.patients.get(queues.theatre.shift()));
 }
 
 /** A patient the UHCD takes for its own watching. */
@@ -83,8 +80,11 @@ export function serve(day) {
   startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage });
   serveTransports(day);
   serveBreaks(day, startBreak);
-  queues.scanner.sort(byColour(day));
-  startEach(day, { queue: queues.scanner, pool: "scanner", type: "scanEnd", endAt: (t) => t + settings.scan, onStart: intoScanner });
+  // The scanner's order: by colour, unless decided one at a time (pathway-queues.js) while two or more wait.
+  if (!decidedQueue(day, "scanner")) {
+    queues.scanner.sort(byColour(day));
+    startEach(day, { queue: queues.scanner, pool: "scanner", type: "scanEnd", endAt: (t) => t + settings.scan, onStart: intoScanner });
+  }
   queues.specialists.sort(byColour(day));
   startEach(day, { queue: queues.specialists, pool: "specialists", type: "adviceEnd", endAt: (t) => t + settings.adviceDelay + settings.advice });
   serveTheatre(day);

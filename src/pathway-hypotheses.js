@@ -60,6 +60,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   intern: null,
   /** The intern decided a task at a time, by events (pathway-intern-decided.js, step 6), instead of a step at a time. */
   internDecided: false,
+  /** The scanner's and the theatre's order decided one at a time (pathway-queues.js, step 6), instead of fixed. */
+  queueDecided: false,
   /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
   fatigue: null,
   /**

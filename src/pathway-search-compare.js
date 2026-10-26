@@ -5,7 +5,8 @@ import { BREAK_DECIDERS, DECIDED, fatigueMeasures } from "./pathway-fatigue.js";
 import { FATIGUE, INTERN } from "./pathway-hypotheses.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { internMeasures } from "./pathway-game.js";
-import { pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchRule } from "./pathway-search.js";
+import { QUEUE_RULES } from "./pathway-queues.js";
+import { pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchQueueRule, pathwaySearchRule } from "./pathway-search.js";
 import { RULES } from "./rules.js";
 
 /**
@@ -63,6 +64,20 @@ export function playInternSearchDay({ seed, options, budget }) {
       const intern = name === "none" ? null : INTERN;
       const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, walk: true, intern, internDecided: intern !== null })), { box: RULES.colour, bed: BED_RULES.oldest, intern: ruleOf(name) });
       return [name, { ...pathwayMeasures(day), intern: day.intern ? internMeasures(day) : null }];
+    }),
+  );
+}
+
+/** The scanner's and the theatre's order: fixed, decided by each rule, and by the search (step 6). */
+export const QUEUE_SEARCHED = Object.freeze(["fixed", "colour", "oldest", "search"]);
+
+/** One day: each way of ordering the scanner and the theatre, its measures; the box rule « couleur ». */
+export function playQueueSearchDay({ seed, options, budget }) {
+  const ruleOf = (name) => (name === "search" ? pathwaySearchQueueRule({ budget }) : QUEUE_RULES[name]);
+  return Object.fromEntries(
+    QUEUE_SEARCHED.map((name) => {
+      const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, queueDecided: name !== "fixed" })), { box: RULES.colour, bed: BED_RULES.oldest, queue: ruleOf(name) });
+      return [name, pathwayMeasures(day)];
     }),
   );
 }
