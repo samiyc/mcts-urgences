@@ -68,6 +68,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   sauvDecided: false,
   /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
   fatigue: null,
+  /** A day at the peak of a winter epidemic (EPIDEMIC, pathway-epidemic.js), or none: the ordinary day. */
+  epidemic: null,
   /**
    * The care once the results are read, in the place (hypothesis; the simple shift's `stay` held the box for the
    * results as well, here they are their own steps).
@@ -191,6 +193,26 @@ export const INTERN_LATE = Object.freeze({ perMinute: 4 });
  */
 export const ALERT = Object.freeze({ recall: 2, delay: 60, beds: Object.freeze({ medecine: 2, chirurgie: 1, cardiologie: 1 }), doctorHour: 240 });
 
+/**
+ * A day at the peak of a winter epidemic (Sami, 26/10/2026, pathway-epidemic.js; hypotheses H57 to H60): flu and the
+ * season's other viruses. Santé publique France: an epidemic lasts 13 weeks (10 on average from 2014 to 2024), 19 to
+ * 21 % of the patients who come for flu are admitted (57 % of those of 65 or more), the over-65s are 24 % of them.
+ * - `share`: the patients it adds, a share of the hospital's walk-in and ambulance rates (H57);
+ * - `walkInMix`, `ambulanceMix`: their true levels, more yellow, set so that about 1 in 4 is admitted (UHCD
+ *   included) with the pathway's orientations;
+ * - `isolate`: the share to isolate, droplets (H58); `elderly`: of 75 or more (H59, from the 24 % over 65);
+ * - `beds`: the share of the beds the wards, full of the season, still give the department, at the start and over
+ *   the day (H60).
+ */
+export const EPIDEMIC = Object.freeze({
+  share: 0.1,
+  walkInMix: Object.freeze([0.005, 0.07, 0.45, 0.38, 0.095]),
+  ambulanceMix: Object.freeze([0.04, 0.3, 0.5, 0.16, 0]),
+  isolate: 0.5,
+  elderly: 0.15,
+  beds: 0.75,
+});
+
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
 export const CELL_METRES = 2;
 
@@ -202,13 +224,18 @@ function placesOf(settings, plan) {
 
 /**
  * The pathway's settings for `hospital`, with the accident or not: the rates of hypotheses.js, the capacities scaled
- * on its boxes. `plan` (a plan's text, pathway-plans.js), when given, sets the places instead; the hospital's own plan
- * is kept otherwise, for drawing the day.
+ * on its boxes; `epidemic` true (EPIDEMIC) or its settings, a day of a winter epidemic. `plan` (a plan's text,
+ * pathway-plans.js), when given, sets the places instead; the hospital's own plan is kept otherwise, for drawing the
+ * day.
  */
-export function pathwaySettingsOf({ hospital = "moyen", accident = false, plan = null, ...overrides } = {}) {
-  const settings = scaledSettings(hospital, accident, overrides);
+export function pathwaySettingsOf({ hospital = "moyen", accident = false, plan = null, epidemic = false, ...overrides } = {}) {
+  const settings = { ...scaledSettings(hospital, accident, overrides), ...epidemicOf(epidemic) };
   return plan ? { ...placesOf(settings, plan), plan } : settings;
 }
+
+/** The epidemic's setting: none, EPIDEMIC for true, or the settings given. */
+const epidemicOf = (wanted) => (wanted ? { epidemic: wanted === true ? EPIDEMIC : wanted } : {});
+
 
 function scaledSettings(hospital, accident, overrides) {
   const base = { ...PATHWAY_DEFAULTS, ...HOSPITALS[hospital] };

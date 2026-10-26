@@ -124,3 +124,15 @@ Les codes de métier :
 | H51 | Une minute d'attente d'un lit coûte comme une minute de retard d'un vert, le triple pour un patient de 75 ans et plus la nuit | `BOARDING_COST` | Comment comparer une heure sur un brancard et une heure de retard au box ? | URG, GL | à vérifier |
 | H50 | L'interne de garde ralentit comme un médecin (même courbe), sans pause | `internSlowOf`, `src/pathway-fatigue.js` | Un interne de garde a-t-il des pauses, et ralentit-il comme les seniors ? | INT, URG | à vérifier |
 | H49 | « Au creux » : 3 patients en attente ou moins | `FATIGUE.quietWaiting` | Quand une équipe estime-t-elle pouvoir lâcher un médecin pour sa pause ? | CDS | à vérifier |
+
+## L'épidémie d'hiver (`EPIDEMIC`, `src/pathway-hypotheses.js`)
+
+Les chiffres de Santé publique France sont cités dans [oublis.md](oublis.md), « Les épidémies d'hiver, en chiffres ».
+Ce qui suit n'y est pas.
+
+| N° | Valeur prise | Dans le code | La question | Qui | Statut |
+|---|---|---|---|---|---|
+| H57 | Au pic d'une épidémie, 10 % de patients en plus, à pied et en ambulance, aux mêmes heures que les autres | `EPIDEMIC.share` | De combien les passages augmentent-ils au pic d'une épidémie d'hiver, chez l'adulte ? | CDS, URG | à vérifier |
+| H58 | La moitié des patients de l'épidémie à isoler (précautions gouttelettes) : la chambre d'isolement, ou un box nettoyé 45 min après | `EPIDEMIC.isolate` | Qui isole-t-on vraiment en période d'épidémie, et comment, quand la chambre est prise ? | IOA, CDS | à vérifier |
+| H59 | 15 % de ces patients ont 75 ans ou plus (déduit des 24 % de plus de 65 ans) ; leurs niveaux, surtout jaunes, pour qu'1 sur 4 soit hospitalisé | `EPIDEMIC.elderly`, `walkInMix`, `ambulanceMix` | La gravité et l'âge des patients qui viennent pour une grippe ? | URG | à vérifier |
+| H60 | Les services, pleins de la saison, ne rendent que 3 lits sur 4 : au début de la journée et au fil du jour | `EPIDEMIC.beds` | Combien de lits d'aval manquent en plein hiver, par rapport au reste de l'année ? | GL, CDS | à vérifier |

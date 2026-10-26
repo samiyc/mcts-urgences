@@ -1,4 +1,5 @@
 import { createRng } from "mcts-commun/random.js";
+import { epidemicBeds, epidemicPatients } from "./pathway-epidemic.js";
 import { pathwaySettingsOf } from "./pathway-hypotheses.js";
 import { arrivals, patientOf } from "./scenario.js";
 
@@ -98,18 +99,23 @@ function withOversight(seed, patients) {
 export function drawPathwayDay(seed, options = {}) {
   const settings = options.capacity ? options : pathwaySettingsOf(options);
   const rng = createRng(seed);
+  const patients = patientsOf(seed, rng, settings);
+  const freed = bedsFreed(rng, settings);
+  // During an epidemic, the wards keep some of their beds: the day's settings hold the beds free at its start.
+  const winter = settings.epidemic ? epidemicBeds(seed, settings, freed) : null;
+  return { settings: winter ? { ...settings, wards: winter.wards } : settings, patients, beds: winter?.beds ?? freed };
+}
+
+/** The day's patients, by arrival and numbered from 1: the ordinary ones, the accident's, the epidemic's. */
+function patientsOf(seed, rng, settings) {
   const crisis = settings.crisis;
   const comings = [
     ...arrivalsByHour(rng, settings, settings.walkInRate).map((arrival) => ({ arrival, source: "pied", mix: settings.walkInMix })),
     ...arrivalsByHour(rng, settings, settings.ambulanceRate).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
     ...(crisis ? Array.from({ length: crisis.size }, () => ({ arrival: crisis.at + crisis.over * rng.next(), source: "ambulance", mix: crisis.mix })) : []),
   ];
-  const patients = comings
-    .map((coming) => patientOf(rng, coming, settings))
-    .map((patient) => ({ ...patient, ...pathwayOf(rng, patient, settings) }))
-    .sort((a, b) => a.arrival - b.arrival)
-    .map((patient, i) => ({ id: i + 1, ...patient }));
-  const beds = bedsFreed(rng, settings);
+  const ordinary = comings.map((coming) => patientOf(rng, coming, settings)).map((patient) => ({ ...patient, ...pathwayOf(rng, patient, settings) }));
+  const patients = [...ordinary, ...(settings.epidemic ? epidemicPatients(seed, settings) : [])].sort((a, b) => a.arrival - b.arrival).map((patient, i) => ({ id: i + 1, ...patient }));
   const followed = settings.intern ? withMedication(seed, patients, settings) : patients;
-  return { settings, patients: settings.fatigue ? withOversight(seed, followed) : followed, beds };
+  return settings.fatigue ? withOversight(seed, followed) : followed;
 }

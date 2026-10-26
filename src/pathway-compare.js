@@ -41,8 +41,9 @@ const rowOf = (pair, measures, baseline) => ({
 });
 
 /**
- * The rows of the comparison over `days` days from seed 1, for `options` (`drawPathwayDay`'s: hospital, accident, plan).
- * @param {{ days?: number, hospital?: string, accident?: boolean, plan?: string }} [options]
+ * The rows of the comparison over `days` days from seed 1, for `options` (`drawPathwayDay`'s: hospital, accident,
+ * epidemic, plan).
+ * @param {{ days?: number, hospital?: string, accident?: boolean, epidemic?: boolean, plan?: string }} [options]
  */
 export function comparePathwayRules({ days = 50, ...options } = {}) {
   const runs = PAIRS.map(() => []);

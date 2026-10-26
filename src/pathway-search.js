@@ -6,6 +6,7 @@ import { BOARDING_COST, INTERN_LATE } from "./pathway-hypotheses.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
 import { ALERT_RULES, recalledHours } from "./pathway-alert.js";
+import { epidemicComings, epidemicPatient } from "./pathway-epidemic.js";
 import { SAUV_RULES } from "./pathway-sauv.js";
 import { idOf } from "./pathway.js";
 import { hourAt } from "./pathway-scenario.js";
@@ -63,9 +64,13 @@ function addComings(world, rng, horizon) {
     ...arrivalsByHour(rng, settings, settings.walkInRate, window).map((arrival) => ({ arrival, source: "pied", mix: settings.walkInMix })),
     ...arrivalsByHour(rng, settings, settings.ambulanceRate, { ...window, from: now + settings.announced }).map((arrival) => ({ arrival, source: "ambulance", mix: settings.ambulanceMix })),
   ];
-  comings.forEach((coming, i) => {
+  const ordinary = comings.map((coming) => {
     const drawn = patientOf(rng, coming, settings);
-    const patient = followed({ id: NEW + i, ...drawn, ...pathwayOf(rng, drawn, settings) });
+    return { ...drawn, ...pathwayOf(rng, drawn, settings) };
+  });
+  const winter = settings.epidemic ? epidemicComings(rng, settings, { ...window, ambulanceFrom: now + settings.announced }).map((coming) => epidemicPatient(rng, coming, settings)) : [];
+  [...ordinary, ...winter].forEach((drawn, i) => {
+    const patient = followed({ id: NEW + i, ...drawn });
     world.patients.set(patient.id, patient);
     world.events.schedule(patient.arrival, { type: "arrive", id: patient.id });
   });

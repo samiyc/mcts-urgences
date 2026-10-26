@@ -37,5 +37,11 @@ export const decisionRules = (pathway) => ({
   ...(pathway.sauvRule === "off" ? {} : { sauv: SAUV_RULES[pathway.sauvRule] }),
 });
 
+/** The seasons of the day: ordinary, or the peak of a winter epidemic (pathway-epidemic.js). */
+export const SEASONS = Object.freeze([["ordinaire", "une saison ordinaire"], ["hiver", "le pic d'une épidémie d'hiver"]]);
+
+/** drawPathwayDay's options for the season. */
+export const seasonOf = (pathway) => (pathway.season === "hiver" ? { epidemic: true } : {});
+
 /** What the run's key must hold of them. */
 export const decisionKey = (pathway) => Object.keys(DECISIONS).map((name) => pathway[name]);

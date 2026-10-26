@@ -24,6 +24,21 @@ chaque point, s'il vaut la peine de le simuler. Les termes sont dans le [glossai
 | **la sécurité** | les agressions contre les soignants, un vigile, la police | non |
 | **le coût et le codage** | le financement par l'activité (l'ATIH) | non |
 
+## Les épidémies d'hiver, en chiffres
+
+D'après Santé publique France, pour la grippe :
+- **la durée** : l'épidémie de 2024-2025 a duré 13 semaines dans les Hauts-de-France, contre 10 en moyenne de 2014 à
+  2024 ([bilan régional](https://www.santepubliquefrance.fr/regions-et-territoires/hauts-de-france/bulletin-regional/maladies-hivernales-dans-les-hauts-de-france-bilan-de-la-saison-2024-2025)) ;
+  trois mois au niveau national, de début décembre à fin février
+  ([Vidal](https://www.vidal.fr/actualites/34072-grippe-une-saison-particulierement-rude-confirme-un-bilan-final.html)) ;
+- **les hospitalisations** : 19,4 % des passages pour grippe dans les Hauts-de-France ; en 2025-2026, 21 % au niveau
+  national, 57 % chez les 65 ans et plus, qui font 66 % des hospitalisés
+  ([Caducée, bilan 2025-2026](https://www.caducee.net/actualite-medicale/16862/saison-respiratoire-2025-2026-une-saison-moins-massive-en-ville-mais-toujours-lourde-pour-l-hopital.html)) ;
+- **l'âge** : les 65 ans et plus font 24,2 % des passages pour grippe en Auvergne-Rhône-Alpes (2024-2025).
+
+La bronchiolite remplit surtout les urgences pédiatriques, que le simulateur ne fait pas. Ce qui manque : la hausse
+des passages de tous motifs au pic, chez l'adulte (H57).
+
 ## Plan blanc et HET, plus en détail
 
 - **L'HET** est un dispositif gradué, né d'une circulaire de 2006 : une veille, des seuils, une cellule de crise

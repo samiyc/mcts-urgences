@@ -13,7 +13,7 @@ import { el } from "../dom.js";
 import { panelOf } from "../knobs.js";
 import { compareField, timelineClick, timelineSection } from "./parcours-compare.js";
 import { searchedBox, searchingView } from "./parcours-search.js";
-import { decisionDefaults, decisionFields, decisionKey, decisionRules, decisionSettings } from "./parcours-decisions.js";
+import { SEASONS, decisionDefaults, decisionFields, decisionKey, decisionRules, decisionSettings, seasonOf } from "./parcours-decisions.js";
 import { timelineOf } from "../../src/pathway-timeline.js";
 import { PATHWAY_LEGEND, dayClock, figures, lineAt, planAt, presentTable } from "../parcours-view.js";
 import { createReplayStore, download, replayName } from "../replay-store.js";
@@ -30,7 +30,7 @@ const store = createReplayStore("urgences-parcours");
 const SPEEDS = [["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
-export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null, searched: null, ...decisionDefaults() });
+export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null, searched: null, season: "ordinaire", ...decisionDefaults() });
 /** The fatigue settings: off, or a break rule (pathway-fatigue.js); the shifts. */
 const FATIGUES = [["off", "pas de fatigue"], ...Object.entries(BREAK_RULES).map(([rule, label]) => [rule, `fatigue, ${label}`])];
 const TEAMS = [["24", "gardes de 24 h"], ["12", "deux équipes de 12 h"]];
@@ -55,25 +55,25 @@ function playedDay(ctx) {
   // The search does not play an intern's day: its box choices are the colour rule's there.
   const internBox = pathway.box === "search" ? "colour" : pathway.box;
   if (pathway.intern.startsWith("decided:")) return decidedDay(ctx, { fatigue, plan, box: internBox });
-  if (pathway.intern !== "none") return runInternGame(startInternGame({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: internBox, bed: pathway.bed, mode: pathway.intern, fatigue, ...plan })).day;
+  if (pathway.intern !== "none") return runInternGame(startInternGame({ hospital: state.hospital, accident: state.accident, ...seasonOf(pathway), seed: state.seed, box: internBox, bed: pathway.bed, mode: pathway.intern, fatigue, ...plan })).day;
   // Under the search (played in a worker without them), the other decisions keep their fixed ways.
   const searched = pathway.box === "search";
   const decisions = searched ? {} : decisionSettings(pathway);
-  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: pathway.walk, fatigue, ...decisions, ...plan });
+  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, ...seasonOf(pathway), walk: pathway.walk, fatigue, ...decisions, ...plan });
   const box = searched ? searchedBox(ctx, fatigue) : RULES[pathway.box];
   return runPathway(startPathway(drawn), { box, bed: BED_RULES[pathway.bed], ...(searched ? {} : decisionRules(pathway)) });
 }
 
 /** A day with the intern decided by events, their tasks ordered by a reference rule (walking counts). */
 function decidedDay({ state, pathway }, { fatigue, plan, box }) {
-  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, walk: true, intern: INTERN, internDecided: true, fatigue, ...decisionSettings(pathway), ...plan });
+  const drawn = drawPathwayDay(state.seed, { hospital: state.hospital, accident: state.accident, ...seasonOf(pathway), walk: true, intern: INTERN, internDecided: true, fatigue, ...decisionSettings(pathway), ...plan });
   return runPathway(startPathway(drawn), { box: RULES[box], bed: BED_RULES[pathway.bed], intern: INTERN_RULES[pathway.intern.split(":")[1]], ...decisionRules(pathway) });
 }
 
 /** The day for the settings now, played again only when they changed. */
 function runOf(ctx) {
   const { state, pathway } = ctx;
-  const key = JSON.stringify([state.hospital, state.accident, state.seed, pathway.box, pathway.bed, pathway.plan, pathway.walk, pathway.intern, pathway.fatigue, pathway.teams, ...decisionKey(pathway)]);
+  const key = JSON.stringify([state.hospital, state.accident, state.seed, pathway.box, pathway.bed, pathway.plan, pathway.walk, pathway.intern, pathway.fatigue, pathway.teams, pathway.season, ...decisionKey(pathway)]);
   if (pathway.run?.key === key) return pathway.run;
   const day = playedDay(ctx);
   const layout = pathwayPlanOf(day.settings.plan);
@@ -103,6 +103,7 @@ export const pathwayPanel = (ctx) =>
     "Le parcours",
     ctx.state,
     ["hospital", "accident", "seed"],
+    el("label", {}, "La saison", selectOf("season", SEASONS, ctx.pathway.season)),
     el("label", {}, "Règle des box", selectOf("box", [...Object.keys(RULES).map((key) => [key, RULE_LABELS[key]]), ["search", "recherche (ISMCTS), jouée dans un worker"]], ctx.pathway.box)),
     el("label", {}, "Règle des lits d'aval", selectOf("bed", Object.entries(BED_LABELS), ctx.pathway.bed)),
     el("label", {}, "Vitesse", selectOf("speed", SPEEDS, String(ctx.pathway.speed))),
@@ -173,7 +174,7 @@ export function pausePathway(ctx) {
   ctx.pathway.frame = null;
 }
 
-const replayOf = ({ state, pathway }) => ({ format: FORMAT, hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box, bed: pathway.bed, plan: pathway.plan, savedAt: new Date().toISOString() });
+const replayOf = ({ state, pathway }) => ({ format: FORMAT, hospital: state.hospital, accident: state.accident, seed: state.seed, season: pathway.season, box: pathway.box, bed: pathway.bed, plan: pathway.plan, savedAt: new Date().toISOString() });
 
 const DOES = {
   play: (ctx) => {
@@ -235,7 +236,7 @@ export function pathwayInput(ctx, target) {
 export function openPathwayReplay(ctx, replay) {
   if (replay?.format !== FORMAT) return;
   Object.assign(ctx.state, { hospital: replay.hospital, accident: replay.accident, seed: replay.seed });
-  Object.assign(ctx.pathway, { box: replay.box, bed: replay.bed, plan: replay.plan, draft: null, errors: [], t: 0 });
+  Object.assign(ctx.pathway, { box: replay.box, bed: replay.bed, plan: replay.plan, season: replay.season ?? "ordinaire", draft: null, errors: [], t: 0 });
   pausePathway(ctx);
 }
 

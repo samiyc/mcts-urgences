@@ -27,6 +27,7 @@ const EXPECTED = {
   intern: "b7c5c4ec55099e7b",
   fatigue: "4dbbcd219ee71d7d",
   pathwaySearch: "867647d056a815ce",
+  epidemic: "44a0d0be203c14f6",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);
@@ -67,6 +68,11 @@ const FINGERPRINTS = {
   fatigue: () => compareBreakRules({ days: 3, accident: true }),
   // The search on the pathway (step 6): a day of the small hospital with the accident, 10 iterations.
   pathwaySearch: () => played(drawPathwayDay(2, { hospital: "proximite", accident: true }), { box: pathwaySearchRule({ budget: 10 }), bed: BED_RULES.oldest }),
+  // The winter epidemic (26/10/2026): a day of each hospital at its peak by the colour, and the search on one.
+  epidemic: () => [
+    ...HOSPITAL_NAMES.flatMap((hospital) => [1, 2].map((seed) => played(drawPathwayDay(seed, { hospital, epidemic: true }), { box: RULES.colour, bed: BED_RULES.oldest }))),
+    played(drawPathwayDay(3, { hospital: "proximite", epidemic: true }), { box: pathwaySearchRule({ budget: 10 }), bed: BED_RULES.oldest }),
+  ],
   ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
   search: () => {
     const settings = { ...DEFAULTS, ...HOSPITALS.moyen, crisis: ACCIDENT };

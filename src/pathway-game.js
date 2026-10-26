@@ -27,11 +27,15 @@ export const INTERN_MODES = Object.freeze({ human: "vous, au clavier", robot: "u
 const GAME = Object.freeze({ hospital: "moyen", accident: true, seed: 1, box: "colour", bed: "oldest", plan: null, mode: "human", from: 120, to: 360, fatigue: null });
 const given = (options) => Object.fromEntries(Object.entries(options).filter(([, value]) => value !== undefined));
 
-/** A new game at the day's start. `mode`: INTERN_MODES; `from`, `to`: the shift played at the keyboard. */
+/**
+ * A new game at the day's start. `mode`: INTERN_MODES; `from`, `to`: the shift played at the keyboard.
+ * @param {Partial<typeof GAME> & { epidemic?: boolean }} [options]
+ */
 export function startInternGame(options = {}) {
   const settings = { ...GAME, ...given(options) };
+  // `epidemic` (a winter day, the tab's robot intern) is not one of a game's settings: a replay plays an ordinary day.
   const { hospital, accident, seed, plan, mode, fatigue } = settings;
-  const drawn = drawPathwayDay(seed, { hospital, accident, walk: true, fatigue, intern: mode === "none" ? null : INTERN, ...(plan ? { plan } : {}) });
+  const drawn = drawPathwayDay(seed, { hospital, accident, epidemic: options.epidemic, walk: true, fatigue, intern: mode === "none" ? null : INTERN, ...(plan ? { plan } : {}) });
   return {
     settings: Object.fromEntries(Object.keys(GAME).map((key) => [key, settings[key]])),
     day: startPathway(drawn),
