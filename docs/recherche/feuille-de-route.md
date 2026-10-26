@@ -57,6 +57,16 @@ simple vient d'abord ; la recherche doit la battre.
 - **Les brancardiers** deviennent une ressource sur le plan : un transport prend la marche aller et retour.
 - La page dessine le parcours de chaque patient : où il est, ce qu'il attend, depuis combien de temps.
 
+Les choix de Sami (26/10, avant de coder) :
+- **la marche est dessinée, pas comptée** : le parcours garde les horaires de l'étape 1 (ses mesures, son empreinte,
+  son calage sur la DREES), et le plan anime qui va où. La marche comptera à l'étape 3, quand l'interne marchera ; on
+  mesurera alors son coût, avec et sans, sur les mêmes journées, comme le 23/10 pour la garde simple ;
+- **les plans** : trois plans en texte proposés par Claude, avec leur légende, autant de places que les capacités de
+  chaque hôpital (`pathway-hypotheses.js`), que Sami corrige ensuite ;
+- **une page à part**, `web/parcours.html`, avec un lien depuis la page de la garde, qui reste telle quelle ;
+- **les brancardiers** : 1 à l'hôpital de proximité, 2 au moyen, 3 au CHU (hypothèse, sans source). Ils sont
+  dessinés à l'étape 2 et ne font attendre qu'à partir de l'étape 3, quand la marche compte.
+
 ## Étape 3 : l'interne au clavier
 
 - Le joueur suit **3 à 5 patients**, que l'ordonnanceur lui confie.
