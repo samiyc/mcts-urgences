@@ -365,7 +365,84 @@ place la pause quand le médecin manquera le moins.
 worker (une demi-minute à 50 itérations), puis l'onglet rejoue exactement la même journée d'après ses choix. Stats la
 compare aux règles sur 8 journées, dans des workers.
 
-**Ce qui reste à décider par la recherche** ([ressources-rares.md](recherche/ressources-rares.md)) :
-- le scanner, le bloc et la sortie de SAUV ;
-- le déclenchement de l'HET ou du Plan blanc ;
-- l'ordre des tâches de l'interne (la recherche ne joue pas encore une journée avec un interne).
+**Les autres décisions** (26/10 au soir). Chacune a un réglage, éteint par défaut : la journée reste alors celle
+d'avant, et les empreintes n'ont pas changé. Chacune a aussi des règles de référence, et la recherche y joue les
+autres décisions par leurs règles. Les mesures portent sur les mêmes 200 journées de l'hôpital moyen, à 50 itérations
+(`npm run pathway:search -- --interne | --files | --sauv | --plan`, les jobs de `night.json`).
+
+| Décision | jour | les règles | la recherche | la recherche contre la meilleure règle (IC 95 %) |
+|---|---|---|---|---|
+| l'ordre des tâches de l'interne | ordinaire | la tâche due la première 7 725 ; le plus grave 7 629 ; la plus proche 8 514 | 7 667 | −38 (−352 à +276) |
+| l'ordre des tâches de l'interne | accident | la tâche due la première 54 375 ; le plus grave 53 208 ; la plus proche 60 631 | 53 912 | −704 (−1 523 à +115) |
+| l'ordre du scanner et du bloc | ordinaire | l'ordre fixe 3 842 | 3 744 | +98 (−48 à +244) |
+| l'ordre du scanner et du bloc | accident | l'ordre fixe 37 665 | **36 784** | +881 (+367 à +1 395) |
+| la sortie de SAUV | accident | jamais 37 665 ; le plus ancien 36 651 | **35 828** | +823 (+328 à +1 317) |
+| la sortie de SAUV, hôpital de proximité | accident | jamais 60 093 ; le plus ancien 59 675 | **58 266** | +1 409 (+788 à +2 031) |
+| le Plan blanc | ordinaire | jamais 3 842 ; au seuil 4 120 | 3 701 | +141 (−152 à +434), contre jamais |
+| le Plan blanc | accident | jamais 37 665 ; au seuil 38 259 | 36 966 | +699 (−494 à +1 893), contre jamais |
+
+- **L'ordre des tâches de l'interne** (`internDecided`, `pathway-intern-decided.js`) : l'interne libre choisit sa
+  tâche suivante, et sa marche compte. La recherche fait aussi bien que les meilleures règles, sans les battre. La
+  plus proche d'abord est la pire : elle laisse des tâches en retard (9,2 par journée pendant l'accident).
+- **L'ordre du scanner et du bloc** (`queueDecided`, `pathway-queues.js`) : quand l'un se libère et que deux
+  patients ou plus l'attendent, qui passe ? L'ordre fixe (la couleur, puis la demande) est la règle de référence.
+  La recherche gagne 2,3 % pendant l'accident, et rien de sûr un jour ordinaire.
+- **La sortie de SAUV** (`sauvDecided`, `pathway-sauv.js`) : quand la SAUV est pleine, qu'un box est libre et qu'un
+  rouge attend ou est annoncé, faut-il passer en box un patient déjà examiné ? La recherche bat la meilleure règle
+  dans les deux hôpitaux, de 2 à 2,4 %.
+- **Le Plan blanc** (`alert`, `pathway-alert.js`, H54 et H55) : toutes les 15 min, faut-il le déclencher ? Il rappelle
+  2 médecins, qui arrivent 1 h plus tard, et les services rendent 4 lits. Chaque heure de médecin rappelé compte 240
+  dans le coût. La recherche bat le seuil, mais pas « jamais » : l'écart passe par zéro, les jours ordinaires comme
+  pendant l'accident. Le tri rapide sur une seule journée (53 542 contre 70 039 pour « jamais ») promettait
+  beaucoup plus : un tri rapide écarte, il ne promeut pas.
+
+Ce que la recherche gagne donc sur le parcours :
+- le box d'abord, de 26 à 37 % ;
+- les pauses, autant de repas que la règle « au creux » pour moins cher ;
+- le scanner et le bloc, et la sortie de SAUV, pendant l'accident : de 2 à 2,4 %.
+
+Les lits, l'ordre des tâches de l'interne et le Plan blanc ne lui donnent rien de sûr dans ce modèle.
+
+## L'épidémie d'hiver (26/10, Sami)
+
+**Une journée au pic d'une épidémie de grippe** (`src/pathway-epidemic.js`, `EPIDEMIC`, H57 à H60 ; les chiffres de
+Santé publique France dans [oublis.md](recherche/oublis.md)). Elle s'ajoute à la journée ordinaire, qui reste la même
+patient pour patient : chaque partie a sa propre graine, et les deux journées se comparent par paires.
+- **10 % de patients en plus**, à pied et en ambulance, aux heures des autres (H57) ;
+- **plus souvent jaunes**, pour qu'environ 1 sur 4 soit hospitalisé, UHCD comprise (Santé publique France : 19 à
+  21 % des passages pour grippe) ;
+- **la moitié à isoler** (gouttelettes, H58) : la chambre d'isolement, ou un box nettoyé en 45 min au lieu de 10 ;
+- **15 % de 75 ans et plus** (H59) ;
+- **3 lits d'aval sur 4** : les services, pleins de la saison, en rendent moins, au début de la journée comme au fil
+  du jour (H60).
+
+La recherche tire aussi les arrivées de l'épidémie dans ses mondes. Sur la page, c'est « La saison » de l'onglet
+Parcours détaillé ; dans les scripts, `--hiver` (`npm run pathway -- --hiver`, `npm run pathway:search -- --hiver`).
+
+**Ce qu'elle coûte**, sur 200 journées, par les règles des box (`npm run pathway -- --days 200 [--hiver]`) :
+
+| Hôpital | jour | l'arrivée | la couleur | l'échéance | partis sans être vus (l'échéance) |
+|---|---|---|---|---|---|
+| moyen | ordinaire | 4 184 | 3 842 | 3 443 | 0,7 |
+| moyen | pic de l'épidémie | 10 450 | 9 835 | 9 343 | 2,3 |
+| de proximité | ordinaire | 5 167 | 4 651 | 4 793 | 1,1 |
+| de proximité | pic de l'épidémie | 12 893 | 11 417 | 11 357 | 2,6 |
+
+10 % de patients en plus font plus que doubler le coût du retard : le service, occupé à 80 % un jour ordinaire, n'a
+pas de marge.
+
+**D'où vient ce coût**, sur l'hôpital moyen par l'échéance, les mêmes 200 journées (l'écart sur le jour ordinaire et
+son IC 95 %) :
+
+| Ce qu'on ajoute | coût au moment | sur le jour ordinaire |
+|---|---|---|
+| les patients en plus seuls (isolés comme les autres, 3 %, et tous les lits) | 8 434 | +4 991 (+3 534 à +6 447) |
+| la moitié d'entre eux isolés | 7 493 | +4 050 (+2 857 à +5 243) |
+| et 3 lits sur 4 : l'épidémie entière | 9 343 | +5 899 (+4 071 à +7 728) |
+| les lits seuls, sans patients en plus | 4 133 | +690 (−54 à +1 434) |
+
+Les patients en plus font presque tout. Isoler la moitié d'entre eux coûte **moins** que de ne pas les isoler : la
+chambre d'isolement ne prend que des patients à isoler, et un jour ordinaire, elle reste presque toujours vide ; avec
+l'épidémie, elle sert, comme un box de plus. Est-ce ainsi dans un vrai service, ou y met-on un patient ordinaire quand
+elle est libre ? C'est une question à poser (H61). Les lits manquants coûtent peu sur une journée : leur effet
+s'accumule sur des semaines, que le simulateur ne joue pas.

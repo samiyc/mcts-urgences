@@ -98,6 +98,18 @@
       "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 50 --sauv",
       "estimate": "10 min",
       "threads": 8
+    },
+    {
+      "id": "parcours-hiver-moyen",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 100",
+      "estimate": "1 h",
+      "threads": 8
+    },
+    {
+      "id": "parcours-hiver-plan-moyen",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --plan",
+      "estimate": "30 min",
+      "threads": 8
     }
   ]
 }

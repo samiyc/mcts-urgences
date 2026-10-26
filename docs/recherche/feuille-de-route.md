@@ -121,11 +121,11 @@ D'après [soignants.md](soignants.md) :
 - Elle se lit sur le replay d'une partie humaine comme sur une garde de robots, et deux stratégies peuvent
   s'afficher l'une contre l'autre sur la même garde.
 
-## Étape 6 : la recherche sur le parcours (le choix du box fait le 26/10, [parcours.md](../parcours.md), « La recherche sur le parcours »)
+## Étape 6 : la recherche sur le parcours (faite le 26/10, [parcours.md](../parcours.md), « La recherche sur le parcours »)
 
-Faits : le box (le gain confirmé sur 200 journées, dans les quatre situations mesurées), le lit d'aval (rien à y
-gagner dans ce modèle) et les pauses des médecins (autant de pauses que « au creux » pour presque rien). Restent le
-scanner, le bloc, la sortie de SAUV, l'HET ou le Plan blanc, et l'ordre des tâches de l'interne.
+Toutes les décisions sont faites et mesurées sur 200 journées. La recherche gagne sur le box (de 26 à 37 %), sur les
+pauses des médecins, et pendant l'accident sur le scanner, le bloc et la sortie de SAUV (2 à 2,4 %). Elle ne gagne
+rien de sûr sur le lit d'aval, l'ordre des tâches de l'interne et le Plan blanc.
 
 - Les décisions de machine du parcours ([ressources-rares.md](ressources-rares.md), dernière section) :
   - le box ;
@@ -140,9 +140,11 @@ scanner, le bloc, la sortie de SAUV, l'HET ou le Plan blanc, et l'ordre des tâc
 ## Ce qui viendra plus tard, ou pas
 
 D'après [oublis.md](oublis.md) :
+- **fait** :
+  - le Plan blanc, à l'étape 6 ;
+  - les épidémies d'hiver, en scénario (le 26/10, [parcours.md](../parcours.md), « L'épidémie d'hiver ») ;
 - **plus tard** :
-  - les épidémies d'hiver, en scénario ;
-  - l'HET et le Plan blanc ;
+  - l'HET, un niveau de tension avant le Plan blanc ;
   - les accompagnants ;
   - le circuit court, en règle de plus ;
   - les décès ;
