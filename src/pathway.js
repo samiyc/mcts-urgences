@@ -5,6 +5,7 @@ import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take } fro
 import { hourAt } from "./pathway-scenario.js";
 import { serve } from "./pathway-serve.js";
 import { PLACES } from "./pathway-plans.js";
+import { layoutOf } from "./pathway-cells.js";
 import { doctorTo, startTrace } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").BedRule} BedRule */
@@ -138,7 +139,7 @@ export function startPathway(day) {
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
-    trace: startTrace(capacity, Object.keys(PLACES)),
+    trace: startTrace(capacity, Object.keys(PLACES), layoutOf(settings.plan)),
   };
 }
 

@@ -1,3 +1,5 @@
+import { cellAt, pathOf, roleOf, seatsOf, startCellOf } from "./pathway-cells.js";
+
 /**
  * Where everyone is during a day of the detailed pathway (Sami, 26/10/2026, the roadmap's step 2), kept beside the
  * day's state so that the plan can draw it (pathway-walk.js): it changes nothing of what happens nor when.
@@ -8,14 +10,20 @@
  * - `doctors`: the patient each doctor is with, by the doctor's number (null in the doctors' room);
  * - `where`: where each one is now; `moves`: every move, `{ t, who, to }`. `who` is a patient's id, or `doctor:k`;
  *   `to` is `{ at }`, `at` one of "reception", "triage", "waiting", "results", "room", a place pool with its `slot`,
- *   "patient" with the patient's `id` (a doctor at their side), or "out" with the `door` taken.
+ *   "patient" with the patient's `id` (a doctor at their side), or "out" with the `door` taken;
+ * - `walks`: each move as a walk on the plan (pathway-cells.js), from where one was to the cell of where one goes,
+ *   started when the move happens: what the plan draws, and what the day waits for when walking counts (step 3).
  */
 
 /** The exits by the door they take: a ward through the lifts, the theatre through its door, the others the entrance. */
 const DOORS = { hospitalise: "lifts", bloc: "theatre" };
 
-export function startTrace(capacity, pools) {
+export function startTrace(capacity, pools, layout) {
   return {
+    layout,
+    walks: [],
+    last: new Map(),
+    seats: { waiting: seatsOf(layout.seats, layout.points.entrance), results: seatsOf(layout.results.length ? layout.results : layout.seats, layout.points.entrance) },
     slots: Object.fromEntries(pools.map((pool) => [pool, Array.from({ length: capacity[pool] ?? 0 }, () => null)])),
     doctors: [],
     where: new Map(),
@@ -25,9 +33,44 @@ export function startTrace(capacity, pools) {
   };
 }
 
-export function locate(day, who, to) {
-  day.trace.where.set(who, to);
-  day.trace.moves.push({ t: day.events.now, who, to });
+/** The cell of where `to` says one goes (a seat taken as one sits). */
+function cellOf(trace, who, to) {
+  const { points, places } = trace.layout;
+  const pick = {
+    reception: () => points.reception,
+    triage: () => points.triage,
+    waiting: () => trace.seats.waiting.take(who),
+    results: () => trace.seats.results.take(who),
+    room: () => points.room,
+    base: () => points.porters,
+    patient: () => trace.where.get(to.id)?.cell ?? points.room,
+    out: () => points[to.door] ?? points.entrance,
+  };
+  return (pick[to.at] ?? (() => places[to.at]?.[to.slot] ?? points.entrance))();
+}
+
+/** Where `who` is at minute `t`: along their last walk, or where they start the day. */
+export function positionOf(day, who, t = day.events.now) {
+  const last = day.trace.last.get(who);
+  return last ? cellAt(last, t) : startCellOf(day.trace.layout, who);
+}
+
+/**
+ * `who` goes to `to`, leaving at minute `at` (now by default): the move kept, and walked on the plan from where they
+ * are. Returns the cells walked, for the day to wait for them when walking counts.
+ */
+export function locate(day, who, to, at = day.events.now) {
+  const { trace } = day;
+  trace.seats.waiting.leave(who);
+  trace.seats.results.leave(who);
+  const from = positionOf(day, who, at);
+  const cell = cellOf(trace, who, to);
+  const walk = { who, role: roleOf(who), t0: at, path: pathOf(trace.layout.walker, from, cell), at: to.at, door: to.door, from: trace.where.get(who)?.at ?? null };
+  trace.where.set(who, { ...to, cell });
+  trace.moves.push({ t: at, who, to });
+  trace.walks.push(walk);
+  trace.last.set(who, walk);
+  return walk.path.length - 1;
 }
 
 /** The first free place of `pool` for `id`; its number. */
