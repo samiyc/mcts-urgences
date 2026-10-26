@@ -13,7 +13,7 @@ import { el } from "../dom.js";
 import { panelOf } from "../knobs.js";
 import { compareField, timelineClick, timelineSection } from "./parcours-compare.js";
 import { searchedBox, searchingView } from "./parcours-search.js";
-import { SEASONS, decisionDefaults, decisionFields, decisionKey, decisionRules, decisionSettings, seasonOf } from "./parcours-decisions.js";
+import { SEASONS, additionDefaults, additionFields, decisionDefaults, decisionFields, decisionKey, decisionRules, decisionSettings, seasonOf } from "./parcours-decisions.js";
 import { timelineOf } from "../../src/pathway-timeline.js";
 import { PATHWAY_LEGEND, dayClock, figures, lineAt, planAt, presentTable } from "../parcours-view.js";
 import { createReplayStore, download, replayName } from "../replay-store.js";
@@ -30,7 +30,7 @@ const store = createReplayStore("urgences-parcours");
 const SPEEDS = [["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
-export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null, searched: null, season: "ordinaire", ...decisionDefaults() });
+export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null, searched: null, season: "ordinaire", ...decisionDefaults(), ...additionDefaults() });
 /** The fatigue settings: off, or a break rule (pathway-fatigue.js); the shifts. */
 const FATIGUES = [["off", "pas de fatigue"], ...Object.entries(BREAK_RULES).map(([rule, label]) => [rule, `fatigue, ${label}`])];
 const TEAMS = [["24", "gardes de 24 h"], ["12", "deux équipes de 12 h"]];
@@ -104,6 +104,7 @@ export const pathwayPanel = (ctx) =>
     ctx.state,
     ["hospital", "accident", "seed"],
     el("label", {}, "La saison", selectOf("season", SEASONS, ctx.pathway.season)),
+    ...additionFields(ctx.pathway),
     el("label", {}, "Règle des box", selectOf("box", [...Object.keys(RULES).map((key) => [key, RULE_LABELS[key]]), ["search", "recherche (ISMCTS), jouée dans un worker"]], ctx.pathway.box)),
     el("label", {}, "Règle des lits d'aval", selectOf("bed", Object.entries(BED_LABELS), ctx.pathway.bed)),
     el("label", {}, "Vitesse", selectOf("speed", SPEEDS, String(ctx.pathway.speed))),
@@ -174,7 +175,7 @@ export function pausePathway(ctx) {
   ctx.pathway.frame = null;
 }
 
-const replayOf = ({ state, pathway }) => ({ format: FORMAT, hospital: state.hospital, accident: state.accident, seed: state.seed, season: pathway.season, box: pathway.box, bed: pathway.bed, plan: pathway.plan, savedAt: new Date().toISOString() });
+const replayOf = ({ state, pathway }) => ({ format: FORMAT, hospital: state.hospital, accident: state.accident, seed: state.seed, season: pathway.season, adds: Object.fromEntries(Object.entries(pathway).filter(([key]) => key.startsWith("add:"))), box: pathway.box, bed: pathway.bed, plan: pathway.plan, savedAt: new Date().toISOString() });
 
 const DOES = {
   play: (ctx) => {
@@ -236,7 +237,7 @@ export function pathwayInput(ctx, target) {
 export function openPathwayReplay(ctx, replay) {
   if (replay?.format !== FORMAT) return;
   Object.assign(ctx.state, { hospital: replay.hospital, accident: replay.accident, seed: replay.seed });
-  Object.assign(ctx.pathway, { box: replay.box, bed: replay.bed, plan: replay.plan, season: replay.season ?? "ordinaire", draft: null, errors: [], t: 0 });
+  Object.assign(ctx.pathway, { box: replay.box, bed: replay.bed, plan: replay.plan, season: replay.season ?? "ordinaire", ...additionDefaults(), ...(replay.adds ?? {}), draft: null, errors: [], t: 0 });
   pausePathway(ctx);
 }
 

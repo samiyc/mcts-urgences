@@ -26,7 +26,7 @@ export const PATHWAY_DEFAULTS = Object.freeze({
    */
   dayDoctors: Object.freeze({ from: 10, to: 22, extra: 1 }),
   /** How many of each: the medium hospital (12 boxes, 4 doctors), the others scaled on their boxes (`pathwaySettingsOf`). */
-  capacity: Object.freeze({ reception: 1, ioa: 1, sauv: 2, isolation: 1, uhcd: 6, scanner: 1, theatre: 1, specialists: 2 }),
+  capacity: Object.freeze({ reception: 1, ioa: 1, sauv: 2, isolation: 1, uhcd: 6, scanner: 1, theatre: 1, specialists: 2, fast: 1 }),
   /** Registration (DREES: 80 % within 5 min), triage (hypothesis), the doctor reading the results (hypothesis). */
   register: 2,
   triage: 5,
@@ -72,6 +72,11 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   fatigue: null,
   /** A day at the peak of a winter epidemic (EPIDEMIC, pathway-epidemic.js), or none: the ordinary day. */
   epidemic: null,
+  /** The four later additions (docs/parcours-ajouts.md), each its settings or none: the day as before. */
+  family: null,
+  interpreter: null,
+  fastTrack: null,
+  deaths: null,
   /**
    * The care once the results are read, in the place (hypothesis; the simple shift's `stay` held the box for the
    * results as well, here they are their own steps).
@@ -228,6 +233,33 @@ export const EPIDEMIC = Object.freeze({
   beds: 0.75,
 });
 
+/**
+ * The families (Sami, 26/10/2026, pathway-family.js; H67 to H69): the share of patients who come with someone (more
+ * of the 75 or more: the DREES finds them more often accompanied), the minutes telling them takes the doctor at the
+ * results' reading, and the chance an accompanied person of 75 or more bound for the UHCD goes home instead.
+ */
+export const FAMILY = Object.freeze({ share: Object.freeze({ elderly: 0.7, other: 0.35 }), inform: 5, home: 1 / 3 });
+
+/**
+ * The patients who do not speak French (pathway-interpreter.js; H70 to H72): their share (Arras: 278 of 21 909
+ * consultations, oublis.md), the minutes waited for an interpreter on the phone at the triage and the exam, how much
+ * longer these take with them, and with a companion translating.
+ */
+export const INTERPRETER = Object.freeze({ share: 278 / 21909, connect: 5, slow: 1.5, family: 1.2 });
+
+/**
+ * The fast track, the « circuit court » (pathway-fast.js; H73 to H75): its hours, the doctors of the team it takes
+ * (for 12 boxes, the others scaled), and the lightest colours it sees; its rooms are the plan's `C`.
+ */
+export const FAST_TRACK = Object.freeze({ from: 10, to: 22, doctors: 1, fromColour: 4 });
+
+/**
+ * The deaths (pathway-deaths.js; H76 to H78): the chance by true level at the exam's end (about 0,2 % of the visits,
+ * oublis.md), raised by `perHour` an hour past the level's longest wait; the minutes the doctor stays, then the place;
+ * and a death's weight (Sami: 2 h of a red's lateness, 1 920).
+ */
+export const DEATHS = Object.freeze({ base: Object.freeze({ 1: 0.04, 2: 0.002 }), perHour: 0.1, resus: 45, after: 90, cost: 1920 });
+
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
 export const CELL_METRES = 2;
 
@@ -244,9 +276,13 @@ function placesOf(settings, plan) {
  * day.
  */
 export function pathwaySettingsOf({ hospital = "moyen", accident = false, plan = null, epidemic = false, ...overrides } = {}) {
-  const settings = { ...scaledSettings(hospital, accident, overrides), ...epidemicOf(epidemic) };
+  const settings = additionsOf({ ...scaledSettings(hospital, accident, overrides), ...epidemicOf(epidemic) });
   return plan ? { ...placesOf(settings, plan), plan } : settings;
 }
+
+/** The four additions given as `true`: their settings. */
+const ADDITIONS = { family: () => FAMILY, interpreter: () => INTERPRETER, fastTrack: () => FAST_TRACK, deaths: () => DEATHS };
+const additionsOf = (settings) => ({ ...settings, ...Object.fromEntries(Object.entries(ADDITIONS).filter(([name]) => settings[name] === true).map(([name, of]) => [name, of()])) });
 
 /** The epidemic's setting: none, EPIDEMIC for true, or the settings given. */
 const epidemicOf = (wanted) => (wanted ? { epidemic: wanted === true ? EPIDEMIC : wanted } : {});

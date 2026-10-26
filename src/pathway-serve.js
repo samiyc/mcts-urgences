@@ -1,6 +1,8 @@
 import { beginBreak, ioaSlowOf, serveBreaks } from "./pathway-fatigue.js";
 import { serveTransports } from "./pathway-porters.js";
 import { reclaimIsolation } from "./pathway-isolation.js";
+import { serveFast } from "./pathway-fast.js";
+import { interpreterWait, languageSlowOf } from "./pathway-interpreter.js";
 import { decidedQueue, startTheatre } from "./pathway-queues.js";
 import { locate } from "./pathway-trace.js";
 import { intoScanner } from "./pathway-trace.js";
@@ -19,7 +21,7 @@ function startEach(day, { queue, pool, type, endAt, onStart = null }) {
     take(day, pool);
     const id = queue.shift();
     onStart?.(day, id);
-    day.events.schedule(endAt(t), { type, id });
+    day.events.schedule(endAt(t, id), { type, id });
   }
 }
 
@@ -79,7 +81,9 @@ export function serve(day) {
   const { queues, settings } = day;
   startEach(day, { queue: queues.register, pool: "reception", type: "registerEnd", endAt: (t) => t + settings.register });
   // A tired triage nurse takes longer (pathway-fatigue.js), when fatigue counts.
-  startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage * ioaSlowOf(day) });
+  // A patient who does not speak French: an interpreter waited for, then a longer triage (pathway-interpreter.js).
+  const triageOf = (patient) => settings.triage * ioaSlowOf(day) * languageSlowOf(day, patient) + interpreterWait(day, patient);
+  startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t, id) => t + triageOf(day.patients.get(id)) });
   serveTransports(day);
   serveBreaks(day, startBreak);
   // The scanner's order: by colour, unless decided one at a time (pathway-queues.js) while two or more wait.
@@ -93,5 +97,7 @@ export function serve(day) {
   serveUhcd(day);
   // The isolation room lent, taken back for a patient to isolate (pathway-isolation.js).
   reclaimIsolation(day);
+  // The fast track: its results, then its light patients by arrival (pathway-fast.js).
+  serveFast(day);
   while (settings.reviewFirst && queues.review.length && free(day, "doctors") > 0) startReview(day, queues.review.shift());
 }

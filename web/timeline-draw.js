@@ -21,6 +21,7 @@ const MARKS = [
   ["left", "parti sans être vu", "orange"],
   ["diverted", "ambulance réorientée", "bleu"],
   ["overlooked", "résultat oublié", "jaune"],
+  ["deaths", "décès", "noir"],
 ];
 
 const hourLabel = (startHour, t) => `${(startHour + Math.floor(t / 60)) % 24} h`;
@@ -99,4 +100,4 @@ export function timelinePlan(timeline, other = null) {
 }
 
 export const TIMELINE_LEGEND =
-  "Trait plein : la journée jouée ; tirets : la même journée jouée autrement (à choisir dans le panneau). Noir : présents, rouge : attendent un box, bleu : attendent un lit. Une bande pleine : la ressource est saturée. En dessous : les aggravations (rouge), les départs sans être vus (orange), les ambulances réorientées (bleu), les résultats oubliés (jaune), les pauses des médecins (gris). En ocre : l'accident ; un trait orange foncé : le HET déclenché ; un trait violet : le plan blanc déclenché. Un clic sur une heure y amène le plan.";
+  "Trait plein : la journée jouée ; tirets : la même journée jouée autrement (à choisir dans le panneau). Noir : présents, rouge : attendent un box, bleu : attendent un lit. Une bande pleine : la ressource est saturée. En dessous : les aggravations (rouge), les départs sans être vus (orange), les ambulances réorientées (bleu), les résultats oubliés (jaune), les décès (noir), les pauses des médecins (gris). En ocre : l'accident ; un trait orange foncé : le HET déclenché ; un trait violet : le plan blanc déclenché. Un clic sur une heure y amène le plan.";

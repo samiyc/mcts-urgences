@@ -41,6 +41,14 @@ function copyFatigue(fatigue) {
   };
 }
 
+/** The four additions' counts (pathway-additions.js), copied. */
+const copyAdditions = (day) => ({
+  family: day.family && { ...day.family },
+  interpreter: day.interpreter && { ...day.interpreter },
+  deaths: day.deaths && { ...day.deaths },
+  fast: day.fast && { ...day.fast },
+});
+
 export function cloneDay(day, keep = () => true) {
   return {
     ...day,
@@ -61,6 +69,7 @@ export function cloneDay(day, keep = () => true) {
     intern: copyIntern(day.intern),
     alert: day.alert && { ...day.alert },
     het: day.het && { ...day.het, given: [...day.het.given] },
+    ...copyAdditions(day),
     isolation: day.isolation && { ...day.isolation },
     series: [],
     nextSample: Infinity,

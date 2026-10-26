@@ -8,7 +8,7 @@ import { BED_LABELS } from "../src/pathway.js";
 import { RULE_LABELS } from "../src/rules.js";
 
 /**
- * `node scripts/pathway-search-compare.js [--days 10] [--budget 50] [--hopital moyen] [--accident] [--hiver] [--marche] [--lits | --pauses | --interne | --files | --plan | --het | --sauv]` (Sami,
+ * `node scripts/pathway-search-compare.js [--days 10] [--budget 50] [--hopital moyen] [--accident] [--hiver] [--familles] [--interpretes] [--circuit-court] [--deces] [--marche] [--lits | --pauses | --interne | --files | --plan | --het | --sauv]` (Sami,
  * 26/10/2026, the detailed pathway's step 6): the box rules and the search on the same days, the bed rule « la
  * décision la plus ancienne », the days played side by side in threads (16 at most: the machine's limit is 18). The
  * late cost at the level of the moment, and the search's gain on each rule by pairs. Budgets above 400 are for the
@@ -34,7 +34,11 @@ if (!isMainThread) {
   if (!HOSPITALS[hospital]) throw new Error(`hôpital inconnu ; au choix : ${Object.keys(HOSPITALS).join(", ")}`);
   const days = Number(option("--days", 10));
   const budget = Number(option("--budget", 50));
-  const options = { hospital, accident: args.includes("--accident"), epidemic: args.includes("--hiver"), walk: args.includes("--marche") };
+  // The later additions (docs/parcours-ajouts.md), each by its flag.
+  const ADDITION_FLAGS = { "--familles": "family", "--interpretes": "interpreter", "--circuit-court": "fastTrack", "--deces": "deaths" };
+  const additions = Object.entries(ADDITION_FLAGS).filter(([flag]) => args.includes(flag));
+  const withAdditions = additions.length ? ", avec " + additions.map(([flag]) => flag.slice(2)).join(", ") : "";
+  const options = { hospital, accident: args.includes("--accident"), epidemic: args.includes("--hiver"), walk: args.includes("--marche"), ...Object.fromEntries(additions.map(([, name]) => [name, true])) };
   const KINDS = { "--lits": "beds", "--pauses": "breaks", "--interne": "interns", "--files": "queues", "--plan": "alerts", "--het": "hets", "--sauv": "sauvs" };
   const kind = KINDS[Object.keys(KINDS).find((flag) => args.includes(flag))] ?? "boxes";
   const beds = kind === "beds";
@@ -57,7 +61,7 @@ if (!isMainThread) {
   });
   const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
   const gainOf = (g) => `${fixed(g.mean)} (${fixed(g.low)} à ${fixed(g.high)})`;
-  console.log(`${HOSPITALS[hospital].label}${options.accident ? ", avec l'accident" : ", jour ordinaire"}${options.epidemic ? ", en pleine épidémie d'hiver" : ""}${options.walk ? ", marche comptée" : ""} : ${days} journées, la recherche à ${budget} itérations, ${threads} fils, ${Math.round((Date.now() - t0) / 1000)} s.`);
+  console.log(`${HOSPITALS[hospital].label}${options.accident ? ", avec l'accident" : ", jour ordinaire"}${options.epidemic ? ", en pleine épidémie d'hiver" : ""}${withAdditions}${options.walk ? ", marche comptée" : ""} : ${days} journées, la recherche à ${budget} itérations, ${threads} fils, ${Math.round((Date.now() - t0) / 1000)} s.`);
   const bedName = (name) => (name === "search" ? "la recherche" : BED_LABELS[name]);
   const queueName = (name) => ({ fixed: "l'ordre fixe", search: "la recherche" })[name] ?? `décidé, ${QUEUE_LABELS[name]}`;
   const internName = (name) => ({ none: "pas d'interne", search: "la recherche" })[name] ?? INTERN_LABELS[name];

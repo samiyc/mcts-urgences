@@ -7,10 +7,17 @@ import { CELL, spotter } from "./ward-draw.js";
  * (pathway-plans.js's legend), the patients by their bracelet, the doctors and the stretcher-bearers where their
  * walks put them (pathway-walk.js's `walkScene`).
  */
-const CELL_CLASS = { "#": "wall", b: "bed", S: "sauv", I: "isolation", U: "uhcd", X: "machine", w: "seat", r: "results", A: "desk", T: "desk", D: "room", R: "room", B: "room", L: "room", P: "room", O: "door", H: "door", E: "door" };
-const LABELS = { A: "accueil", T: "tri", D: "méd.", R: "pause", B: "branc.", L: "labo", P: "pharma", O: "bloc", H: "asc.", E: "🚪", X: "scan", S: "SAUV", I: "iso", U: "UHCD" };
-const ICONS = { doctor: "🩺", porter: "🛏️", intern: "🧑‍⚕️" };
-const NAMES = { doctor: "Médecin", porter: "Brancardier" };
+const CELL_CLASS = { "#": "wall", b: "bed", S: "sauv", I: "isolation", U: "uhcd", X: "machine", w: "seat", r: "results", A: "desk", T: "desk", D: "room", R: "room", B: "room", L: "room", P: "room", O: "door", H: "door", E: "door", C: "room" };
+const LABELS = { A: "accueil", T: "tri", D: "méd.", R: "pause", B: "branc.", L: "labo", P: "pharma", O: "bloc", H: "asc.", E: "🚪", X: "scan", S: "SAUV", I: "iso", U: "UHCD", C: "court" };
+const ICONS = { doctor: "🩺", porter: "🛏️", intern: "🧑‍⚕️", fast: "🩺", family: "🧍" };
+/** Who each mark is, from its `who` (« doctor:0 », « family:12 »…). */
+const TITLES = {
+  doctor: (n) => `Médecin ${Number(n) + 1}`,
+  porter: (n) => `Brancardier ${Number(n) + 1}`,
+  intern: () => "L'interne",
+  fast: () => "Le médecin du circuit court",
+  family: (n) => `L'accompagnant du patient ${n}`,
+};
 
 function cells(root, lines) {
   lines.forEach((line, y) =>
@@ -36,7 +43,7 @@ function patientMark(patient, t, { cx, cy }) {
 function staffMark(root, one, { cx, cy }) {
   if (one.role === "intern" && one.human) root.append(svg("circle", { cx, cy, r: CELL / 2 - 1, class: "me" }));
   const icon = text(cx, cy + 6, ICONS[one.role], { class: "staff" });
-  icon.append(titled(one.role === "intern" ? "L'interne" : `${NAMES[one.role]} ${Number(String(one.who).split(":")[1]) + 1}`));
+  icon.append(titled(TITLES[one.role](String(one.who).split(":")[1])));
   root.append(icon);
 }
 

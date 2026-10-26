@@ -10,6 +10,8 @@ import { ALERT_RULES, alertDecision, decideAlert, startAlert } from "./pathway-a
 import { HET_RULES, decideHet, hetDecision, startHet } from "./pathway-het.js";
 import { SAUV_RULES, decideSauv, sauvDecision } from "./pathway-sauv.js";
 import { noteLent, startIsolation } from "./pathway-isolation.js";
+import { fastPools, startAdditions } from "./pathway-additions.js";
+import { interpreterWait, languageSlowOf } from "./pathway-interpreter.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve, startBreak } from "./pathway-serve.js";
@@ -63,6 +65,7 @@ export const STEPS = Object.freeze({
   bed: "attend un lit",
   leaving: "part dans son lit",
   med: "attend son médicament",
+  death: "décédé",
   out: "sorti",
 });
 
@@ -145,7 +148,8 @@ export function startPathway(day) {
   const patients = new Map(day.patients.map((patient) => [patient.id, followed(patient)]));
   scheduleArrivals(events, patients);
   const wards = wardsOf(day, events);
-  const capacity = { ...settings.capacity, boxes: settings.boxes, doctors: settings.doctors };
+  const pools = fastPools(settings);
+  const capacity = { ...settings.capacity, boxes: settings.boxes, doctors: settings.doctors, ...pools.capacity };
   scheduleDayDoctors(settings, events, capacity);
   return {
     settings,
@@ -153,18 +157,19 @@ export function startPathway(day) {
     patients,
     wards,
     capacity,
-    busy: perPool(),
+    busy: { ...perPool(), ...pools.busy },
     // Busy minutes, and minutes full, of each pool.
     used: perPool(),
     full: perPool(),
     clock: 0,
-    queues: { register: [], triage: [], waiting: [], scanner: [], specialists: [], theatre: [], review: [], uhcd: [], transport: [] },
+    queues: { register: [], triage: [], waiting: [], scanner: [], specialists: [], theatre: [], review: [], uhcd: [], transport: [], fastReview: [] },
     porters: startPorters(settings),
     intern: startIntern(settings, layoutOf(settings.plan)),
     fatigue: startFatigueOf(settings, events),
     alert: startAlert(settings),
     het: startHet(settings),
     isolation: startIsolation(settings),
+    ...startAdditions(settings, events),
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
@@ -280,9 +285,10 @@ export function decide(day, decision, id) {
   take(day, "doctors");
   const fetched = doctorTo(day, id);
   // The exam starts once the patient and the doctor are both at the place (at once unless walking counts).
-  const start = now(day) + walkDelay(day, Math.max(walked, fetched));
+  // An interpreter on the phone is waited for, then the exam takes longer (pathway-interpreter.js).
+  const start = now(day) + walkDelay(day, Math.max(walked, fetched)) + interpreterWait(day, patient);
   Object.assign(patient, { start, levelAtStart: patient.level, step: "exam" });
-  const exam = day.settings.exam[patient.level] * patient.examFactor * slowOf(day, day.trace.doctors.indexOf(id));
+  const exam = day.settings.exam[patient.level] * patient.examFactor * slowOf(day, day.trace.doctors.indexOf(id)) * languageSlowOf(day, patient);
   day.events.schedule(start + exam, { type: "examEnd", id });
 }
 

@@ -45,7 +45,25 @@ export const decisionRules = (pathway) => ({
 export const SEASONS = Object.freeze([["ordinaire", "une saison ordinaire"], ["hiver", "le pic d'une épidémie d'hiver"]]);
 
 /** drawPathwayDay's options for the season. */
-export const seasonOf = (pathway) => (pathway.season === "hiver" ? { epidemic: true } : {});
+/** The later additions (docs/parcours-ajouts.md), each off or on: the tab's `add` setting of each. */
+const ADDITIONS = Object.freeze({
+  family: "Les accompagnants (familles)",
+  interpreter: "Les patients qui ne parlent pas français",
+  fastTrack: "Le circuit court (un médecin de l'équipe, de 10 h à 22 h)",
+  deaths: "Les décès",
+});
+
+export const additionDefaults = () => Object.fromEntries(Object.keys(ADDITIONS).map((name) => [`add:${name}`, "non"]));
+
+/** The panel's fields of the additions, one select each (`data-parcours` « add:name »). */
+export const additionFields = (pathway) =>
+  Object.entries(ADDITIONS).map(([name, label]) => el("label", {}, label, el("select", { "data-parcours": `add:${name}` }, ...[["non", "non"], ["oui", "oui"]].map(([value, text]) => el("option", { value, selected: value === pathway[`add:${name}`] }, text)))));
+
+/** drawPathwayDay's options for the season and the additions on. */
+export const seasonOf = (pathway) => ({
+  ...(pathway.season === "hiver" ? { epidemic: true } : {}),
+  ...Object.fromEntries(Object.keys(ADDITIONS).filter((name) => pathway[`add:${name}`] === "oui").map((name) => [name, true])),
+});
 
 /** What the run's key must hold of them. */
-export const decisionKey = (pathway) => Object.keys(DECISIONS).map((name) => pathway[name]);
+export const decisionKey = (pathway) => [...Object.keys(DECISIONS).map((name) => pathway[name]), JSON.stringify(seasonOf(pathway))];

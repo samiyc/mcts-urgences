@@ -1,6 +1,7 @@
 import { minutesOf } from "./pathway-cells.js";
 import { overlooks, slowOf } from "./pathway-fatigue.js";
 import { borrows } from "./pathway-isolation.js";
+import { familyLeaves, informMinutes } from "./pathway-family.js";
 import { drop } from "./pathway-intern.js";
 import { doctorTo, intoSlot, outOfDepartment, outOfSlot } from "./pathway-trace.js";
 
@@ -33,6 +34,7 @@ export const byColour = (day) => (a, b) => day.patients.get(a).colour - day.pati
 export function exitPatient(day, patient, exit) {
   Object.assign(patient, { exit, exitAt: now(day), step: "out" });
   outOfDepartment(day, patient);
+  familyLeaves(day, patient);
   drop(day, patient.id);
 }
 
@@ -74,5 +76,6 @@ export function startReview(day, id) {
   const k = day.trace.doctors.indexOf(id);
   const patient = day.patients.get(id);
   if (overlooks(day, k, patient)) patient.overlooked = true;
-  day.events.schedule(now(day) + walkDelay(day, fetched) + day.settings.review * slowOf(day, k), { type: "reviewEnd", id });
+  // Telling the family takes the doctor a few minutes more (pathway-family.js).
+  day.events.schedule(now(day) + walkDelay(day, fetched) + day.settings.review * slowOf(day, k) + informMinutes(day, patient), { type: "reviewEnd", id });
 }

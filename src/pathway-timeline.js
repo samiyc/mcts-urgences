@@ -26,8 +26,9 @@ export function sample(day, until) {
   }
 }
 
-/** When the HET and the crisis plan came on, if they did. */
+/** When the HET and the crisis plan came on, if they did, and the deaths (pathway-deaths.js). */
 const plansOf = (day) => ({
+  deaths: day.deaths?.at ?? [],
   het: day.het?.on ? { at: day.het.at, bedsAt: day.het.bedsAt, beds: day.het.given.length } : null,
   alert: day.alert?.on ? { at: day.alert.at, staffAt: day.alert.staffAt } : null,
 });

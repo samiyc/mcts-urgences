@@ -72,6 +72,18 @@ function internFigures(day) {
 }
 
 /** The doctors' fatigue of the day (pathway-fatigue.js), when it counts. */
+/** The later additions' figures, those on (docs/parcours-ajouts.md). */
+function additionFigures(measures) {
+  const { family, interpreter, fast, deaths } = measures;
+  return [
+    family ? figure(`${family.accompanied} / ${family.standing}`, "patients accompagnés / patients restés debout en salle d'attente") : null,
+    family ? figure(`${family.informed} min`, "des médecins à informer les familles") : null,
+    interpreter ? figure(`${interpreter.allophones} / ${interpreter.calls}`, "patients qui ne parlent pas français / appels à l'interprète") : null,
+    fast ? figure(String(fast.seen), "patients passés par le circuit court") : null,
+    deaths ? figure(String(deaths.count), "décès aux urgences") : null,
+  ].filter(Boolean);
+}
+
 function fatigueFigures(day) {
   if (!day.fatigue) return [];
   const one = fatigueMeasures(day);
@@ -105,8 +117,9 @@ export function figures({ day, measures, walking }) {
     figure(`${walking.unported}`, `transports sans brancardier libre ; ${decimal(walking.porterWait.mean, 1)} min pour en avoir un`),
     ...internFigures(day),
     ...fatigueFigures(day),
+    ...additionFigures(measures),
   );
 }
 
 export const PATHWAY_LEGEND =
-  "Une pastille : un patient, de la couleur de son bracelet ; un point au centre : son niveau réel, plus grave. 🩺 un médecin, 🛏️ un brancardier. Les marches sont dessinées et mesurées, elles ne retardent pas encore les soins (l'étape 3) : un patient peut être examiné avant que le dessin ne l'ait amené au box. Une case : 2 m, 6 s de marche.";
+  "Une pastille : un patient, de la couleur de son bracelet ; un point au centre : son niveau réel, plus grave. 🩺 un médecin, 🛏️ un brancardier, 🧍 un accompagnant (quand les familles sont comptées) ; « court » : la salle du circuit court. Les marches sont dessinées et mesurées, elles ne retardent pas encore les soins (l'étape 3) : un patient peut être examiné avant que le dessin ne l'ait amené au box. Une case : 2 m, 6 s de marche.";

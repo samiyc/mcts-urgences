@@ -32,6 +32,7 @@ const EXPECTED = {
   pathwaySearch: "0bdc497e0fe40ebb",
   epidemic: "e79be809e5f092a1",
   het: "cd3d771f8c5c191b",
+  additions: "c4eacd1c877524af",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);
@@ -81,6 +82,12 @@ const FINGERPRINTS = {
   het: () => [
     ...[1, 2].map((seed) => played(drawPathwayDay(seed, { epidemic: true, het: HET }), { box: RULES.colour, bed: BED_RULES.oldest, het: HET_RULES.threshold })),
     played(drawPathwayDay(3, { hospital: "proximite", epidemic: true, het: HET }), { box: RULES.colour, bed: BED_RULES.oldest, het: pathwaySearchHetRule({ budget: 10 }) }),
+  ],
+  // The later additions (26/10/2026): each on, two days of the medium hospital by the colour; the search with the
+  // deaths and the fast track on a day of the small hospital with the accident.
+  additions: () => [
+    ...["family", "interpreter", "fastTrack", "deaths"].flatMap((name) => [1, 2].map((seed) => played(drawPathwayDay(seed, { [name]: true, interpreter: name === "family" || name === "interpreter" }), { box: RULES.colour, bed: BED_RULES.oldest }))),
+    played(drawPathwayDay(2, { hospital: "proximite", accident: true, deaths: true, fastTrack: true }), { box: pathwaySearchRule({ budget: 10 }), bed: BED_RULES.oldest }),
   ],
   ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
   search: () => {

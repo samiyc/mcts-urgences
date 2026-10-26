@@ -1,5 +1,6 @@
 import { createRng } from "mcts-commun/random.js";
 import { epidemicBeds, epidemicPatients } from "./pathway-epidemic.js";
+import { withExtras } from "./pathway-extras.js";
 import { pathwaySettingsOf } from "./pathway-hypotheses.js";
 import { arrivals, patientOf } from "./scenario.js";
 
@@ -117,5 +118,5 @@ function patientsOf(seed, rng, settings) {
   const ordinary = comings.map((coming) => patientOf(rng, coming, settings)).map((patient) => ({ ...patient, ...pathwayOf(rng, patient, settings) }));
   const patients = [...ordinary, ...(settings.epidemic ? epidemicPatients(seed, settings) : [])].sort((a, b) => a.arrival - b.arrival).map((patient, i) => ({ id: i + 1, ...patient }));
   const followed = settings.intern ? withMedication(seed, patients, settings) : patients;
-  return settings.fatigue ? withOversight(seed, followed) : followed;
+  return withExtras(seed, settings.fatigue ? withOversight(seed, followed) : followed, settings);
 }

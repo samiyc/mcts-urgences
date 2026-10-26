@@ -7,6 +7,8 @@ import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
 import { ALERT_RULES, recalledHours } from "./pathway-alert.js";
 import { HET_RULES, hetBedsSince } from "./pathway-het.js";
+import { redrawExtras, worldExtras } from "./pathway-extras.js";
+import { deathsSince } from "./pathway-deaths.js";
 import { epidemicComings, epidemicPatient } from "./pathway-epidemic.js";
 import { SAUV_RULES } from "./pathway-sauv.js";
 import { idOf } from "./pathway.js";
@@ -53,6 +55,7 @@ function redraw(world, patient, rng) {
   // Isolation (contagious, agitated) and age are seen at the door: they stay; the exams and the exit are drawn again.
   const { isolate, elderly } = patient;
   Object.assign(patient, pathwayOf(rng, patient, settings), { isolate, elderly });
+  Object.assign(patient, redrawExtras(rng, patient, settings));
   scheduleWorsening(world.events, patient, Math.max(world.events.now, patient.arrival + MAX_WAIT[level]));
 }
 
@@ -67,9 +70,10 @@ function addComings(world, rng, horizon) {
   ];
   const ordinary = comings.map((coming) => {
     const drawn = patientOf(rng, coming, settings);
-    return { ...drawn, ...pathwayOf(rng, drawn, settings) };
+    const pathway = { ...drawn, ...pathwayOf(rng, drawn, settings) };
+    return { ...pathway, ...worldExtras(rng, pathway, settings) };
   });
-  const winter = settings.epidemic ? epidemicComings(rng, settings, { ...window, ambulanceFrom: now + settings.announced }).map((coming) => epidemicPatient(rng, coming, settings)) : [];
+  const winter = settings.epidemic ? epidemicComings(rng, settings, { ...window, ambulanceFrom: now + settings.announced }).map((coming) => epidemicPatient(rng, coming, settings)).map((patient) => ({ ...patient, ...worldExtras(rng, patient, settings) })) : [];
   [...ordinary, ...winter].forEach((drawn, i) => {
     const patient = followed({ id: NEW + i, ...drawn });
     world.patients.set(patient.id, patient);
@@ -193,7 +197,10 @@ function internLateness(world) {
  * @param {SearchFlags} flags
  * @param {number} from
  */
-const costOf = (world, { beds, interns, alerts, hets }, from) => pendingCost(world) + (beds || hets ? boardingCost(world, from) : 0) + (interns ? internLateness(world) : 0) + (alerts ? alertCost(world, from) : 0) + (hets ? hetBedsSince(world, from) * world.settings.het.bedCost : 0);
+const costOf = (world, { beds, interns, alerts, hets }, from) => pendingCost(world) + (beds || hets ? boardingCost(world, from) : 0) + (interns ? internLateness(world) : 0) + (alerts ? alertCost(world, from) : 0) + (hets ? hetBedsSince(world, from) * world.settings.het.bedCost : 0) + deathCost(world, from);
+
+/** The deaths in a world after its start, at their weight (DEATHS.cost), on a day with deaths. */
+const deathCost = (world, from) => (world.settings.deaths ? deathsSince(world, from) * world.settings.deaths.cost : 0);
 
 /** The doctor-hours the crisis plan called back over the world, at their weight (ALERT.doctorHour, H55). */
 const alertCost = (world, from) => (recalledHours(world, world.events.now) - recalledHours(world, from)) * world.settings.alert.doctorHour;

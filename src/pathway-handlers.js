@@ -5,7 +5,11 @@ import { ask, assign, follows } from "./pathway-intern.js";
 import { requestTransport } from "./pathway-porters.js";
 import { STAFF_HANDLERS } from "./pathway-staff.js";
 import { HET_HANDLERS } from "./pathway-het.js";
-import { cleanedSlot, doctorBack, followedTo, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
+import { DEATH_HANDLERS, diesNow, startDeath } from "./pathway-deaths.js";
+import { FAST_HANDLERS, releaseExamDoctor, releaseReviewDoctor, toFastReview } from "./pathway-fast.js";
+import { familyArrives, noteStanding } from "./pathway-family.js";
+import { noteAllophone } from "./pathway-interpreter.js";
+import { cleanedSlot, followedTo, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").Day} Day */
 /** @typedef {import("./types.js").PathwayPatient} PathwayPatient */
@@ -21,6 +25,8 @@ function examsBack(day, patient) {
   patient.step = "review";
   // The intern reads their patients' results themselves.
   if (follows(day, patient.id)) return ask(day, "result", patient.id);
+  // A fast track's patient: its doctor reads them (pathway-fast.js).
+  if (toFastReview(day, patient)) return;
   day.queues.review.push(patient.id);
 }
 
@@ -47,6 +53,7 @@ function admit(day, patient) {
 function toWaiting(day, patient) {
   patient.step = "waiting";
   day.queues.waiting.push(patient.id);
+  noteStanding(day);
   locate(day, patient.id, { at: "waiting" });
   assign(day, patient);
   if (patient.patience < Infinity) day.events.schedule(now(day) + patient.patience, { type: "leave", id: patient.id });
@@ -124,6 +131,8 @@ export const HANDLERS = {
   },
   arrive(day, patient) {
     if (day.diverted.has(patient.id)) return exitPatient(day, patient, "reoriente");
+    familyArrives(day, patient);
+    noteAllophone(day, patient);
     scheduleWorsening(day.events, patient, patient.arrival + MAX_WAIT[patient.level]);
     // A red brought by an ambulance has been triaged outside: straight to a place, registered later.
     if (patient.source === "ambulance" && patient.colour === 1) return toWaiting(day, patient);
@@ -155,8 +164,9 @@ export const HANDLERS = {
     scheduleWorsening(day.events, patient, now(day));
   },
   examEnd(day, patient) {
-    give(day, "doctors");
-    doctorBack(day, patient.id);
+    // The patient may die now (pathway-deaths.js): the doctor stays.
+    if (diesNow(day, patient)) return startDeath(day, patient);
+    releaseExamDoctor(day, patient);
     patient.examEnd = now(day);
     const ordered = EXAMS.filter(([need]) => patient.needs[need]);
     if (ordered.length) patient.orderedAt = now(day);
@@ -186,8 +196,7 @@ export const HANDLERS = {
     HANDLERS.examBack(day, patient);
   },
   reviewEnd(day, patient) {
-    give(day, "doctors");
-    doctorBack(day, patient.id);
+    releaseReviewDoctor(day, patient);
     patient.reviewedAt = now(day);
     if (!patient.overlooked) return startCare(day, patient);
     // A tired doctor overlooked the results: they are read again later (step 4).
@@ -233,6 +242,8 @@ export const HANDLERS = {
   },
   ...STAFF_HANDLERS,
   ...HET_HANDLERS,
+  ...DEATH_HANDLERS,
+  ...FAST_HANDLERS,
   /** A task of the intern done (pathway-intern.js), after its minutes: its effect. */
   internDone(day, patient, event) {
     INTERN_DONE[event.kind](day, patient);

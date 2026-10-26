@@ -56,5 +56,7 @@ export function seatsOf(cells, fallback, taken = new Map()) {
       return index >= 0 ? cells[index] : fallback;
     },
     leave: (who) => taken.delete(who),
+    /** The seats still free. */
+    free: () => cells.length - taken.size,
   };
 }

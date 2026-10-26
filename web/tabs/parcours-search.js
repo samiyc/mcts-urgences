@@ -11,7 +11,7 @@ import { seasonOf } from "./parcours-decisions.js";
 export const PAGE_BUDGET = 50;
 
 /** The settings the search's day depends on. */
-const keyOf = ({ state, pathway }, fatigue) => JSON.stringify([state.hospital, state.accident, pathway.season, state.seed, pathway.bed, pathway.plan, pathway.walk, fatigue]);
+const keyOf = ({ state, pathway }, fatigue) => JSON.stringify([state.hospital, state.accident, seasonOf(pathway), state.seed, pathway.bed, pathway.plan, pathway.walk, fatigue]);
 
 /**
  * The box rule replaying the search's choices for the day of the settings, or null while the worker plays it (started

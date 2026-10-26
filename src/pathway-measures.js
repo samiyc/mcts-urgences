@@ -1,4 +1,6 @@
 import { BOARDING_COST } from "./pathway-hypotheses.js";
+import { additionMeasures } from "./pathway-additions.js";
+import { deathMeasures } from "./pathway-deaths.js";
 import { hourAt } from "./pathway-scenario.js";
 import { POOLS } from "./pathway-places.js";
 import { sample } from "./pathway-timeline.js";
@@ -57,7 +59,8 @@ const nightMinutes = (settings, from, to) => {
 
 function exitsOf(all) {
   const exits = { domicile: 0, hospitalise: 0, bloc: 0, transfert: 0, parti: 0, reoriente: 0, encore: 0 };
-  for (const patient of all) exits[patient.exit ?? "encore"] += 1;
+  // A death is counted only on a day with deaths (pathway-deaths.js), so the other days keep their measures.
+  for (const patient of all) exits[patient.exit ?? "encore"] = (exits[patient.exit ?? "encore"] ?? 0) + 1;
   return exits;
 }
 
@@ -122,9 +125,13 @@ export function pathwayMeasures(day) {
   // The use is over the day until the last patient left, not over an empty overtime.
   const end = Math.max(1, ...all.map((patient) => patient.exitAt ?? day.clock));
   const use = Object.fromEntries(POOLS.map((pool) => [pool, day.used[pool] / (day.capacity[pool] * end)]));
+  const late = sum(seen.map((patient) => lateCostNow(patient, patient.start ?? patient.exitAt ?? day.clock)));
+  const additions = additionMeasures(day, deathMeasures);
   return {
     patients: all.length,
-    lateCostNow: sum(seen.map((patient) => lateCostNow(patient, patient.start ?? patient.exitAt ?? day.clock))),
+    // With deaths, the cost the comparisons read counts them at their weight (`lateCostOnly`: the lateness alone).
+    lateCostNow: late + (additions.deaths?.cost ?? 0),
+    ...(additions.deaths ? { lateCostOnly: late } : {}),
     worsened: seen.filter((patient) => patient.worsened > 0).length,
     exits: exitsOf(all),
     peak: { ...day.peak },
@@ -137,5 +144,6 @@ export function pathwayMeasures(day) {
     full: Object.fromEntries(POOLS.map((pool) => [pool, day.full[pool] / end])),
     busiest: POOLS.reduce((best, pool) => (use[pool] > use[best] ? pool : best), POOLS[0]),
     end: day.clock,
+    ...additions,
   };
 }

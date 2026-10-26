@@ -29,13 +29,14 @@ const given = (options) => Object.fromEntries(Object.entries(options).filter(([,
 
 /**
  * A new game at the day's start. `mode`: INTERN_MODES; `from`, `to`: the shift played at the keyboard.
- * @param {Partial<typeof GAME> & { epidemic?: boolean }} [options]
+ * @param {Partial<typeof GAME> & { epidemic?: boolean, family?: boolean, interpreter?: boolean, fastTrack?: boolean, deaths?: boolean }} [options]
  */
 export function startInternGame(options = {}) {
   const settings = { ...GAME, ...given(options) };
-  // `epidemic` (a winter day, the tab's robot intern) is not one of a game's settings: a replay plays an ordinary day.
+  // `epidemic` and the additions (the tab's robot intern) are not a game's settings: a replay plays an ordinary day.
   const { hospital, accident, seed, plan, mode, fatigue } = settings;
-  const drawn = drawPathwayDay(seed, { hospital, accident, epidemic: options.epidemic, walk: true, fatigue, intern: mode === "none" ? null : INTERN, ...(plan ? { plan } : {}) });
+  const { epidemic, family, interpreter, fastTrack, deaths } = options;
+  const drawn = drawPathwayDay(seed, { hospital, accident, epidemic, family, interpreter, fastTrack, deaths, walk: true, fatigue, intern: mode === "none" ? null : INTERN, ...(plan ? { plan } : {}) });
   return {
     settings: Object.fromEntries(Object.keys(GAME).map((key) => [key, settings[key]])),
     day: startPathway(drawn),

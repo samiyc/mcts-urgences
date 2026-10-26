@@ -9,7 +9,7 @@ import { walkSteps } from "./ward-moves.js";
  *
  * Legend: `#` a wall; `.` the floor; `E` the entrance; `A` the reception; `T` the triage (the IOA); `w` a seat of the
  * waiting room, `r` a seat for waiting for results; `b` a box's bed, `S` a SAUV bed, `I` an isolation room, `U` a
- * UHCD bed; `X` a scanner; `L` the lab (where the tubes leave); `P` the pharmacy; `O` the theatre's door; `H` the lifts
+ * UHCD bed; `C` a consultation room of the fast track (pathway-fast.js); `X` a scanner; `L` the lab (where the tubes leave); `P` the pharmacy; `O` the theatre's door; `H` the lifts
  * to the wards; `D` the doctors' room; `R` the break room; `B` the stretcher-bearers' base. Places are numbered in
  * reading order (row by row, left to right).
  *
@@ -23,7 +23,7 @@ export const PATHWAY_PLANS = Object.freeze({
 #...#.....#.....#..#..#..#.........#
 #...#.....#.....#..#..#..#wwwwwwww.#
 #..................................E
-#...#.....#.....#..#..#..#A.T......#
+#...#.....#.....#..#..#..#A.T..C...#
 #...#.....#.....#..#..#..#.........#
 #I..#b.b.b#D.R.B#L.#P.#..#rrrr.....#
 ####################################`,
@@ -33,7 +33,7 @@ export const PATHWAY_PLANS = Object.freeze({
 #....#...........#...........#...#...#...#...........#
 #....#...........#...........#...#...#...#wwwwwwwwww.#
 #....................................................E
-#....#...........#...........#...#...#...#A.T........#
+#....#...........#...........#...#...#...#A.T..C.....#
 #....#...........#...........#...#...#...#wwwwwwwwww.#
 #I...#b.b.b.b.b.b#D...R...B..#L..#P..#...#rrrrrr.....#
 ######################################################`,
@@ -43,7 +43,7 @@ export const PATHWAY_PLANS = Object.freeze({
 #.......#.......................#...........#...#...#...#............#
 #.......#.......................#...........#...#...#...#wwwwwwwwwwww#
 #....................................................................E
-#.......#.......................#...........#...#...#...#A..T........#
+#.......#.......................#...........#...#...#...#A..T..C.C...#
 #.......#.......................#...........#...#...#...#wwwwwwwwwwww#
 #I.....I#b.b.b.b.b.b.b.b.b.b.b.b#U.U.U.U.U.U#L..#P..#...#wwwwwwwwwwww#
 #.......#.......................#D...R...B..#...#...#...#rrrrrrrrrr..#
@@ -51,7 +51,7 @@ export const PATHWAY_PLANS = Object.freeze({
 });
 
 /** The pools of the pathway a plan holds, and their character. */
-export const PLACES = Object.freeze({ boxes: "b", sauv: "S", isolation: "I", uhcd: "U", scanner: "X" });
+export const PLACES = Object.freeze({ boxes: "b", sauv: "S", isolation: "I", uhcd: "U", scanner: "X", fast: "C" });
 /** The points of the plan, one cell each: the required ones, then those a later step will use. */
 const POINTS = Object.freeze({ entrance: "E", reception: "A", triage: "T", room: "D", theatre: "O", lifts: "H", porters: "B" });
 const LATER = Object.freeze({ lab: "L", pharmacy: "P", pause: "R" });
