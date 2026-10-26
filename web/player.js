@@ -154,11 +154,21 @@ function startView(ctx) {
   const { el, player } = ctx;
   return el(
     "details",
-    { class: "editor player-start", open: Boolean(player.gaps) },
+    { class: "editor player-start" },
     el("summary", {}, "Jouer la garde vous-même"),
     el("p", { class: "hint" }, "Vous décidez qui entre dans un box libre, sur la garde choisie plus haut (hôpital, situation, numéro) ; l'infirmier de tri garde sa règle. Seul, ou aidé par l'assistant, qui vous montre le patient que la recherche ferait entrer. À la fin : votre garde contre les règles et l'assistant seul, et les écarts de vos choix."),
     el("div", { class: "controls" }, el("label", {}, "Je joue", el("select", { "data-player-mode": "1" }, ...Object.entries(MODES).map(([value, text]) => el("option", { value, selected: value === player.mode }, text)))), el("button", { type: "button", "data-player": "start" }, "Commencer la garde")),
-    keptList(ctx, store.load()),
+  );
+}
+
+/** The games kept, for the Replays tab, and the gaps of the one analysed. */
+function keptView(ctx) {
+  const { el, player } = ctx;
+  return el(
+    "section",
+    { class: "player" },
+    el("h2", {}, "Les gardes jouées"),
+    keptList(ctx, store.load()) ?? el("p", { class: "hint" }, "Aucune garde jouée dans ce navigateur : « Jouer la garde vous-même », onglet Garde simple."),
     player.gaps && !player.ended ? gapsView(ctx, player.gaps) : null,
   );
 }
@@ -213,5 +223,6 @@ export function createPlayer({ el, current, render, setBusy }) {
     click: (target) => click(ctx, target),
     change: (target) => change(ctx, target),
     playing: () => playing(player) || Boolean(player.ended),
+    keptView: () => keptView(ctx),
   };
 }

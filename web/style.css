@@ -120,3 +120,55 @@ td.hidden-truth.wrong { font-weight: 700; }
     #ffffff;
   box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }
+
+/*
+ * The page in tabs (Sami, 26/10, lopin's layout): the tabs in the band at the top, the settings of the tab open in
+ * a panel on the left that folds, the tab's view beside it; one column on a narrow screen.
+ */
+.topbar { margin-bottom: 14px; padding-bottom: 10px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.tabs button { background: rgb(255 255 255 / 0.12); color: var(--masthead-ink); border: 1px solid rgb(255 255 255 / 0.3); border-radius: 999px; padding: 5px 14px; font-weight: 600; }
+.tabs button:hover { background: rgb(255 255 255 / 0.26); border-color: rgb(255 255 255 / 0.5); }
+.tabs button[aria-selected="true"] { background: #ffffff; color: var(--accent); border-color: #ffffff; }
+main.layout { max-width: 1480px; display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 18px; align-items: start; }
+main.layout > * + * { margin-top: 0; }
+.sidebar { display: grid; gap: 12px; position: sticky; top: 12px; min-width: 0; max-height: calc(100vh - 24px); overflow-y: auto; }
+.sidebar .panel { display: grid; gap: 10px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.sidebar .panel h2 { margin: 0; font-size: 0.95rem; }
+.sidebar label { display: grid; gap: 3px; font-size: 0.78rem; font-weight: 600; color: var(--ink-2); }
+.sidebar select, .sidebar input:not([type="range"]) { width: 100%; }
+.sidebar .row-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.view { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.view > h2 { margin-bottom: 0; }
+.sidebar-fold { position: fixed; left: 16px; bottom: 12px; z-index: 10; width: 44px; padding: 4px 0; font-size: 1.1rem; line-height: 1; }
+main.layout.folded { grid-template-columns: minmax(0, 1fr); }
+main.layout.folded .sidebar { display: none; }
+@media (max-width: 760px) {
+  main.layout { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: static; max-height: none; }
+  .masthead .links { float: none; margin: 0 0 8px; }
+}
+
+/* The detailed pathway on its plan (parcours-draw.js, step 2). */
+.plan-text { width: 100%; min-height: 190px; font: 12px/1.25 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre; overflow-x: auto; resize: vertical; }
+.plan-errors { margin: 0; padding-left: 18px; color: #c62828; font-size: 0.82rem; }
+.plan.pathway { min-width: 720px; }
+.plan.pathway .cell.floor { fill: color-mix(in srgb, var(--ink) 3%, var(--panel)); }
+.plan.pathway .cell.wall { fill: color-mix(in srgb, var(--ink) 55%, var(--panel)); }
+.plan.pathway .cell.bed { fill: color-mix(in srgb, var(--accent) 16%, var(--panel)); stroke: var(--line); }
+.plan.pathway .cell.sauv { fill: color-mix(in srgb, var(--rouge) 30%, var(--panel)); stroke: var(--line); }
+.plan.pathway .cell.isolation { fill: color-mix(in srgb, var(--jaune) 35%, var(--panel)); stroke: var(--line); }
+.plan.pathway .cell.uhcd { fill: color-mix(in srgb, var(--bleu) 22%, var(--panel)); stroke: var(--line); }
+.plan.pathway .cell.machine { fill: color-mix(in srgb, var(--bleu) 40%, var(--panel)); }
+.plan.pathway .cell.seat { fill: color-mix(in srgb, var(--ink) 10%, var(--panel)); stroke: var(--line); }
+.plan.pathway .cell.results { fill: color-mix(in srgb, var(--vert) 22%, var(--panel)); stroke: var(--line); }
+.plan.pathway .cell.desk, .plan.pathway .cell.room { fill: color-mix(in srgb, var(--accent) 35%, var(--panel)); }
+.plan.pathway .cell.door { fill: color-mix(in srgb, var(--accent) 55%, var(--panel)); }
+.plan.pathway .cell-label { font: 600 9px system-ui, sans-serif; fill: var(--ink); text-anchor: middle; pointer-events: none; }
+.plan.pathway .staff { font-size: 16px; text-anchor: middle; pointer-events: none; }
+.figures { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.figure { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.figure strong { display: block; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.figure span { font-size: 0.8rem; color: var(--ink-2); }
+.present td, .present th { padding: 3px 8px; font-size: 0.85rem; }
+.present .worse { color: var(--rouge); font-weight: 700; }

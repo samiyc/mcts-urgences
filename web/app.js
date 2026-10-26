@@ -1,31 +1,51 @@
 import { compareRules } from "../src/compare.js";
 import { ACCIDENT, DEFAULTS, HOSPITALS } from "../src/hypotheses.js";
-import { NURSE_LABELS, NURSE_RULES, RULE_LABELS, RULES } from "../src/rules.js";
+import { comparePathwayRules } from "../src/pathway-compare.js";
+import { NURSE_RULES, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
 import { act, courseOf, measuresOf, nextChoice, simulateShift, startShift } from "../src/simulate.js";
-import { comparison, legend, timeline, waitingChart, worstTable } from "./charts.js";
 import { compareWithSearch, stopWorkers } from "./compare-workers.js";
-import { el, select } from "./dom.js";
+import { el } from "./dom.js";
 import { createLive } from "./live.js";
 import { createPlayer } from "./player.js";
+import { gardePanel, gardeView, planPanel, planView } from "./tabs/garde.js";
+import { createPathwayState, pathwayChange, pathwayClick, pathwayInput, pathwayPanel, pathwayView } from "./tabs/parcours.js";
+import { replaysClick, replaysPanel, replaysView } from "./tabs/replays.js";
+import { statsPanel, statsView } from "./tabs/stats.js";
+import { clock } from "./view.js";
 import { createWardPanel } from "./ward-panel.js";
-import { clock, scaleOf, summaryOf } from "./view.js";
 
 /**
- * The page: a shift drawn from a seed, played under the chosen rule, in the chosen hospital, with or without
- * the accident, with or without a triage nurse who re-assesses the waiting patients; then the rules on the
- * same shifts. The search (src/search.js) thinks for a while at each choice: its shifts are played choice by
- * choice, the page breathing between two. The played shift is replayed on a plan of the department, minute by
- * minute (`sceneAt`), at a chosen speed or from a slider. What it shows is computed in view.js; this module
- * only draws and listens (event delegation on #app).
- *
- * The parts: the charts (charts.js), the animated plan (live.js, live-plan.js), the comparison in workers
- * (compare-workers.js), playing the shift oneself (player.js) or on the plan (ward-panel.js).
+ * The page, in tabs (Sami, 26/10/2026, lopin's layout): a tab per kind of simulation (the simple shift, the shift on
+ * its plan, the detailed pathway), the replays, the stats; the settings of the tab open in the panel on the left,
+ * which folds. The settings shared by the tabs (the hospital, the situation, the shift's number) live in `state`; the
+ * tabs are in tabs/, the drawing in view.js and its neighbours. This module only listens (event delegation on the
+ * layout) and plays the simple shift, choice by choice when the search thinks.
  */
 const COMPARED = 100;
 const COMPARED_WITH_SEARCH = 12;
-const state = { hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0 };
+const TAB_NAMES = ["garde", "plan", "parcours", "replays", "stats"];
+const STORE = "urgences-onglet";
+const read = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+const write = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Storage refused: the tab is only not remembered.
+  }
+};
+const firstTab = () => [location.hash.slice(1), read(STORE)].find((name) => TAB_NAMES.includes(name)) ?? "garde";
+
+const state = { tab: firstTab(), hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0, pathwayDays: 20, pathwayCompared: null, gains: null, serverReplays: undefined };
+const layout = document.getElementById("layout");
+const sidebar = document.getElementById("sidebar");
 const app = document.getElementById("app");
 const ruleOf = (name) => (name === "search" ? searchRule() : RULES[name]);
 const nurseRuleOf = (name) => (name === "search" ? searchRule() : (NURSE_RULES[name] ?? null));
@@ -42,8 +62,7 @@ async function playShift(patients, { rule, nurseRule, settings, run, label }) {
     act(shift, kind, rule, nurseRule);
     choices += 1;
     if (choices % 3 !== 0) continue;
-    state.busy = `${label} : ${choices} choix, ${clock(shift.events.now)}`;
-    renderBusy();
+    setBusy(`${label} : ${choices} choix, ${clock(shift.events.now)}`);
     await breathe();
     if (run !== state.run) return null;
   }
@@ -57,13 +76,8 @@ async function refresh() {
   const run = ++state.run;
   const settings = settingsOf();
   const patients = drawShift(state.seed, settings);
-  if (!searching()) {
-    state.result = simulateShift(patients, RULES[state.rule], settings, nurseRuleOf(state.nurse));
-    state.busy = "";
-    render();
-    return;
-  }
-  const result = await playShift(patients, { rule: ruleOf(state.rule), nurseRule: nurseRuleOf(state.nurse), settings, run, label: "La recherche réfléchit" });
+  const options = { rule: ruleOf(state.rule), nurseRule: nurseRuleOf(state.nurse), settings, run, label: "La recherche réfléchit" };
+  const result = searching() ? await playShift(patients, options) : simulateShift(patients, RULES[state.rule], settings, nurseRuleOf(state.nurse));
   if (!result) return;
   Object.assign(state, { result, busy: "" });
   render();
@@ -71,37 +85,12 @@ async function refresh() {
 
 async function compareSearching() {
   const run = ++state.run;
-  const progress = (text) => {
-    state.busy = text;
-    renderBusy();
-  };
-  const compared = await compareWithSearch({ count: COMPARED_WITH_SEARCH, seed: state.seed, settings: settingsOf(), nurse: state.nurse, current: () => run === state.run, progress });
+  const compared = await compareWithSearch({ count: COMPARED_WITH_SEARCH, seed: state.seed, settings: settingsOf(), nurse: state.nurse, current: () => run === state.run, progress: setBusy });
   if (!compared) return;
   Object.assign(state, { compared, busy: "" });
   render();
 }
 
-function controls() {
-  const count = searching() ? COMPARED_WITH_SEARCH : COMPARED;
-  return el(
-    "div",
-    { class: "controls" },
-    el("label", {}, "Hôpital", select("hospital", Object.entries(HOSPITALS).map(([id, one]) => [id, `${one.label} (${one.boxes} box, ${one.doctors} médecins)`]), state.hospital)),
-    el("label", {}, "Situation", select("accident", [["oui", "accident à 09:30 (10 victimes)"], ["non", "jour ordinaire"]], state.accident ? "oui" : "non")),
-    el("label", {}, "Règle", select("rule", Object.entries(RULE_LABELS), state.rule)),
-    el("label", {}, "Réévaluation (un infirmier)", select("nurse", Object.entries(NURSE_LABELS), state.nurse)),
-    el("label", {}, "Garde n°", el("input", { type: "number", min: "1", value: String(state.seed), "data-knob": "seed", inputmode: "numeric" })),
-    el("button", { type: "button", class: "quiet", "data-action": "next" }, "Garde suivante"),
-    el("button", { type: "button", "data-action": "compare" }, `Comparer les règles sur ${count} gardes`),
-  );
-}
-
-/** While the search thinks: the controls and where it is. */
-function renderBusy() {
-  app.replaceChildren(controls(), el("p", { class: "summary busy", role: "status" }, state.busy));
-}
-
-/** Playing the shift oneself (player.js): the game in front of the person takes the page while it lasts. */
 const player = createPlayer({
   el,
   current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse }),
@@ -111,40 +100,44 @@ const player = createPlayer({
     render();
   },
 });
+const wardPanel = createWardPanel({ el, current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse, rule: state.rule }), render: () => render() });
+const counts = () => (searching() ? COMPARED_WITH_SEARCH : COMPARED);
+const ctx = { el, state, settingsOf, live, player, wardPanel, pathway: createPathwayState(), counts, render: () => render(), openTab: (name) => openTab(name) };
+const TABS = { garde: [gardePanel, gardeView], plan: [planPanel, planView], parcours: [pathwayPanel, pathwayView], replays: [replaysPanel, replaysView], stats: [statsPanel, statsView] };
+/** The tabs the simple shift's work holds up: the shift itself, and the comparisons. */
+const WAITS_FOR_SHIFT = new Set(["garde", "stats"]);
 
-/** The department on its plan (ward-panel.js): while a game is on it, it takes the page too. */
-const wardPanel = createWardPanel({
-  el,
-  current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse, rule: state.rule }),
-  render: () => render(),
-});
-
-/** The played shift: its summary, the games, the plan minute by minute, the boxes, the waiting room, the rules. */
-function shiftView() {
-  const settings = settingsOf();
-  const { patients, measures } = state.result;
-  const scale = scaleOf(patients);
-  return [
-    el("p", { class: "summary" }, summaryOf(measures)),
-    player.view(),
-    wardPanel.view(),
-    el("h2", {}, "La garde, minute par minute"),
-    live.section(),
-    el("h2", {}, "Les box"),
-    timeline(patients, settings, scale),
-    legend(),
-    waitingChart(patients, scale, state.accident),
-    el("h2", {}, "Les patients les plus mal servis, et ce que personne ne voyait"),
-    worstTable(patients),
-    ...comparison(state.compared, state.rule, COMPARED),
-  ];
+/** While the search thinks (or a comparison runs): where it is, in the view of the tabs that wait for it. */
+function setBusy(text) {
+  state.busy = text;
+  if (WAITS_FOR_SHIFT.has(state.tab)) app.replaceChildren(el("p", { class: "summary busy", role: "status" }, text));
 }
 
 function render() {
-  if (!state.busy && player.playing()) app.replaceChildren(controls(), player.view());
-  else if (wardPanel.active()) app.replaceChildren(controls(), wardPanel.view());
-  else if (state.busy || !state.result) renderBusy();
-  else app.replaceChildren(controls(), ...shiftView());
+  for (const button of document.querySelectorAll(".tabs [role=tab]")) button.setAttribute("aria-selected", String(/** @type {HTMLElement} */ (button).dataset.tab === state.tab));
+  const [panel, view] = TABS[state.tab];
+  sidebar.replaceChildren(panel(ctx));
+  const holdUp = WAITS_FOR_SHIFT.has(state.tab) && (state.busy || (state.tab === "garde" && !state.result));
+  if (holdUp) app.replaceChildren(el("p", { class: "summary busy", role: "status" }, state.busy || "La garde se joue…"));
+  else app.replaceChildren(...view(ctx));
+}
+
+function openTab(name) {
+  state.tab = name;
+  history.replaceState(null, "", `#${name}`);
+  write(STORE, name);
+  render();
+}
+
+function comparePathway() {
+  setBusy(`Le parcours : ${state.pathwayDays} journées de 24 h, six règles…`);
+  setTimeout(() => {
+    const { plan } = ctx.pathway;
+    const rows = comparePathwayRules({ days: state.pathwayDays, hospital: state.hospital, accident: state.accident, ...(plan ? { plan } : {}) });
+    const label = `${HOSPITALS[state.hospital].label}, ${state.accident ? "avec l'accident" : "jour ordinaire"}${plan ? ", plan modifié" : ""}`;
+    Object.assign(state, { pathwayCompared: { rows, days: state.pathwayDays, label }, busy: "" });
+    render();
+  }, 30);
 }
 
 const ACTIONS = {
@@ -155,45 +148,69 @@ const ACTIONS = {
     refresh();
   },
   compare: () => {
-    if (searching()) {
-      compareSearching();
-      return;
-    }
+    if (searching()) return compareSearching();
     state.compared = compareRules({ shifts: COMPARED, settings: settingsOf(), nurseRule: nurseRuleOf(state.nurse) });
     render();
   },
+  comparePathway,
 };
 
-/** A knob of the controls changed: the shift is played again (the comparison kept for another seed only). */
+/** A shared setting changed: the shift is played again (the comparison kept for another seed only). */
 function knobChanged(name, value) {
   if (name === "accident") state.accident = value === "oui";
   else if (name === "seed") state.seed = Math.max(1, Number(value) || 1);
   else state[name] = value;
   if (name !== "seed") state.compared = null;
-  state.busy = searching() ? "La recherche réfléchit…" : "";
+  if (searching()) setBusy("La recherche réfléchit…");
   refresh();
 }
 
 /** The element an event came from, as the form fields it is. */
 const fieldOf = (event) => /** @type {HTMLInputElement} */ (event.target);
 
-app.addEventListener("change", (event) => {
+/** A setting of the page changed (not one of the games' or the pathway's): the days compared, the live speed, a shared knob. */
+function pageChange(target) {
+  const { stat, knob } = target.dataset ?? {};
+  if (stat === "days") state.pathwayDays = Number(target.value);
+  else if (knob === "liveSpeed") live.setSpeed(Number(target.value));
+  else if (knob) knobChanged(knob, target.value);
+}
+
+layout.addEventListener("change", (event) => {
   const target = fieldOf(event);
-  if (player.change(target) || wardPanel.change(target)) return;
-  const name = target.dataset?.knob;
-  if (name === "liveSpeed") live.setSpeed(Number(target.value));
-  else if (name) knobChanged(name, target.value);
+  if (!(player.change(target) || wardPanel.change(target) || pathwayChange(ctx, target))) pageChange(target);
 });
-app.addEventListener("input", (event) => {
+layout.addEventListener("input", (event) => {
   const target = fieldOf(event);
+  if (pathwayInput(ctx, target)) return;
   if (target.dataset?.live === "t") live.seek(Number(target.value));
 });
-app.addEventListener("click", (event) => {
+layout.addEventListener("click", (event) => {
   const target = fieldOf(event);
-  if (player.click(target) || wardPanel.click(target)) return;
+  if (player.click(target) || wardPanel.click(target) || pathwayClick(ctx, target) || replaysClick(ctx, target)) return;
   const action = /** @type {HTMLElement | null} */ (target.closest?.("[data-action]"))?.dataset.action;
   if (ACTIONS[action]) ACTIONS[action]();
 });
+document.querySelector(".tabs").addEventListener("click", (event) => {
+  const name = /** @type {HTMLElement | null} */ (fieldOf(event).closest?.("[data-tab]"))?.dataset.tab;
+  if (name) openTab(name);
+});
+// A tab named in the address (a link, the back button) opens.
+window.addEventListener("hashchange", () => TAB_NAMES.includes(location.hash.slice(1)) && location.hash.slice(1) !== state.tab && openTab(location.hash.slice(1)));
+const fold = document.getElementById("fold");
+const setFolded = (folded) => {
+  layout.classList.toggle("folded", folded);
+  fold.setAttribute("aria-expanded", String(!folded));
+  fold.textContent = folded ? "»" : "«";
+  write("urgences-replie", folded ? "1" : "0");
+};
+fold.addEventListener("click", () => setFolded(!layout.classList.contains("folded")));
+setFolded(read("urgences-replie") === "1");
+// The keys of the caregiver played on the plan, in its tab; a key in a form field is the field's.
+document.addEventListener("keydown", (event) => state.tab === "plan" && wardPanel.key(event));
+fetch("../docs/changelog.json")
+  .then((response) => (response.ok ? response.json() : null))
+  .then((gains) => (state.gains = gains))
+  .catch(() => {});
 refresh();
-// The keys of the caregiver played on the plan; a key in a form field is the field's.
-document.addEventListener("keydown", (event) => wardPanel.key(event));
+render();

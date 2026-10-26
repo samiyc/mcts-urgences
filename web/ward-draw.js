@@ -4,7 +4,7 @@ import { clock } from "./view.js";
 
 /** The plan of « Le service en plan » at a step (`wardScene` of src/ward.js): walls, beds, seats, desks, people. */
 
-const CELL = 30;
+export const CELL = 30;
 const CELL_CLASS = { "#": "wall", b: "bed", w: "seat", T: "desk", D: "room", E: "door" };
 const LABELS = [
   ["T", "tri"],
@@ -23,7 +23,7 @@ function cells(root, scene) {
 }
 
 /** Where to draw a person: people on one cell are spread a little, so that a crowd at the door still shows. */
-function spotter() {
+export function spotter() {
   const crowd = new Map();
   return (x, y) => {
     const key = `${x},${y}`;

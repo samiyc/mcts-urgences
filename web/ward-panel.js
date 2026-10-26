@@ -146,13 +146,17 @@ function keptList({ el }, kept) {
 function startView(ctx) {
   const { el, panel } = ctx;
   return el(
-    "details",
-    { class: "editor player-start" },
-    el("summary", {}, "Le service en plan : jouer un médecin ou l'infirmier au clavier"),
+    "section",
+    { class: "player player-start" },
+    el("h2", {}, "Le service en plan : jouer un médecin ou l'infirmier au clavier"),
     el("p", { class: "hint" }, "La garde choisie plus haut (hôpital, situation, règle, numéro), sur un plan du service : les patients et les soignants marchent. Vous jouez un médecin (E au lit d'un box pour examiner le patient qui y est couché : le vôtre, ou celui d'un collègue pas encore commencé, et vous échangez vos patients) ou l'infirmier de tri (E à côté d'un patient qui attend depuis 30 min pour le réévaluer). Z Q S D ou les flèches pour marcher."),
     el("div", { class: "controls" }, el("label", {}, "Je joue", el("select", { "data-ward-role": "1" }, ...Object.entries(ROLES).map(([value, text]) => el("option", { value, selected: value === panel.role }, text)))), el("label", {}, "Vitesse", speedSelect(ctx)), el("button", { type: "button", "data-ward": "start" }, "Commencer sur le plan")),
-    keptList(ctx, store.load()),
   );
+}
+
+/** The games on the plan kept, for the Replays tab. */
+function keptView(ctx) {
+  return ctx.el("section", { class: "player" }, ctx.el("h2", {}, "Les gardes sur le plan"), keptList(ctx, store.load()) ?? ctx.el("p", { class: "hint" }, "Aucune garde sur le plan dans ce navigateur : onglet Service en plan."));
 }
 
 function view(ctx) {
@@ -204,5 +208,6 @@ export function createWardPanel({ el, current, render }) {
     change: (target) => change(ctx, target),
     key: (event) => key(ctx, event),
     active: () => Boolean(ctx.panel.ward),
+    keptView: () => keptView(ctx),
   };
 }
