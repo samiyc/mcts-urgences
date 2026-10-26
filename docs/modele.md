@@ -419,6 +419,81 @@ raccourcir les trajets, ou au contraire grossir la congestion pour éprouver la 
 À l'étape 3, ces minutes compteront : l'examen attendra que le patient et le médecin soient au lit, et un transport
 son brancardier.
 
+## La marche comptée et l'interne au clavier, étape 3 (26/10, Sami)
+
+**Les choix de Sami** :
+- la marche compte pour tous, avec un interrupteur ;
+- une partie dure une vacation de 4 h ;
+- l'interne lit les résultats de ses patients ;
+- les six tâches dès cette étape.
+
+**Les positions sont dans le modèle.** Chaque déplacement du journal est marché au moment où il a lieu, de là où l'on
+est jusqu'à la case où l'on va (`src/pathway-cells.js`, `src/pathway-trace.js`). Le plan dessine exactement ces
+marches, et le modèle peut les attendre.
+
+**La marche comptée** (`walk` dans les réglages, la case « Marche comptée » de l'onglet). Elle change trois choses :
+- l'examen commence quand le patient et le médecin sont tous deux au box ;
+- le médecin marche jusqu'au patient pour lire ses résultats ;
+- le scanner passe par un vrai brancardier (`src/pathway-porters.js`) : le plus proche des libres va au patient,
+  l'accompagne, puis revient à sa base.
+
+Sans la case, la journée est celle de l'étape 1, empreinte comprise. Ce que la marche coûte, sur l'hôpital moyen,
+couleur puis ordre d'arrivée, en moyenne sur 20 journées :
+
+| | coût du retard au moment | passage, médiane | sortis en moins de 4 h |
+|---|---|---|---|
+| jour ordinaire, sans marche | 4 902 | 2 h 19 | 79 % |
+| jour ordinaire, marche comptée | 8 534 | 2 h 37 | 76 % |
+| accident, sans marche | 50 401 | 3 h 58 | 55 % |
+| accident, marche comptée | 66 820 | 4 h 20 | 49 % |
+
+L'aller-retour des médecins entre leur salle et les box pèse le plus : un box reste pris quelques minutes de plus par
+patient.
+
+**L'interne** (`src/pathway-intern.js`, des hypothèses dans `INTERN`, `src/pathway-hypotheses.js`). Il suit
+jusqu'à 4 patients non urgents, confiés à la sortie du tri, et fait leurs tâches, chacune avec un délai :
+- **reprendre les constantes** toutes les 30 min tant que le patient attend un box : une aggravation qu'elles
+  révèlent change la couleur, et la règle des box la voit ;
+- **prélever**, puis **porter les tubes au labo** : le délai du labo commence à l'arrivée des tubes ;
+- **aller chercher le patient pour le scanner**, qui le suit, puis l'y laisser ;
+- **regarder les résultats** au poste des médecins, à la place d'un senior ;
+- **chercher un médicament à la pharmacie**, puis **le donner** : les soins commencent alors, plus courts des 10 min
+  que le service aurait passées à le chercher.
+
+Les besoins de médicament sont tirés à part, si bien que les patients de la journée restent les mêmes avec ou sans
+interne.
+
+**La partie** (`src/pathway-game.js`) se joue un pas de 6 s à la fois, la marche comptée :
+- pendant la vacation choisie, l'interne se joue au clavier (Z Q S D, E) ;
+- avant et après, un interne robot, qui fait la tâche due en premier et va au plus près ;
+- le mode « au hasard » choisit une tâche au hasard et la tient jusqu'au bout : un humain simulé.
+
+Une partie se rejoue depuis ses touches. À la fin, la même journée est comparée avec un interne robot, un interne au
+hasard et sans interne.
+
+**Ce que fait l'interne**, sur l'hôpital moyen, couleur puis ordre d'arrivée, en moyenne sur 10 journées :
+
+| | coût du retard au moment | passage, médiane | retard moyen d'une tâche | aggravations repérées |
+|---|---|---|---|---|
+| jour ordinaire, sans interne | 8 175 | 2 h 44 | — | — |
+| jour ordinaire, interne robot | 8 921 | 2 h 42 | 0 min | 0,9 |
+| jour ordinaire, interne au hasard | 8 266 | 2 h 42 | 0,1 min | 1,5 |
+| accident, sans interne | 67 262 | 4 h 30 | — | — |
+| accident, interne robot | 70 024 | 4 h 33 | 0 min | 5,6 |
+| accident, interne au hasard | 70 726 | 4 h 27 | 0,1 min | 6,7 |
+
+L'interne robot fait toutes ses tâches à temps et repère des aggravations, surtout pendant l'accident. Mais le coût
+du retard avant le box ne baisse pas : il est même un peu plus haut qu'avec le service seul.
+
+Les délais du service (10 min pour prélever, la lecture par un senior) sont des hypothèses. L'interne qui marche
+d'un bout à l'autre du plan ne fait pas mieux qu'elles, et les patients qu'il suit gardent leur box pendant qu'il
+s'occupe des autres.
+
+C'est la question que les étapes suivantes peuvent creuser :
+- les plans, en mettant le labo et la pharmacie près des box ;
+- la fatigue, à l'étape 4 ;
+- la recherche, qui choisirait l'ordre des tâches, à l'étape 6.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).

@@ -70,7 +70,13 @@ Les choix de Sami (26/10, avant de coder) :
 - **les brancardiers** : 1 à l'hôpital de proximité, 2 au moyen, 3 au CHU (hypothèse, sans source). Ils sont
   dessinés à l'étape 2 et ne font attendre qu'à partir de l'étape 3, quand la marche compte.
 
-## Étape 3 : l'interne au clavier
+## Étape 3 : l'interne au clavier (faite le 26/10, [modele.md](../modele.md), « La marche comptée et l'interne au clavier »)
+
+Les choix de Sami (26/10) :
+- la marche compte pour tous, avec un interrupteur qui garde l'étape 1 identique ;
+- une partie est une vacation de 4 h, un interne robot avant et après ;
+- l'interne lit les résultats de ses patients à la place d'un senior ;
+- les six tâches dès cette étape.
 
 - Le joueur suit **3 à 5 patients**, que l'ordonnanceur lui confie.
 - Ses tâches sont **guidées et locales** :

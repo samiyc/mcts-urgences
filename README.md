@@ -20,7 +20,8 @@ http://127.0.0.1:4801/web/. La page est en onglets depuis le 26/10/2026, chacun 
 gauche, qui se replie :
 - **Garde simple** : la garde de 8 h et « Jouer la garde vous-même » ;
 - **Service en plan** : un soignant au clavier ;
-- **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau ;
+- **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, la marche comptée
+  ou non, un interne robot ou au hasard ; et « L'interne au clavier », une vacation de 4 h jouée avec Z Q S D et E ;
 - **Replays** : les parties gardées et le dossier `replays/` ;
 - **Stats** : les règles comparées sur la garde et sur le parcours.
 

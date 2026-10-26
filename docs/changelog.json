@@ -50,6 +50,23 @@
   ],
   "versions": [
     {
+      "version": "0.13",
+      "date": "26/10",
+      "title": "La marche comptée, l'interne au clavier",
+      "commits": [
+        "82a5c24",
+        "29bc78e",
+        "64b032f",
+        "3219e8c"
+      ],
+      "items": [
+        "La marche comptée, au choix : l'examen attend le patient et le médecin au box, la lecture des résultats la marche du médecin, le scanner un vrai brancardier. Sur l'hôpital moyen, le coût du retard passe de 4 902 à 8 534 un jour ordinaire.",
+        "L'interne au clavier, dans l'onglet Parcours détaillé : une vacation de 4 h, jusqu'à 4 patients suivis, six tâches avec leur délai (les constantes qui révèlent une aggravation, le prélèvement et les tubes au labo, le scanner, les résultats, le médicament de la pharmacie), Z Q S D pour marcher et E pour agir.",
+        "À la fin, la même journée avec un interne robot, un interne au hasard et sans interne. Sur 10 journées, le robot fait tout à temps et repère jusqu'à 6 aggravations par jour pendant l'accident, mais le coût du retard avant le box ne baisse pas.",
+        "Les vacations se gardent et se téléchargent dans l'onglet Replays."
+      ]
+    },
+    {
       "version": "0.12",
       "date": "26/10",
       "title": "Les onglets, et le parcours sur son plan",
