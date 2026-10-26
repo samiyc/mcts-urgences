@@ -64,6 +64,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   queueDecided: false,
   /** The crisis plan, the « Plan blanc » (ALERT, step 6), or none: without it, the day is the same as before. */
   alert: null,
+  /** Moving a patient out of the SAUV for a red decided (pathway-sauv.js, step 6), instead of never. */
+  sauvDecided: false,
   /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
   fatigue: null,
   /**

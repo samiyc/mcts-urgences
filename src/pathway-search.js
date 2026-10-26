@@ -6,6 +6,8 @@ import { BOARDING_COST, INTERN_LATE } from "./pathway-hypotheses.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
 import { ALERT_RULES, recalledHours } from "./pathway-alert.js";
+import { SAUV_RULES } from "./pathway-sauv.js";
+import { idOf } from "./pathway.js";
 import { hourAt } from "./pathway-scenario.js";
 import { BED_RULES, decide, followed, nextDecision } from "./pathway.js";
 import { cloneDay } from "./pathway-clone.js";
@@ -93,14 +95,13 @@ const allBedded = (world) => world.boarders.every((id) => world.patients.get(id)
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null || world.patients.get(id).exit !== null);
 
 /** Whether the search chooses this decision: a box's always; a bed's with `beds`; a break's with `breaks`. */
-const IN_TREE = { box: () => true, bed: (rules) => rules.beds, break: (rules) => rules.breaks, intern: (rules) => rules.interns, queue: (rules) => rules.queues, alert: (rules) => rules.alerts };
+const IN_TREE = { box: () => true, bed: (rules) => rules.beds, break: (rules) => rules.breaks, intern: (rules) => rules.interns, queue: (rules) => rules.queues, alert: (rules) => rules.alerts, sauv: (rules) => rules.sauvs };
 const inTree = (decision, rules) => Boolean(IN_TREE[decision.kind](rules));
 
 /** A decision's answer by its rule in the worlds: the colour rule, the bed rule, the break « au creux ». */
 function ruled(world, decision, { bed }) {
-  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet, intern: INTERN_RULES.dueFirst, queue: QUEUE_RULES.colour, alert: ALERT_RULES.threshold }[decision.kind];
-  const chosen = rule(decision.candidates, { day: world });
-  return decision.kind === "break" || decision.kind === "alert" ? chosen.id : Number(chosen.id);
+  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet, intern: INTERN_RULES.dueFirst, queue: QUEUE_RULES.colour, alert: ALERT_RULES.threshold, sauv: SAUV_RULES.never }[decision.kind];
+  return idOf(decision, rule(decision.candidates, { day: world }));
 }
 
 /** Plays the decision with `id`, then the day to its next decision the search chooses, the others by their rule. */
@@ -156,6 +157,7 @@ const MOVES_OF = {
   bed: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `lit-${view.id}`, whole: true })),
   break: () => [...BREAK_MOVES],
   alert: () => [{ id: "now", key: "plan-maintenant", whole: true }, { id: "later", key: "plan-plus-tard", whole: true }],
+  sauv: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `sauv-${view.id}`, whole: true })),
   intern: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `tâche-${view.id}`, whole: true })),
   queue: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `${decision.pool}-${view.id}`, whole: true })),
 };
@@ -187,8 +189,8 @@ const alertCost = (world, from) => (recalledHours(world, world.events.now) - rec
  * The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`, `breaks`: the bed decisions, the
  * break decisions are moves too.
  */
-export function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, interns = false, queues = false, alerts = false, from = 0 }) {
-  const rules = { bed, beds, breaks, interns, queues, alerts };
+export function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, interns = false, queues = false, alerts = false, sauvs = false, from = 0 }) {
+  const rules = { bed, beds, breaks, interns, queues, alerts, sauvs };
   const cost = (world) => costOf(world, rules, from);
   // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the
   // horizon); choosing the intern's tasks, over the horizon.
@@ -210,11 +212,11 @@ export function problemFor({ scale, width, horizon, bed, beds = false, breaks = 
 }
 
 /** The colour rule's cost on a few worlds: the score's scale, so that the rule scores about ½. */
-export function scaleOf(day, rng, { horizon, bed, beds = false, breaks = false, interns = false, queues = false, alerts = false }) {
+export function scaleOf(day, rng, { horizon, bed, beds = false, breaks = false, interns = false, queues = false, alerts = false, sauvs = false }) {
   const from = day.events.now;
   let total = 0;
   for (let i = 0; i < 3; i += 1) {
-    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, breaks, interns, queues, alerts, from }).rollout(drawWorld(day, rng, horizon));
+    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, breaks, interns, queues, alerts, sauvs, from }).rollout(drawWorld(day, rng, horizon));
     total += costOf(world, { beds, interns, alerts }, from);
   }
   return Math.max(20, total / 3);

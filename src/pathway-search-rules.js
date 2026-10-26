@@ -4,6 +4,7 @@ import { ALERT_RULES } from "./pathway-alert.js";
 import { BREAK_DECIDERS } from "./pathway-fatigue.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
+import { SAUV_RULES } from "./pathway-sauv.js";
 import { BED_RULES } from "./pathway.js";
 import { PATHWAY_SEARCH, problemFor, scaleOf } from "./pathway-search.js";
 
@@ -96,5 +97,21 @@ export function pathwaySearchAlertRule(options = {}) {
     const scale = scaleOf(day, rng, { horizon, bed, alerts: true });
     const found = search(day, problemFor({ scale, width, horizon, bed, alerts: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
     return candidates.find((one) => one.id === found.move?.id) ?? ALERT_RULES.threshold(candidates, { day });
+  };
+}
+
+/**
+ * The search deciding whether to move a patient out of the SAUV for a red (step 6; runPathway's `sauv`, a day with
+ * `sauvDecided`): the other decisions by their rules in its worlds, scored on the late cost.
+ */
+export function pathwaySearchSauvRule(options = {}) {
+  const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
+  const bed = options.bed ?? BED_RULES.oldest;
+  return (candidates, { day }) => {
+    if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
+    const rng = createRng((Math.imul(seed, 0x7feb352d) + Math.round(day.events.now * 1000) * 59 + candidates.length) >>> 0);
+    const scale = scaleOf(day, rng, { horizon, bed, sauvs: true });
+    const found = search(day, problemFor({ scale, width, horizon, bed, sauvs: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    return candidates.find((view) => view.id === found.move?.id) ?? SAUV_RULES.never(candidates);
   };
 }

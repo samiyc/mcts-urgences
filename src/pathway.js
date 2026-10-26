@@ -7,6 +7,7 @@ import { drop, startIntern } from "./pathway-intern.js";
 import { INTERN_RULES, decideIntern, internDecision } from "./pathway-intern-decided.js";
 import { QUEUE_RULES, decideQueue, queueDecision } from "./pathway-queues.js";
 import { ALERT_RULES, alertDecision, decideAlert, startAlert } from "./pathway-alert.js";
+import { SAUV_RULES, decideSauv, sauvDecision } from "./pathway-sauv.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve, startBreak } from "./pathway-serve.js";
@@ -207,7 +208,7 @@ function bedDecision(day) {
  * The decision the day is at, or null: `{ kind: "box", candidates }` (views of the waiting patients a place is free
  * for, a doctor free), or `{ kind: "bed", ward, candidates }` (a ward has a bed, two patients or more wait for it).
  */
-const decisionAt = (day) => boxDecision(day) ?? bedDecision(day) ?? queueDecision(day) ?? alertDecision(day) ?? breakDecision(day) ?? internDecision(day);
+const decisionAt = (day) => sauvDecision(day) ?? boxDecision(day) ?? bedDecision(day) ?? queueDecision(day) ?? alertDecision(day) ?? breakDecision(day) ?? internDecision(day);
 
 /** Whether the day is over: past the overtime, or nothing left to happen and no task left to the intern. */
 const endsNow = (day, next, end) => (next ? next.at > end : (day.intern?.tasks.length ?? 0) === 0);
@@ -253,6 +254,7 @@ const DECIDE = {
   intern: (day, _, id) => decideIntern(day, id),
   queue: (day, decision, id) => decideQueue(day, decision, id),
   alert: (day, _, id) => decideAlert(day, id),
+  sauv: (day, _, id) => decideSauv(day, id),
 };
 
 /**
@@ -281,7 +283,7 @@ export function decide(day, decision, id) {
 /**
  * Plays `day` to its end: the box choices by `rules.box` (a rule of rules.js), the bed choices by `rules.bed` (BED_RULES).
  * @param {Day} day
- * @param {{ box: Rule, bed: BedRule, breaks?: Function, intern?: Function, queue?: Function, alert?: Function }} rules
+ * @param {{ box: Rule, bed: BedRule, breaks?: Function, intern?: Function, queue?: Function, alert?: Function, sauv?: Function }} rules
  * @returns {Day}
  */
 export function runPathway(day, rules) {
@@ -289,24 +291,26 @@ export function runPathway(day, rules) {
   return day;
 }
 
+/** A chosen candidate's id as `decide` takes it: a patient's or a task's number, or a word (« now », « none »…). */
+export const idOf = (decision, chosen) => (typeof chosen.id === "string" ? chosen.id : Number(chosen.id));
+
 /**
  * A decision taken by its rule: the box rule, the bed rule, the break decider (« au creux » by default).
  * @param {Day} day
  * @param {Decision} decision
- * @param {{ box: Function, bed: Function, breaks?: Function, intern?: Function, queue?: Function, alert?: Function }} rules
+ * @param {{ box: Function, bed: Function, breaks?: Function, intern?: Function, queue?: Function, alert?: Function, sauv?: Function }} rules
  */
-export function choose(day, decision, { box, bed, breaks = BREAK_DECIDERS.quiet, intern = INTERN_RULES.dueFirst, queue = QUEUE_RULES.colour, alert = ALERT_RULES.threshold }) {
+export function choose(day, decision, { box, bed, breaks = BREAK_DECIDERS.quiet, intern = INTERN_RULES.dueFirst, queue = QUEUE_RULES.colour, alert = ALERT_RULES.threshold, sauv = SAUV_RULES.never }) {
   const context = { now: now(day), day };
-  const rule = { box, bed, break: breaks, intern, queue, alert }[decision.kind];
-  const chosen = rule(decision.candidates, context);
-  decide(day, decision, decision.kind === "break" || decision.kind === "alert" ? chosen.id : Number(chosen.id));
+  const rule = { box, bed, break: breaks, intern, queue, alert, sauv }[decision.kind];
+  decide(day, decision, idOf(decision, rule(decision.candidates, context)));
 }
 
 /**
  * Plays `day` up to minute `until`, the choices by `rules` (runPathway's): the intern acts between two such calls.
  * @param {Day} day
  * @param {number} until
- * @param {{ box: Rule, bed: BedRule, breaks?: Function, intern?: Function, queue?: Function, alert?: Function }} rules
+ * @param {{ box: Rule, bed: BedRule, breaks?: Function, intern?: Function, queue?: Function, alert?: Function, sauv?: Function }} rules
  */
 export function runUntil(day, until, rules) {
   if (day.over) return day;

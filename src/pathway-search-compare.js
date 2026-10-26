@@ -7,8 +7,9 @@ import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { internMeasures } from "./pathway-game.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
 import { ALERT_RULES, alertMeasures } from "./pathway-alert.js";
+import { SAUV_RULES } from "./pathway-sauv.js";
 import { pathwaySearchRule } from "./pathway-search.js";
-import { pathwaySearchAlertRule, pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchQueueRule } from "./pathway-search-rules.js";
+import { pathwaySearchAlertRule, pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchQueueRule, pathwaySearchSauvRule } from "./pathway-search-rules.js";
 import { RULES } from "./rules.js";
 
 /**
@@ -101,6 +102,15 @@ export function playAlertSearchDay({ seed, options, budget }) {
       return [name, { ...measures, lateCostOnly: measures.lateCostNow, lateCostNow: measures.lateCostNow + alert.cost, alert }];
     }),
   );
+}
+
+/** Out of the SAUV: never, the longest there as soon as a red waits, and the search (step 6). */
+export const SAUV_SEARCHED = Object.freeze(["never", "longest", "search"]);
+
+/** One day: each way of moving patients out of the SAUV, its measures; the box rule « couleur ». */
+export function playSauvSearchDay({ seed, options, budget }) {
+  const ruleOf = (name) => (name === "search" ? pathwaySearchSauvRule({ budget }) : SAUV_RULES[name]);
+  return Object.fromEntries(SAUV_SEARCHED.map((name) => [name, pathwayMeasures(runPathway(startPathway(drawPathwayDay(seed, { ...options, sauvDecided: true })), { box: RULES.colour, bed: BED_RULES.oldest, sauv: ruleOf(name) }))]));
 }
 
 /** The search's choices of a day, in order (each box decision's chosen id): the page replays the day from them. */
