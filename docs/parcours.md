@@ -446,3 +446,11 @@ chambre d'isolement ne prend que des patients à isoler, et un jour ordinaire, e
 l'épidémie, elle sert, comme un box de plus. Est-ce ainsi dans un vrai service, ou y met-on un patient ordinaire quand
 elle est libre ? C'est une question à poser (H61). Les lits manquants coûtent peu sur une journée : leur effet
 s'accumule sur des semaines, que le simulateur ne joue pas.
+
+**La recherche au pic de l'épidémie** (les mêmes 200 journées de l'hôpital moyen, les jobs `parcours-hiver-*` de
+`night.json`) :
+- **le box**, à 100 itérations : **6 239** contre 9 343 pour l'échéance, soit −33 %, +3 104 (+2 031 à +4 176). Le gain
+  est du même ordre que les autres jours, et la recherche laisse partir autant de patients sans être vus que
+  l'échéance (2,2 contre 2,3) ;
+- **le Plan blanc**, à 50 itérations : 9 103 contre 9 835 pour « jamais » (+733, de −42 à +1 507) et 10 058 au seuil.
+  C'est le jour où il sert le plus, mais l'intervalle touche encore zéro : rien de sûr.

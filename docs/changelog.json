@@ -50,6 +50,30 @@
   ],
   "versions": [
     {
+      "version": "0.18",
+      "date": "26/10, soir",
+      "title": "Toutes les décisions du parcours, et l'épidémie d'hiver",
+      "commits": [
+        "55d5853",
+        "d7c6736",
+        "e50cbd9",
+        "0521e7b",
+        "6b39e1e",
+        "6311c04",
+        "b8b5fe5",
+        "4da4bdb",
+        "c60353c",
+        "41a0ca8",
+        "9ff31ee"
+      ],
+      "items": [
+        "La recherche décide aussi l'ordre des tâches de l'interne, l'ordre du scanner et du bloc, la sortie de SAUV et le Plan blanc ; chacun se règle dans l'onglet Parcours détaillé, par une règle de référence, et le Plan blanc déclenché se voit sur la frise.",
+        "Sur 200 journées : la recherche gagne 2 à 2,4 % pendant l'accident sur le scanner, le bloc et la sortie de SAUV ; rien de sûr sur l'interne ni sur le Plan blanc, qui ne fait pas mieux que de ne jamais le déclencher.",
+        "L'épidémie d'hiver : au pic d'une grippe, 10 % de patients en plus, la moitié à isoler, des lits d'aval en moins ; le coût du retard fait plus que doubler (3 443 à 9 343 par l'échéance), et la recherche des box y garde son gain (−33 %).",
+        "La fatigue touche aussi l'infirmier d'accueil, et la relève entre deux équipes peut oublier un patient dont les résultats sont en cours."
+      ]
+    },
+    {
       "version": "0.17",
       "date": "26/10, après-midi",
       "title": "Le gain de la recherche confirmé, les lits, les pauses",

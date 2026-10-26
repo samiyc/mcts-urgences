@@ -20,8 +20,11 @@ http://127.0.0.1:4801/web/. La page est en onglets depuis le 26/10/2026, chacun 
 gauche, qui se replie :
 - **Garde simple** : la garde de 8 h et « Jouer la garde vous-même » ;
 - **Service en plan** : un soignant au clavier ;
-- **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, la marche comptée
-  ou non, un interne robot ou au hasard, la fatigue des médecins et leurs pauses, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au clavier », une vacation de 4 h jouée avec Z Q S D et E ;
+- **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, une saison
+  ordinaire ou le pic d'une épidémie d'hiver, la marche comptée ou non, un interne robot, au hasard ou décidé par une
+  règle, la fatigue des médecins et leurs pauses, l'ordre du scanner et du bloc, le Plan blanc et la sortie de SAUV
+  par une règle, la recherche (ISMCTS) pour le choix du box, et une frise de toute la journée ; et « L'interne au
+  clavier », une vacation de 4 h jouée avec Z Q S D et E ;
 - **Replays** : les parties gardées et le dossier `replays/` ;
 - **Stats** : les règles comparées sur la garde et sur le parcours.
 
