@@ -32,6 +32,24 @@
       "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100",
       "estimate": "25 min",
       "threads": 8
+    },
+    {
+      "id": "parcours-proximite-accident",
+      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 100",
+      "estimate": "10 min",
+      "threads": 8
+    },
+    {
+      "id": "parcours-chu-accident",
+      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --days 200 --budget 100",
+      "estimate": "40 min",
+      "threads": 8
+    },
+    {
+      "id": "parcours-pauses-moyen-accident",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --pauses",
+      "estimate": "30 min",
+      "threads": 8
     }
   ]
 }

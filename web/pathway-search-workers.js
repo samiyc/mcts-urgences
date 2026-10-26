@@ -21,7 +21,7 @@ export function searchChoicesInWorker(job) {
 }
 
 /** Days 1 to `days` compared (each rule and the search), side by side; `progress(done, days)` as they finish. */
-export function compareSearchInWorkers({ days, options, budget, progress }) {
+export function compareSearchInWorkers({ days, options, budget, progress, kind = "compare" }) {
   const size = Math.max(1, Math.min(days, (navigator.hardwareConcurrency || 4) - 2));
   const results = new Array(days);
   let next = 0;
@@ -29,7 +29,7 @@ export function compareSearchInWorkers({ days, options, budget, progress }) {
   return new Promise((resolve) => {
     const feed = (worker) => {
       if (next >= days) return worker.terminate();
-      worker.postMessage({ kind: "compare", job: next, seed: next + 1, options, budget });
+      worker.postMessage({ kind, job: next, seed: next + 1, options, budget });
       next += 1;
     };
     for (let i = 0; i < size; i += 1) {
