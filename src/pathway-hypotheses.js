@@ -153,7 +153,8 @@ export const INTERN = Object.freeze({
  * - `oversight`: the chance a reading overlooks the results, `base + perHour × hours`; read again `oversightDelay` later;
  * - `minutes` and `rest`: each break's length and the share of fatigue it takes away;
  * - `minDoctors`: always this many doctors at work; `quietWaiting`: « quiet » is this many waiting or fewer;
- * - `handover`: the minutes of a handover between 12 h teams.
+ * - `handover`: the minutes of a handover between teams; `handoverLoss`: the chance a patient's results under way are
+ *   lost in it (read again later).
  */
 export const FATIGUE = Object.freeze({
   breaks: "quiet",
@@ -167,6 +168,7 @@ export const FATIGUE = Object.freeze({
   minDoctors: 2,
   quietWaiting: 3,
   handover: 15,
+  handoverLoss: 0.05,
 });
 
 /**

@@ -185,9 +185,13 @@ export function endBreak(day, person) {
   person.breaks.push({ kind, from: at, to: t });
 }
 
-/** A team going out at a handover: its doctors start fresh (12 h teams). */
+/**
+ * A team going out at a handover: its doctors start fresh; what is told may be lost: a patient whose results are under
+ * way or waiting to be read is overlooked with the chance `handoverLoss` (H56), their results read again later.
+ */
 export function newTeam(day) {
   const t = day.events.now;
+  for (const patient of day.patients.values()) if ((patient.step === "exams" || patient.step === "review") && patient.oversightRoll >= 1 - day.settings.fatigue.handoverLoss) patient.overlooked = true;
   for (const person of day.fatigue.people.filter((one) => one.k < day.settings.doctors)) {
     person.longest = Math.max(person.longest, t - person.stretchFrom);
     Object.assign(person, { base: 0, since: t, stretchFrom: t });
