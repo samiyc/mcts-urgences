@@ -1,7 +1,8 @@
 import { MAX_WAIT } from "./hypotheses.js";
 import { exitPatient, give, leavePlace, lognormal, now, removeFrom } from "./pathway-places.js";
 import { scheduleWorsening } from "./simulate.js";
-import { cleanedSlot, doctorBack, locate, outOfScanner, seated } from "./pathway-trace.js";
+import { requestTransport } from "./pathway-porters.js";
+import { cleanedSlot, doctorBack, locate, outOfScanner, placeOrSeat, seated } from "./pathway-trace.js";
 
 /** @typedef {import("./types.js").Day} Day */
 /** @typedef {import("./types.js").PathwayPatient} PathwayPatient */
@@ -42,7 +43,8 @@ function toWaiting(day, patient) {
 /** @type {Array<[keyof PathwayPatient["needs"], (day: Day, patient: PathwayPatient) => void]>} */
 const EXAMS = [
   ["bio", (day, patient) => day.events.schedule(now(day) + day.settings.sample + lognormal(day.settings.labTurnaround, patient.labFactor), { type: "examBack", id: patient.id })],
-  ["scan", (day, patient) => day.queues.scanner.push(patient.id)],
+  // Walking counts: a stretcher-bearer takes the patient to the scanner first.
+  ["scan", (day, patient) => (day.settings.walk ? requestTransport(day, patient.id, { at: "scanner", slot: 0 }, "scan") : day.queues.scanner.push(patient.id))],
   ["advice", (day, patient) => day.queues.specialists.push(patient.id)],
 ];
 
@@ -128,6 +130,7 @@ export const HANDLERS = {
   scanEnd(day, patient) {
     give(day, "scanner");
     outOfScanner(day, patient);
+    if (day.settings.walk) return requestTransport(day, patient.id, placeOrSeat(day, patient), "back");
     HANDLERS.examBack(day, patient);
   },
   adviceEnd(day, patient) {
@@ -167,6 +170,13 @@ export const HANDLERS = {
   staff(day, event) {
     day.capacity.doctors += event.doctors;
   },
+  /** A transport arrived: at the scanner (into its queue), or back from it (the scan done). */
+  transported(day, patient, event) {
+    if (event.next === "scan") day.queues.scanner.push(patient.id);
+    else HANDLERS.examBack(day, patient);
+  },
+  /** A stretcher-bearer back at the base: free for the next transport (served at every event). */
+  porterFree() {},
   cleaned(day, event) {
     give(day, event.place);
     cleanedSlot(day, event.place, event.slot);

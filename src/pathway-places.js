@@ -1,3 +1,4 @@
+import { minutesOf } from "./pathway-cells.js";
 import { doctorTo, intoSlot, outOfDepartment, outOfSlot } from "./pathway-trace.js";
 
 /**
@@ -48,17 +49,20 @@ export function leavePlace(day, patient) {
   day.events.schedule(now(day) + cleaning, { type: "cleaned", place, slot });
 }
 
-/** Moves a patient into `place` (a pool), from wherever they were. */
+/** Moves a patient into `place` (a pool), from wherever they were; the cells they walk there. */
 export function moveTo(day, patient, place) {
   if (patient.place) leavePlace(day, patient);
   take(day, place);
   patient.place = place;
-  intoSlot(day, place, patient.id);
+  return intoSlot(day, place, patient.id);
 }
 
-/** A doctor reads a patient's results. */
+/** The minutes a walk of `steps` cells holds the day up: none unless walking counts (step 3). */
+export const walkDelay = (day, steps) => (day.settings.walk ? minutesOf(steps) : 0);
+
+/** A doctor reads a patient's results, once at their side. */
 export function startReview(day, id) {
   take(day, "doctors");
-  doctorTo(day, id);
-  day.events.schedule(now(day) + day.settings.review, { type: "reviewEnd", id });
+  const fetched = doctorTo(day, id);
+  day.events.schedule(now(day) + walkDelay(day, fetched) + day.settings.review, { type: "reviewEnd", id });
 }

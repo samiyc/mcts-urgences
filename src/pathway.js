@@ -1,7 +1,8 @@
 import { createEvents } from "mcts-commun/events.js";
 import { HANDLERS } from "./pathway-handlers.js";
 import { account, keepPeaks } from "./pathway-measures.js";
-import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take } from "./pathway-places.js";
+import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take, walkDelay } from "./pathway-places.js";
+import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve } from "./pathway-serve.js";
 import { PLACES } from "./pathway-plans.js";
@@ -135,7 +136,8 @@ export function startPathway(day) {
     used: perPool(),
     full: perPool(),
     clock: 0,
-    queues: { register: [], triage: [], waiting: [], scanner: [], specialists: [], theatre: [], review: [], uhcd: [] },
+    queues: { register: [], triage: [], waiting: [], scanner: [], specialists: [], theatre: [], review: [], uhcd: [], transport: [] },
+    porters: startPorters(settings),
     diverted: new Set(),
     peak: { waiting: 0, present: 0, urgent: 0 },
     over: false,
@@ -203,7 +205,7 @@ export function nextDecision(day) {
     day.events.next();
     account(day, next.at);
     const { event } = next;
-    HANDLERS[event.type](day, event.id === undefined ? event : day.patients.get(event.id));
+    HANDLERS[event.type](day, event.id === undefined ? event : day.patients.get(event.id), event);
   }
 }
 
@@ -219,11 +221,13 @@ export function decide(day, decision, id) {
   const place = patient && day.queues.waiting.includes(id) ? placeFor(day, patient) : null;
   if (!place || free(day, "doctors") <= 0) throw new Error("la règle doit choisir un patient qui attend, pour qui une place est libre");
   removeFrom(day.queues.waiting, id);
-  moveTo(day, patient, place);
+  const walked = moveTo(day, patient, place);
   take(day, "doctors");
-  doctorTo(day, id);
-  Object.assign(patient, { start: now(day), levelAtStart: patient.level, step: "exam" });
-  day.events.schedule(now(day) + day.settings.exam[patient.level] * patient.examFactor, { type: "examEnd", id });
+  const fetched = doctorTo(day, id);
+  // The exam starts once the patient and the doctor are both at the place (at once unless walking counts).
+  const start = now(day) + walkDelay(day, Math.max(walked, fetched));
+  Object.assign(patient, { start, levelAtStart: patient.level, step: "exam" });
+  day.events.schedule(start + day.settings.exam[patient.level] * patient.examFactor, { type: "examEnd", id });
 }
 
 /**

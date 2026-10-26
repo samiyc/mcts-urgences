@@ -30,6 +30,7 @@ export function startTrace(capacity, pools, layout) {
     moves: [],
     placeOf: new Map(),
     scanOf: new Map(),
+    transports: [],
   };
 }
 
@@ -85,7 +86,7 @@ function takeSlot(slots, id) {
 export function intoSlot(day, pool, id) {
   const slot = takeSlot(day.trace.slots[pool], id);
   day.trace.placeOf.set(id, slot);
-  locate(day, id, { at: pool, slot });
+  return locate(day, id, { at: pool, slot });
 }
 
 /** Patient `id` leaves their place of `pool`: it is cleaned now; its number, for the event that frees it. */
@@ -99,7 +100,7 @@ export function outOfSlot(day, pool, id) {
 export const cleanedSlot = (day, pool, slot) => (day.trace.slots[pool][slot] = null);
 
 /** Where a patient sits between two things: their place, or the seats for the results once out of it. */
-const placeOrSeat = (day, patient) => (patient.place ? { at: patient.place, slot: day.trace.placeOf.get(patient.id) } : { at: "results" });
+export const placeOrSeat = (day, patient) => (patient.place ? { at: patient.place, slot: day.trace.placeOf.get(patient.id) } : { at: "results" });
 
 /** Patient `id` goes into a scanner. */
 export function intoScanner(day, id) {
@@ -108,11 +109,11 @@ export function intoScanner(day, id) {
   locate(day, id, { at: "scanner", slot });
 }
 
-/** The scan done: the scanner is free, the patient back to their place or seat. */
+/** The scan done: the scanner is free, the patient back to their place or seat (by a stretcher-bearer when walking counts). */
 export function outOfScanner(day, patient) {
   day.trace.slots.scanner[day.trace.scanOf.get(patient.id)] = null;
   day.trace.scanOf.delete(patient.id);
-  locate(day, patient.id, placeOrSeat(day, patient));
+  if (!day.settings.walk) locate(day, patient.id, placeOrSeat(day, patient));
 }
 
 /** A patient seated for their results, out of the box. */
@@ -123,13 +124,13 @@ export function outOfDepartment(day, patient) {
   if (patient.exit !== "reoriente") locate(day, patient.id, { at: "out", door: DOORS[patient.exit] ?? "entrance" });
 }
 
-/** A doctor (the first one free, by number) goes to patient `id`'s side, for the exam or the results. */
+/** A doctor (the first one free, by number) goes to patient `id`'s side, for the exam or the results; the cells walked. */
 export function doctorTo(day, id) {
   const { doctors } = day.trace;
   const free = doctors.indexOf(null);
   const k = free < 0 ? doctors.length : free;
   doctors[k] = id;
-  locate(day, `doctor:${k}`, { at: "patient", id });
+  return locate(day, `doctor:${k}`, { at: "patient", id });
 }
 
 /** The doctor with patient `id` is done, back to the doctors' room. */

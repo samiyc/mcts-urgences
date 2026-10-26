@@ -51,6 +51,11 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   /** A patient waiting for a bed moves to the UHCD if a bed is free there, freeing their box (hypothesis: the usual practice). */
   uhcdForBoarders: true,
   /**
+   * Walking counts (Sami, 26/10/2026, step 3): the exam waits for the patient and the doctor at the place, the results
+   * for the doctor's walk, the scanner for a stretcher-bearer (pathway-porters.js). Off, the day is step 1's.
+   */
+  walk: false,
+  /**
    * The care once the results are read, in the place (hypothesis; the simple shift's `stay` held the box for the
    * results as well, here they are their own steps).
    */

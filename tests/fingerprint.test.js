@@ -20,6 +20,7 @@ const EXPECTED = {
   shift: "2268a5261e750c8b",
   ward: "57b01014292f8c4d",
   search: "2bc22fa5048d24e8",
+  walked: "fbb1948d953628b7",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);
@@ -51,6 +52,9 @@ const FINGERPRINTS = {
         simulateShift(drawShift(seed, nursed), RULES.colour, nursed, NURSE_RULES.overdue),
       ]);
     }),
+  // Walking counted (step 3, 26/10/2026): the same days, waiting for the walks and the stretcher-bearers.
+  walked: () =>
+    situations().flatMap(({ hospital, accident }) => [1, 2].map((seed) => played(drawPathwayDay(seed, { hospital, accident, walk: true }), { box: RULES.colour, bed: BED_RULES.oldest }))),
   ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
   search: () => {
     const settings = { ...DEFAULTS, ...HOSPITALS.moyen, crisis: ACCIDENT };

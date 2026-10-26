@@ -49,6 +49,7 @@
  *   capacity: Record<string, number>, busy: Record<string, number>, used: Record<string, number>, full: Record<string, number>,
  *   clock: number, queues: Record<string, number[]>, diverted: Set<number>,
  *   peak: { waiting: number, present: number, urgent: number }, over: boolean, trace: Trace,
+ *   porters: Array<{ who: string, freeAt: number }>,
  * }} Day
  */
 

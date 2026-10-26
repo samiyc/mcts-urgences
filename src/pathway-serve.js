@@ -1,3 +1,4 @@
+import { serveTransports } from "./pathway-porters.js";
 import { intoScanner } from "./pathway-trace.js";
 import { byColour, exitPatient, free, leavePlace, lognormal, moveTo, now, startReview, take } from "./pathway-places.js";
 
@@ -65,6 +66,7 @@ export function serve(day) {
   const { queues, settings } = day;
   startEach(day, { queue: queues.register, pool: "reception", type: "registerEnd", endAt: (t) => t + settings.register });
   startEach(day, { queue: queues.triage, pool: "ioa", type: "triageEnd", endAt: (t) => t + settings.triage });
+  serveTransports(day);
   queues.scanner.sort(byColour(day));
   startEach(day, { queue: queues.scanner, pool: "scanner", type: "scanEnd", endAt: (t) => t + settings.scan, onStart: intoScanner });
   queues.specialists.sort(byColour(day));
