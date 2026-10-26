@@ -62,6 +62,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   internDecided: false,
   /** The scanner's and the theatre's order decided one at a time (pathway-queues.js, step 6), instead of fixed. */
   queueDecided: false,
+  /** The crisis plan, the « Plan blanc » (ALERT, step 6), or none: without it, the day is the same as before. */
+  alert: null,
   /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
   fatigue: null,
   /**
@@ -176,6 +178,14 @@ export const BOARDING_COST = Object.freeze({ perMinute: 2, elderlyAtNight: 3 });
  * yellow's minute late. How strict the follow-up should be (Sami, 25/10: « le temps et la rigueur du suivi »).
  */
 export const INTERN_LATE = Object.freeze({ perMinute: 4 });
+
+/**
+ * The crisis plan, the « Plan blanc » (Sami, 26/10/2026, step 6; hypotheses H54 and H55): for the medium hospital (the
+ * others scaled on their boxes), the doctors called back and the minutes they take to come, the beds the wards give
+ * by putting off planned admissions, and what a doctor-hour called back weighs against the late cost (a red's
+ * minute is 16).
+ */
+export const ALERT = Object.freeze({ recall: 2, delay: 60, beds: Object.freeze({ medecine: 2, chirurgie: 1, cardiologie: 1 }), doctorHour: 240 });
 
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
 export const CELL_METRES = 2;

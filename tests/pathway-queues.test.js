@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { QUEUE_RULES } from "../src/pathway-queues.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
-import { pathwaySearchQueueRule } from "../src/pathway-search.js";
+import { pathwaySearchQueueRule } from "../src/pathway-search-rules.js";
 import { RULES } from "../src/rules.js";
 
 const played = (seed, queue, options = {}) => runPathway(startPathway(drawPathwayDay(seed, { hospital: "moyen", accident: true, queueDecided: true, ...options })), { box: RULES.colour, bed: BED_RULES.oldest, queue });

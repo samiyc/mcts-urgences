@@ -2,11 +2,13 @@ import { paired } from "mcts-commun/measure.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "./pathway.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
 import { BREAK_DECIDERS, DECIDED, fatigueMeasures } from "./pathway-fatigue.js";
-import { FATIGUE, INTERN } from "./pathway-hypotheses.js";
+import { ALERT, FATIGUE, INTERN } from "./pathway-hypotheses.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { internMeasures } from "./pathway-game.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
-import { pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchQueueRule, pathwaySearchRule } from "./pathway-search.js";
+import { ALERT_RULES, alertMeasures } from "./pathway-alert.js";
+import { pathwaySearchRule } from "./pathway-search.js";
+import { pathwaySearchAlertRule, pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchQueueRule } from "./pathway-search-rules.js";
 import { RULES } from "./rules.js";
 
 /**
@@ -78,6 +80,25 @@ export function playQueueSearchDay({ seed, options, budget }) {
     QUEUE_SEARCHED.map((name) => {
       const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, queueDecided: name !== "fixed" })), { box: RULES.colour, bed: BED_RULES.oldest, queue: ruleOf(name) });
       return [name, pathwayMeasures(day)];
+    }),
+  );
+}
+
+/** The crisis plan: never, at the threshold, and decided by the search (step 6). */
+export const ALERT_SEARCHED = Object.freeze(["never", "threshold", "search"]);
+
+/**
+ * One day: each way of triggering the crisis plan, its measures, the plan's (`alert`), and `total` (the late cost and
+ * the doctor-hours called back at their weight), the cost the comparison reads.
+ */
+export function playAlertSearchDay({ seed, options, budget }) {
+  const ruleOf = (name) => (name === "search" ? pathwaySearchAlertRule({ budget }) : ALERT_RULES[name]);
+  return Object.fromEntries(
+    ALERT_SEARCHED.map((name) => {
+      const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, alert: ALERT })), { box: RULES.colour, bed: BED_RULES.oldest, alert: ruleOf(name) });
+      const measures = pathwayMeasures(day);
+      const alert = alertMeasures(day);
+      return [name, { ...measures, lateCostOnly: measures.lateCostNow, lateCostNow: measures.lateCostNow + alert.cost, alert }];
     }),
   );
 }

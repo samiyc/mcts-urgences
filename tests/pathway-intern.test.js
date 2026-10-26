@@ -5,7 +5,7 @@ import { INTERN } from "../src/pathway-hypotheses.js";
 import { tasksHere, TASKS } from "../src/pathway-intern.js";
 import { INTERN_RULES } from "../src/pathway-intern-decided.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
-import { pathwaySearchInternRule } from "../src/pathway-search.js";
+import { pathwaySearchInternRule } from "../src/pathway-search-rules.js";
 import { RULES } from "../src/rules.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
 import { walkSteps } from "../src/ward-moves.js";

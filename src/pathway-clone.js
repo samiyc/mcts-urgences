@@ -59,6 +59,7 @@ export function cloneDay(day, keep = () => true) {
     porters: day.porters.map((porter) => ({ ...porter })),
     fatigue: copyFatigue(day.fatigue),
     intern: copyIntern(day.intern),
+    alert: day.alert && { ...day.alert },
     series: [],
     nextSample: Infinity,
   };

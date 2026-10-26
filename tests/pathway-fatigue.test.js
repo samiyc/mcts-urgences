@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { BREAK_DECIDERS, DECIDED, breakTimes, fatigueMeasures, internSlowOf, slowOf } from "../src/pathway-fatigue.js";
-import { pathwaySearchBreakRule } from "../src/pathway-search.js";
+import { pathwaySearchBreakRule } from "../src/pathway-search-rules.js";
 import { internResult, runInternGame, startInternGame } from "../src/pathway-game.js";
 import { FATIGUE, pathwaySettingsOf } from "../src/pathway-hypotheses.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";

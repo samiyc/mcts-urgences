@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { createRng } from "mcts-commun/random.js";
 import { BED_RULES, decide, nextDecision, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
-import { drawWorld, pathwaySearchBedRule, pathwaySearchRule } from "../src/pathway-search.js";
+import { drawWorld, pathwaySearchRule } from "../src/pathway-search.js";
+import { pathwaySearchBedRule } from "../src/pathway-search-rules.js";
 import { followChoices, searchChoices } from "../src/pathway-search-compare.js";
 import { RULES } from "../src/rules.js";
 

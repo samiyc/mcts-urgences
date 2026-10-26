@@ -31,4 +31,11 @@ export const STAFF_HANDLERS = {
   handoverEnd(day) {
     day.capacity.doctors += day.settings.doctors;
   },
+  /** The doctors called back by the crisis plan come (pathway-alert.js), and go at the day's end. */
+  alertStaff(day) {
+    day.capacity.doctors += day.alert.recalled;
+  },
+  alertEnd(day) {
+    day.capacity.doctors -= day.alert.recalled;
+  },
 };
