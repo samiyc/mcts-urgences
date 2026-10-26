@@ -2,8 +2,9 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { CELL_METRES, pathwaySettingsOf } from "../src/pathway-hypotheses.js";
 import { PATHWAY_PLANS, PLACES, capacityOf, pathwayPlanOf, planErrors } from "../src/pathway-plans.js";
-import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
+import { BED_RULES, STEPS, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
+import { statusAt, stepsOf } from "../src/pathway-status.js";
 import { walkMeasures, walkScene, walksOfDay } from "../src/pathway-walk.js";
 import { RULES } from "../src/rules.js";
 import { STEP, walkSteps } from "../src/ward-moves.js";
@@ -46,7 +47,7 @@ describe("the plans of the detailed pathway (src/pathway-plans.js)", () => {
 ###
 #b#
 ###`;
-    assert.match(planErrors(shut).join(" "), /hors d'atteinte depuis l'entrée, la première en colonne 2, ligne 9/);
+    assert.match(planErrors(shut).join(" "), /hors d'atteinte depuis l'entrée, la première en colonne 2, ligne 11/);
     assert.match(planErrors("#####\n#E.b#\n#####").join(" "), /au moins un scanner/);
   });
 });
@@ -97,7 +98,7 @@ describe("where everyone is, and the walks (src/pathway-trace.js, src/pathway-wa
     const day = played(2, { hospital: "moyen", accident: true });
     const result = walksOfDay(day, pathwayPlanOf(day.settings.plan));
     assert.ok(result.transports.length > 0);
-    for (const who of result.porters) {
+    for (const { who } of result.idle.filter((one) => one.role === "porter")) {
       const own = result.walks.filter((one) => one.who === who);
       own.slice(1).forEach((one, i) => assert.ok(one.t0 >= own[i].t0 + (own[i].path.length - 1) * STEP - 1e-9, `${who} à ${one.t0}`));
     }
@@ -116,5 +117,19 @@ describe("where everyone is, and the walks (src/pathway-trace.js, src/pathway-wa
     assert.ok(measures.byRole.doctor.metres > 0 && measures.byRole.porter.metres > 0);
     assert.equal(JSON.stringify(pathwayMeasures(day)), before);
     assert.ok(Object.keys(PLACES).every((pool) => Array.isArray(day.trace.slots[pool])));
+  });
+});
+
+describe("what each patient was doing at a minute (src/pathway-status.js)", () => {
+  it("follows a patient from coming to out, in the steps of pathway.js, out exactly when they left", () => {
+    const day = played(1, { hospital: "moyen", accident: true });
+    const steps = stepsOf(day);
+    for (const patient of day.patients.values()) {
+      const own = steps.get(patient.id);
+      assert.ok(own.every((one) => STEPS[one.step]), `patient ${patient.id}`);
+      assert.equal(statusAt(own, patient.arrival - 1).step, "coming");
+      assert.equal(statusAt(own, Infinity).step === "out", patient.exit !== null, `patient ${patient.id}`);
+      if (patient.start !== null) assert.equal(statusAt(own, patient.start).step === "exam" || patient.examEnd === patient.start, true);
+    }
   });
 });

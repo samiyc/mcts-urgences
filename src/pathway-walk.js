@@ -102,9 +102,16 @@ function porterFor(layout, porters, one) {
   return { wait: (toPatient.length - 1) * STEP, walks: [{ who: porter.who, role: "porter", t0: one.t0, path: toPatient }, along, back] };
 }
 
+/** The doctors of the day (its extra ones included) in their room, the stretcher-bearers at their base. */
+function idleOf(day, layout, team) {
+  const doctors = day.settings.doctors + (day.settings.dayDoctors?.extra ?? 0);
+  return [...Array.from({ length: doctors }, (_, k) => ({ who: `doctor:${k}`, role: "doctor", cell: layout.points.room })), ...team.map((porter) => ({ who: porter.who, role: "porter", cell: layout.points.porters }))];
+}
+
 /**
  * The day's walks on `layout` (pathway-plans.js's `pathwayPlanOf` of its plan), with `porters` stretcher-bearers:
- * `{ walks, transports: [{ t, who, porter, wait }] }`, `porter` null for a transport without one.
+ * `{ walks, transports: [{ t, who, porter, wait }], idle }`, `porter` null for a transport without one, `idle` the doctors
+ * (all those of the day, the day's extra ones included) and the stretcher-bearers where they wait, before they first walk.
  */
 export function walksOfDay(day, layout, porters = day.settings.porters ?? 0) {
   const walks = walksOf(day, layout);
@@ -115,17 +122,14 @@ export function walksOfDay(day, layout, porters = day.settings.porters ?? 0) {
     transports.push({ t: one.t0, who: one.who, porter: given ? given.walks[0].who : null, wait: given?.wait ?? null });
     if (given) walks.push(...given.walks);
   }
-  return { walks: walks.sort((a, b) => a.t0 - b.t0), transports, porters: team.map((porter) => porter.who) };
+  return { walks: walks.sort((a, b) => a.t0 - b.t0), transports, idle: idleOf(day, layout, team) };
 }
 
 /** Where each one is at minute `t`: `[{ who, role, x, y }]`, the patients from their arrival until out of the plan. */
-export function walkScene({ walks, porters }, t) {
-  const now = new Map(porters.map((who) => [who, { who, role: "porter", walk: null }]));
-  for (const one of walks) if (one.t0 <= t) now.set(one.who, { who: one.who, role: one.role, walk: one });
-  return [...now.values()]
-    .filter(({ walk: one }) => !(one?.at === "out" && t >= endOf(one)))
-    .map(({ who, role, walk: one }) => ({ who, role, ...(one ? cellAt(one, t) : null) }))
-    .filter((one) => one.x !== undefined);
+export function walkScene({ walks, idle }, t) {
+  const now = new Map(idle.map((one) => [one.who, { ...one, walk: null }]));
+  for (const one of walks) if (one.t0 <= t) now.set(one.who, { who: one.who, role: one.role, cell: null, walk: one });
+  return [...now.values()].filter(({ walk: one }) => !(one?.at === "out" && t >= endOf(one))).map(({ who, role, cell, walk: one }) => ({ who, role, ...(one ? cellAt(one, t) : cell) }));
 }
 
 const sum = (values) => values.reduce((total, value) => total + value, 0);

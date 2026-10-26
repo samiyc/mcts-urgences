@@ -18,30 +18,36 @@ import { walkSteps } from "./ward-moves.js";
  */
 export const PATHWAY_PLANS = Object.freeze({
   proximite: `
-###############################
-#S..#b.b.b#U.U.U#X.#O.#H.#wwww#
-#...#.....#.....#..#..#..#....#
-#.............................E
-#...#.....#.....#..#..#..#.A.T#
-#I..#b.b.b#D.R.B#L.#P.#rr#wwww#
-###############################`,
+####################################
+#S..#b.b.b#U.U.U#X.#O.#H.#wwwwwwww.#
+#...#.....#.....#..#..#..#.........#
+#...#.....#.....#..#..#..#wwwwwwww.#
+#..................................E
+#...#.....#.....#..#..#..#A.T......#
+#...#.....#.....#..#..#..#.........#
+#I..#b.b.b#D.R.B#L.#P.#..#rrrr.....#
+####################################`,
   moyen: `
-################################################
-#S..S#b.b.b.b.b.b#U.U.U.U.U.U#X..#O..#H..#wwwww#
-#....#...........#...........#...#...#...#.....#
-#..............................................E
-#....#...........#...........#...#...#...#..A.T#
-#I...#b.b.b.b.b.b#D...R...B..#L..#P..#rrr#wwwww#
-################################################`,
+######################################################
+#S..S#b.b.b.b.b.b#U.U.U.U.U.U#X..#O..#H..#wwwwwwwwww.#
+#....#...........#...........#...#...#...#...........#
+#....#...........#...........#...#...#...#wwwwwwwwww.#
+#....................................................E
+#....#...........#...........#...#...#...#A.T........#
+#....#...........#...........#...#...#...#wwwwwwwwww.#
+#I...#b.b.b.b.b.b#D...R...B..#L..#P..#...#rrrrrr.....#
+######################################################`,
   chu: `
-###############################################################
-#S.S.S.S#b.b.b.b.b.b.b.b.b.b.b.b#U.U.U.U.U.U#X.X#O..#H..#wwwww#
-#.......#.......................#...........#...#...#...#.....#
-#.............................................................E
-#.......#.......................#...........#...#...#...#.A..T#
-#I.....I#b.b.b.b.b.b.b.b.b.b.b.b#U.U.U.U.U.U#L..#P..#rrr#wwwww#
-#.......#.......................#D...R...B..#...#...#...#wwwww#
-###############################################################`,
+######################################################################
+#S.S.S.S#b.b.b.b.b.b.b.b.b.b.b.b#U.U.U.U.U.U#X.X#O..#H..#wwwwwwwwwwww#
+#.......#.......................#...........#...#...#...#............#
+#.......#.......................#...........#...#...#...#wwwwwwwwwwww#
+#....................................................................E
+#.......#.......................#...........#...#...#...#A..T........#
+#.......#.......................#...........#...#...#...#wwwwwwwwwwww#
+#I.....I#b.b.b.b.b.b.b.b.b.b.b.b#U.U.U.U.U.U#L..#P..#...#wwwwwwwwwwww#
+#.......#.......................#D...R...B..#...#...#...#rrrrrrrrrr..#
+######################################################################`,
 });
 
 /** The pools of the pathway a plan holds, and their character. */
@@ -51,7 +57,8 @@ const POINTS = Object.freeze({ entrance: "E", reception: "A", triage: "T", room:
 const LATER = Object.freeze({ lab: "L", pharmacy: "P", pause: "R" });
 const NAMES = { entrance: "l'entrée", reception: "l'accueil", triage: "le tri", room: "la salle des médecins", theatre: "la porte du bloc", lifts: "les ascenseurs", porters: "la base des brancardiers", lab: "le labo", pharmacy: "la pharmacie", pause: "la salle de pause" };
 
-const textOf = (plan) => plan.replace(/^\n/, "");
+/** A plan's text without the line break the plans above start with. */
+export const planTextOf = (plan) => plan.replace(/^\n/, "");
 const passableOn = (plan) => (x, y) => plan.inside(x, y) && plan.at(x, y) !== "#" && plan.at(x, y) !== " ";
 
 /** The points of `plan` that do not have exactly one cell (the later ones: at most one), as messages. */
@@ -72,7 +79,7 @@ function unreachable(layout) {
  * least, a seat, every place within reach of the entrance.
  */
 export function planErrors(text) {
-  const plan = parsePlan(textOf(text));
+  const plan = parsePlan(planTextOf(text));
   const errors = pointErrors(plan);
   if (plan.find("b").length === 0) errors.push("il faut au moins un box (« b »)");
   if (plan.find("X").length === 0) errors.push("il faut au moins un scanner (« X »)");
@@ -88,7 +95,7 @@ export function planErrors(text) {
  * `walker` what ward-moves.js walks on (the walking distances, computed as they are asked for).
  */
 export function pathwayPlanOf(text) {
-  const plan = parsePlan(textOf(text));
+  const plan = parsePlan(planTextOf(text));
   const points = Object.fromEntries(Object.entries({ ...POINTS, ...LATER }).map(([name, char]) => [name, plan.find(char)[0] ?? null]));
   const layout = {
     plan,
