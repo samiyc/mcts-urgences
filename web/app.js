@@ -2,6 +2,9 @@ import { compareRules } from "../src/compare.js";
 import { ACCIDENT, DEFAULTS, HOSPITALS } from "../src/hypotheses.js";
 import { comparePathwayRules } from "../src/pathway-compare.js";
 import { compareBreakRules } from "../src/pathway-fatigue-compare.js";
+import { searchRows } from "../src/pathway-search-compare.js";
+import { compareSearchInWorkers } from "./pathway-search-workers.js";
+import { PAGE_BUDGET } from "./tabs/parcours-search.js";
 import { NURSE_RULES, RULES } from "../src/rules.js";
 import { drawShift } from "../src/scenario.js";
 import { searchRule } from "../src/search.js";
@@ -45,7 +48,7 @@ const write = (key, value) => {
 };
 const firstTab = () => [location.hash.slice(1), read(STORE)].find((name) => TAB_NAMES.includes(name)) ?? "garde";
 
-const state = { tab: firstTab(), hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0, pathwayDays: 20, pathwayCompared: null, fatigueCompared: null, gains: null, serverReplays: undefined };
+const state = { tab: firstTab(), hospital: "moyen", accident: true, rule: "colour", nurse: "none", seed: 1, compared: null, result: null, busy: "", run: 0, pathwayDays: 20, pathwayCompared: null, fatigueCompared: null, searchCompared: null, gains: null, serverReplays: undefined };
 const layout = document.getElementById("layout");
 const sidebar = document.getElementById("sidebar");
 const app = document.getElementById("app");
@@ -155,6 +158,17 @@ function compareFatigue() {
   }, 30);
 }
 
+async function compareSearchPathway() {
+  const days = 8;
+  const { plan, walk } = ctx.pathway;
+  const options = { hospital: state.hospital, accident: state.accident, walk, ...(plan ? { plan } : {}) };
+  setBusy(`La recherche sur le parcours : ${days} journées dans des workers…`);
+  const measures = await compareSearchInWorkers({ days, options, budget: PAGE_BUDGET, progress: (done, all, size) => setBusy(`La recherche sur le parcours : ${done} journées sur ${all} (${size} en parallèle)…`) });
+  const label = `${HOSPITALS[state.hospital].label}, ${state.accident ? "avec l'accident" : "jour ordinaire"}${walk ? ", marche comptée" : ""}`;
+  Object.assign(state, { searchCompared: { rows: searchRows(measures), days, budget: PAGE_BUDGET, label }, busy: "" });
+  render();
+}
+
 const ACTIONS = {
   livePlay: () => live.play(),
   livePause: () => live.pause(),
@@ -169,6 +183,7 @@ const ACTIONS = {
   },
   comparePathway,
   compareFatigue,
+  compareSearchPathway,
 };
 
 /** A shared setting changed: the shift is played again (the comparison kept for another seed only). */

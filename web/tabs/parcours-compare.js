@@ -14,6 +14,8 @@ import { TIMELINE_LEGEND, timelinePlan } from "../timeline-draw.js";
 export function compareOptions(pathway) {
   const boxes = Object.keys(RULES).filter((key) => key !== pathway.box).map((key) => [`box:${key}`, `la règle des box « ${RULE_LABELS[key]} »`]);
   const beds = Object.keys(BED_LABELS).filter((key) => key !== pathway.bed).map((key) => [`bed:${key}`, `la règle des lits « ${BED_LABELS[key]} »`]);
+  // Under the search, the other box rules only: any other change would ask the search to play the day again.
+  if (pathway.box === "search") return [["", "rien"], ...boxes];
   return [
     ["", "rien"],
     ...boxes,

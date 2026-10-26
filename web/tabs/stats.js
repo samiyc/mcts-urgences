@@ -1,3 +1,4 @@
+import { RULE_LABELS } from "../../src/rules.js";
 import { comparison } from "../charts.js";
 import { el } from "../dom.js";
 import { panelOf } from "../knobs.js";
@@ -20,6 +21,7 @@ export const statsPanel = ({ state, counts }) =>
     el("label", {}, "Le parcours : journées", el("select", { "data-stat": "days" }, ...DAYS.map((days) => el("option", { value: days, selected: Number(days) === state.pathwayDays }, `${days} journées de 24 h`)))),
     el("button", { type: "button", "data-action": "comparePathway" }, "Comparer les règles du parcours"),
     el("button", { type: "button", "data-action": "compareFatigue" }, "Comparer les pauses des médecins"),
+    el("button", { type: "button", "data-action": "compareSearchPathway" }, "La recherche sur le parcours (8 journées, dans des workers)"),
     el("p", { class: "hint" }, "Les mêmes patients pour chaque règle ; le gain, par paires, avec son intervalle à 95 %. Le parcours se joue sur le plan de l'onglet Parcours détaillé."),
   );
 
@@ -72,7 +74,24 @@ function fatigueTable({ rows, days, label }) {
   return [el("h2", {}, `La fatigue des médecins et leurs pauses, sur les mêmes ${days} journées (${label})`), el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows.map(fatigueRow))))];
 }
 
+const searchRow = (row) =>
+  el(
+    "tr",
+    { class: row.name === "search" ? "current" : null },
+    el("td", {}, RULE_LABELS[row.name]),
+    ...[decimal(row.lateCostNow), row.gain ? `${decimal(row.gain.mean)} (${decimal(row.gain.low)} à ${decimal(row.gain.high)})` : "—", decimal(row.left, 1), `${decimal(row.stayMedian)} min`].map((value) => el("td", { class: "num" }, value)),
+  );
+
+function searchTable({ rows, days, budget, label }) {
+  const head = ["Règle des box", "coût au moment", "la recherche contre elle (IC 95 %)", "partis", "passage médian"].map((text, i) => el("th", { class: i > 0 ? "num" : null }, text));
+  return [
+    el("h2", {}, `La recherche sur le parcours, ${budget} itérations, sur les mêmes ${days} journées (${label})`),
+    el("p", { class: "hint" }, "Un tri rapide : il peut écarter une idée, pas la promouvoir. Les mesures de nuit (night.json) la jouent sur 200 journées."),
+    el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ...head)), el("tbody", {}, ...rows.map(searchRow)))),
+  ];
+}
+
 export function statsView({ state, counts }) {
-  const parts = [...comparison(state.compared, state.rule, counts()), ...(state.pathwayCompared ? pathwayTable(state.pathwayCompared) : []), ...(state.fatigueCompared ? fatigueTable(state.fatigueCompared) : []), ...gainsTable(state.gains)];
+  const parts = [...comparison(state.compared, state.rule, counts()), ...(state.pathwayCompared ? pathwayTable(state.pathwayCompared) : []), ...(state.fatigueCompared ? fatigueTable(state.fatigueCompared) : []), ...(state.searchCompared ? searchTable(state.searchCompared) : []), ...gainsTable(state.gains)];
   return parts.length ? parts : [el("p", { class: "hint" }, "Lancez une comparaison dans le panneau.")];
 }

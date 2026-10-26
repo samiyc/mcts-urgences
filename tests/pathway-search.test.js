@@ -4,6 +4,7 @@ import { createRng } from "mcts-commun/random.js";
 import { BED_RULES, decide, nextDecision, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
 import { drawWorld, pathwaySearchRule } from "../src/pathway-search.js";
+import { followChoices, searchChoices } from "../src/pathway-search-compare.js";
 import { RULES } from "../src/rules.js";
 
 /** A day of the small hospital with the accident, played by the colour rule up to its `n`-th box decision with two candidates or more. */
@@ -45,5 +46,13 @@ describe("the search on the pathway (src/pathway-search.js, step 6)", () => {
   it("refuses a day with an intern, whose tasks a world does not play", () => {
     const { day, decision } = dayAtChoice(1);
     assert.throws(() => pathwaySearchRule({ budget: 5 })(decision.candidates, { day: { ...day, intern: {} } }));
+  });
+
+  it("replays the very day the search played from its choices (what the page does, the search in a worker)", () => {
+    const options = { hospital: "proximite", accident: true };
+    const direct = pathwayMeasures(runPathway(startPathway(drawPathwayDay(2, options)), { box: pathwaySearchRule({ budget: 10 }), bed: BED_RULES.oldest }));
+    const choices = searchChoices({ seed: 2, options, budget: 10 });
+    const replayed = pathwayMeasures(runPathway(startPathway(drawPathwayDay(2, options)), { box: followChoices(choices), bed: BED_RULES.oldest }));
+    assert.deepEqual(replayed, direct);
   });
 });

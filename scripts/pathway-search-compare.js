@@ -1,30 +1,20 @@
 import { availableParallelism } from "node:os";
 import { Worker, isMainThread, parentPort } from "node:worker_threads";
-import { paired } from "mcts-commun/measure.js";
 import { HOSPITALS } from "../src/hypotheses.js";
-import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
-import { drawPathwayDay } from "../src/pathway-scenario.js";
-import { pathwaySearchRule } from "../src/pathway-search.js";
-import { RULE_LABELS, RULES } from "../src/rules.js";
+import { playSearchDay, searchRows } from "../src/pathway-search-compare.js";
+import { RULE_LABELS } from "../src/rules.js";
 
 /**
  * `node scripts/pathway-search-compare.js [--days 10] [--budget 50] [--hopital moyen] [--accident] [--marche]` (Sami,
  * 26/10/2026, the detailed pathway's step 6): the box rules and the search on the same days, the bed rule « la
  * décision la plus ancienne », the days played side by side in threads (16 at most: the machine's limit is 18). The
  * late cost at the level of the moment, and the search's gain on each rule by pairs. Budgets above 400 are for the
- * night (night.json), not for the day; under the night's scheduler, the threads it gives (`MCTS_THREADS`).
+ * night (night.json), not for the day; under the night's scheduler, the threads it gives (`MCTS_THREADS`). The days are
+ * played by src/pathway-search-compare.js, which the page's workers share.
  */
-const NAMES = ["arrival", "colour", "deadline", "search"];
-
-/** One day in a thread: each rule's measures. */
-function playDay({ seed, options, budget }) {
-  const drawn = drawPathwayDay(seed, options);
-  const boxOf = (name) => (name === "search" ? pathwaySearchRule({ budget }) : RULES[name]);
-  return Object.fromEntries(NAMES.map((name) => [name, pathwayMeasures(runPathway(startPathway(drawn), { box: boxOf(name), bed: BED_RULES.oldest }))]));
-}
 
 if (!isMainThread) {
-  parentPort.on("message", (job) => parentPort.postMessage({ seed: job.seed, measures: playDay(job) }));
+  parentPort.on("message", (job) => parentPort.postMessage({ seed: job.seed, measures: playSearchDay(job) }));
 } else {
   const args = process.argv.slice(2);
   const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
@@ -50,14 +40,11 @@ if (!isMainThread) {
       feed(worker);
     }
   });
-  const costs = (name) => results.map((one) => one.measures[name].lateCostNow);
-  const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
   const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
-  const gainOf = (name) => ((g) => `${fixed(g.mean)} (${fixed(g.low)} à ${fixed(g.high)})`)(paired(costs(name), costs("search")));
+  const gainOf = (g) => `${fixed(g.mean)} (${fixed(g.low)} à ${fixed(g.high)})`;
   console.log(`${HOSPITALS[hospital].label}${options.accident ? ", avec l'accident" : ", jour ordinaire"}${options.walk ? ", marche comptée" : ""} : ${days} journées, la recherche à ${budget} itérations, ${threads} fils, ${Math.round((Date.now() - t0) / 1000)} s.`);
-  for (const name of NAMES) {
-    const left = mean(results.map((one) => one.measures[name].exits.parti)).toFixed(1).replace(".", ",");
-    const against = name === "search" ? "" : ` · la recherche contre elle : ${gainOf(name)}`;
-    console.log(`${(RULE_LABELS[name] ?? name).padEnd(26)} coût au moment ${fixed(mean(costs(name))).padStart(8)} · partis ${left}${against}`);
+  for (const row of searchRows(results.map((one) => one.measures))) {
+    const against = row.gain ? ` · la recherche contre elle : ${gainOf(row.gain)}` : "";
+    console.log(`${RULE_LABELS[row.name].padEnd(26)} coût au moment ${fixed(row.lateCostNow).padStart(8)} · partis ${row.left.toFixed(1).replace(".", ",")}${against}`);
   }
 }
