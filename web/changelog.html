@@ -31,6 +31,17 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.11</span> Le projet solidifié, avant l'étape 2 du parcours <span class="date">26/10</span></h3>
+        <ul>
+          <li>Le lint de lopin et son budget de complexité (npm run lint) : 57 erreurs trouvées, toutes corrigées en découpant les fichiers trop longs (le parcours détaillé, le plan, la page), sans relever les limites.</li>
+          <li>Les empreintes des modèles (tests/fingerprint.test.js), prises avant la refonte : le parcours, la garde simple, le plan et la recherche se comportent exactement comme avant.</li>
+          <li>Les types vérifiés d'après les commentaires (npm run types), les formes partagées dans src/types.js ; la longueur des .md testée ; un hook qui lance lint, types et tests avant chaque commit.</li>
+          <li>Ce journal est refait dans le dépôt (npm run changelog, à partir de docs/changelog.json) ; la marche à suivre est dans docs/outillage.md, avec ce qui se reprend dans les autres projets mcts-*.</li>
+        </ul>
+        <p class="commits"><code>8e6409c</code> <code>e97901c</code> <code>53fd4bb</code> <code>cb228a3</code> <code>24c474a</code></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.10</span> Le parcours détaillé du patient <span class="date">25/10</span></h3>
         <ul>
           <li>Les recherches dans docs/recherche/ : le glossaire, le parcours du patient avec les durées de l'enquête Urgences 2023 de la DREES, les ressources rares au-delà des lits, les soignants et la fatigue, les indicateurs, ce qui manquait, et la feuille de route en six étapes.</li>

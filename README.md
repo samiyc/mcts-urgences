@@ -27,6 +27,12 @@ sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul c�
 médecin ou l'infirmier de tri joué au clavier (Z Q S D et E) ; à la fin, la garde contre la même avec un robot à
 votre place ([`docs/modele.md`](docs/modele.md), « Le service en plan »).
 
+## Développer
+
+`npm run check` lance le lint (le budget de complexité de lopin), les types (tsc sur le JSDoc) et les tests ; le
+hook de commit le relance, et `npm install` l'active. Les empreintes des modèles (`tests/fingerprint.test.js`)
+disent si une refonte a changé un comportement. Le détail est dans [`docs/outillage.md`](docs/outillage.md).
+
 ## Le problème
 
 - **Les ressources** : les box et les lits, les médecins et les infirmiers, les blocs opératoires, le

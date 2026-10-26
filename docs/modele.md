@@ -372,4 +372,5 @@ Les étapes communes aux trois dépôts sont dans la [feuille de route](https://
    (`recheck` à 10-15 min) pour rattraper les erreurs du tri.
 5. **Le parcours détaillé** — l'étape 1 est faite le 25/10 (plus haut) ; les cinq autres sont dans la
    [feuille de route du parcours](recherche/feuille-de-route.md) : le plan détaillé, l'interne au clavier, la
-   fatigue et les pauses, le replay d'ensemble, la recherche sur le parcours.
+   fatigue et les pauses, le replay d'ensemble, la recherche sur le parcours. Avant l'étape 2, le dépôt a été
+   solidifié le 26/10 : le lint, les types, les empreintes des modèles et le hook ([outillage.md](outillage.md)).

@@ -50,6 +50,24 @@
   ],
   "versions": [
     {
+      "version": "0.11",
+      "date": "26/10",
+      "title": "Le projet solidifié, avant l'étape 2 du parcours",
+      "commits": [
+        "8e6409c",
+        "e97901c",
+        "53fd4bb",
+        "cb228a3",
+        "24c474a"
+      ],
+      "items": [
+        "Le lint de lopin et son budget de complexité (npm run lint) : 57 erreurs trouvées, toutes corrigées en découpant les fichiers trop longs (le parcours détaillé, le plan, la page), sans relever les limites.",
+        "Les empreintes des modèles (tests/fingerprint.test.js), prises avant la refonte : le parcours, la garde simple, le plan et la recherche se comportent exactement comme avant.",
+        "Les types vérifiés d'après les commentaires (npm run types), les formes partagées dans src/types.js ; la longueur des .md testée ; un hook qui lance lint, types et tests avant chaque commit.",
+        "Ce journal est refait dans le dépôt (npm run changelog, à partir de docs/changelog.json) ; la marche à suivre est dans docs/outillage.md, avec ce qui se reprend dans les autres projets mcts-*."
+      ]
+    },
+    {
       "version": "0.10",
       "date": "25/10",
       "title": "Le parcours détaillé du patient",
