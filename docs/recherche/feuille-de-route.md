@@ -95,8 +95,8 @@ Les choix de Sami (26/10) :
 
 ## Étape 4 : la fatigue et les pauses (faite le 26/10, [parcours.md](../parcours.md), « La fatigue et les pauses »)
 
-Faite pour les médecins : l'interne et les infirmiers n'ont pas encore de fatigue. Les résultats lus en retard
-passent par les oublis.
+Faite pour les médecins, et pour l'interne (ses tâches ralentissent, sans pause : H50). Les infirmiers n'ont pas
+encore de fatigue. Les résultats lus en retard passent par les oublis.
 
 D'après [soignants.md](soignants.md) :
 - **la fatigue monte** avec les heures et la nuit ;
@@ -122,8 +122,9 @@ D'après [soignants.md](soignants.md) :
 
 ## Étape 6 : la recherche sur le parcours (le choix du box fait le 26/10, [parcours.md](../parcours.md), « La recherche sur le parcours »)
 
-Le choix du box est fait : un premier tri sur 16 journées est en faveur de la recherche pendant l'accident, et les
-mesures de nuit sont prêtes. Les autres décisions de la liste restent à faire.
+Faits : le box (le gain confirmé sur 200 journées, dans les quatre situations mesurées), le lit d'aval (rien à y
+gagner dans ce modèle) et les pauses des médecins (autant de pauses que « au creux » pour presque rien). Restent le
+scanner, le bloc, la sortie de SAUV, l'HET ou le Plan blanc, et l'ordre des tâches de l'interne.
 
 - Les décisions de machine du parcours ([ressources-rares.md](ressources-rares.md), dernière section) :
   - le box ;

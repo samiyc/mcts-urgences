@@ -315,16 +315,51 @@ La recherche ne joue pas une journée avec un interne, parce qu'un monde devrait
 Pendant l'accident, la recherche fait 36 % de moins que la meilleure règle, et l'intervalle ne passe pas par zéro.
 Un jour ordinaire, elle fait un peu mieux, mais l'intervalle contient zéro.
 
-C'est un tri rapide : la leçon de Lopin dit qu'il peut écarter une idée, pas la promouvoir. Deux mesures de nuit
-sont prêtes dans `night.json` : `parcours-moyen-accident` et `parcours-moyen`, 200 journées à 100 itérations,
-8 fils chacune.
+C'est un tri rapide : la leçon de Lopin dit qu'il peut écarter une idée, pas la promouvoir.
+
+**Les mesures sur 200 journées, à 100 itérations** (26/10 après-midi, les jobs de `night.json`) confirment le gain
+partout :
+
+| Situation | la meilleure règle (l'échéance) | la recherche | la recherche contre l'échéance (IC 95 %) |
+|---|---|---|---|
+| hôpital moyen, jour ordinaire | 3 443 | **2 530** (−27 %) | +913 (+456 à +1 371) |
+| hôpital moyen, accident | 37 389 | **23 665** (−37 %) | +13 724 (+11 552 à +15 895) |
+| hôpital de proximité, accident | 59 144 | **41 956** (−29 %) | +17 187 (+14 861 à +19 514) |
+| grand CHU, accident | 5 595 | **4 148** (−26 %) | +1 447 (+734 à +2 159) |
+
+Aucun intervalle ne passe par zéro. La recherche laisse partir sans être vus à peu près autant de patients que
+l'échéance, et nettement moins que la couleur.
+
+**Plus rapide** : 1,6 fois, sans rien changer à ce qu'elle choisit (les empreintes sont les mêmes). Un monde où la
+marche ne compte pas ne fait marcher personne, les patients déjà sortis sont partagés au lieu d'être copiés, et les
+patients en attente d'un lit sont trouvés sans reconstruire de listes à chaque événement.
+
+**Les lits d'aval** (`pathwaySearchBedRule`, `npm run pathway:search -- --lits`). La recherche choisit qui prend le lit
+qu'un service libère. Ses mondes vont jusqu'au lit des patients qui en attendent un. Elle est notée sur le coût du
+retard plus l'attente d'un lit, triplée la nuit pour un patient de 75 ans et plus (`BOARDING_COST`, H51).
+
+Elle choisit comme la règle de la décision la plus ancienne. Dans ce modèle, seules 1,8 décisions de lit par jour
+laissent un choix, vers midi, et elles ne changent pas le coût du retard. Il n'y a presque rien à y gagner.
+
+**Les pauses des médecins** (`pathwaySearchBreakRule`, `npm run pathway:search -- --pauses`). Avec des pauses
+« décidées », un médecin libre dont la plage est ouverte se voit demander toutes les 15 min « maintenant ou plus
+tard ? ». La pause est forcée en fin de plage, et deux médecins restent toujours en poste. Les mêmes 200 journées, à
+50 itérations, la fatigue comptée :
+
+| Hôpital moyen | aucune pause | au creux (la règle) | la recherche | la recherche contre au creux (IC 95 %) | repas, sans pause au plus |
+|---|---|---|---|---|---|
+| jour ordinaire | 4 917 | 6 257 | **5 215** | +1 042 (+623 à +1 460) | 9,6 ; 10,3 h (la règle : 9,5 ; 10,3 h) |
+| accident | 43 368 | 46 471 | **43 858** | +2 613 (+1 871 à +3 356) | 8,7 ; 12,7 h (la règle : 6,4 ; 16,1 h) |
+
+La recherche donne autant de pauses que la règle, et plus pendant l'accident, pour presque rien. Pendant
+l'accident, elle ne coûte pas plus que de ne donner aucune pause : l'écart, −490 (−1 157 à +177), passe par zéro. Elle
+place la pause quand le médecin manquera le moins.
 
 **Sur la page.** La recherche est une règle des box de l'onglet Parcours détaillé : elle joue la journée dans un
 worker (une demi-minute à 50 itérations), puis l'onglet rejoue exactement la même journée d'après ses choix. Stats la
 compare aux règles sur 8 journées, dans des workers.
 
 **Ce qui reste à décider par la recherche** ([ressources-rares.md](recherche/ressources-rares.md)) :
-- le lit d'aval, le scanner, le bloc et la sortie de SAUV ;
+- le scanner, le bloc et la sortie de SAUV ;
 - le déclenchement de l'HET ou du Plan blanc ;
-- les pauses des médecins, que l'étape 4 a montrées coûteuses ;
-- l'ordre des tâches de l'interne.
+- l'ordre des tâches de l'interne (la recherche ne joue pas encore une journée avec un interne).

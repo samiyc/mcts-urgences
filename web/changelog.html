@@ -31,6 +31,17 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.17</span> Le gain de la recherche confirmé, les lits, les pauses <span class="date">26/10, après-midi</span></h3>
+        <ul>
+          <li>Sur 200 journées, la recherche bat la meilleure règle des box partout : −27 % un jour ordinaire, −37 % pendant l'accident à l'hôpital moyen, −29 % à l'hôpital de proximité, −26 % au grand CHU ; aucun intervalle ne passe par zéro.</li>
+          <li>La recherche décide aussi les pauses des médecins : autant de pauses que la règle « au creux », et plus pendant l'accident, pour presque rien (−2 613 de coût sur la règle pendant l'accident).</li>
+          <li>Pour les lits d'aval, la recherche choisit comme la règle de la décision la plus ancienne : le choix se pose rarement, et ne change pas le coût du retard.</li>
+          <li>La fatigue ralentit aussi l'interne ; la recherche est 1,6 fois plus rapide ; docs/modele.md est découpé, le parcours détaillé dans docs/parcours.md.</li>
+        </ul>
+        <p class="commits"><code>a387bc6</code> <code>442c464</code> <code>b899870</code> <code>05d071f</code> <code>823ede1</code> <code>fb4df8c</code></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.16</span> La recherche sur le parcours détaillé <span class="date">26/10</span></h3>
         <ul>
           <li>La recherche (ISMCTS) choisit qui prend le box sur une journée du parcours : elle retire au sort le vrai niveau des patients pas encore vus, leur parcours caché et les arrivées à venir.</li>

@@ -50,6 +50,25 @@
   ],
   "versions": [
     {
+      "version": "0.17",
+      "date": "26/10, après-midi",
+      "title": "Le gain de la recherche confirmé, les lits, les pauses",
+      "commits": [
+        "a387bc6",
+        "442c464",
+        "b899870",
+        "05d071f",
+        "823ede1",
+        "fb4df8c"
+      ],
+      "items": [
+        "Sur 200 journées, la recherche bat la meilleure règle des box partout : −27 % un jour ordinaire, −37 % pendant l'accident à l'hôpital moyen, −29 % à l'hôpital de proximité, −26 % au grand CHU ; aucun intervalle ne passe par zéro.",
+        "La recherche décide aussi les pauses des médecins : autant de pauses que la règle « au creux », et plus pendant l'accident, pour presque rien (−2 613 de coût sur la règle pendant l'accident).",
+        "Pour les lits d'aval, la recherche choisit comme la règle de la décision la plus ancienne : le choix se pose rarement, et ne change pas le coût du retard.",
+        "La fatigue ralentit aussi l'interne ; la recherche est 1,6 fois plus rapide ; docs/modele.md est découpé, le parcours détaillé dans docs/parcours.md."
+      ]
+    },
+    {
       "version": "0.16",
       "date": "26/10",
       "title": "La recherche sur le parcours détaillé",
