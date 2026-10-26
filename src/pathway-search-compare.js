@@ -1,7 +1,7 @@
 import { paired } from "mcts-commun/measure.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "./pathway.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
-import { pathwaySearchRule } from "./pathway-search.js";
+import { pathwaySearchBedRule, pathwaySearchRule } from "./pathway-search.js";
 import { RULES } from "./rules.js";
 
 /**
@@ -16,6 +16,16 @@ export function playSearchDay({ seed, options, budget }) {
   const drawn = drawPathwayDay(seed, options);
   const boxOf = (name) => (name === "search" ? pathwaySearchRule({ budget }) : RULES[name]);
   return Object.fromEntries(SEARCHED.map((name) => [name, pathwayMeasures(runPathway(startPathway(drawn), { box: boxOf(name), bed: BED_RULES.oldest }))]));
+}
+
+/** The bed rules and the search choosing the beds, the box rule « couleur » (step 6, the downstream beds). */
+export const BED_SEARCHED = Object.freeze(["oldest", "box", "elderly", "search"]);
+
+/** One day: each bed rule's measures and the search's for the beds. */
+export function playBedSearchDay({ seed, options, budget }) {
+  const drawn = drawPathwayDay(seed, options);
+  const bedOf = (name) => (name === "search" ? pathwaySearchBedRule({ budget }) : BED_RULES[name]);
+  return Object.fromEntries(BED_SEARCHED.map((name) => [name, pathwayMeasures(runPathway(startPathway(drawn), { box: RULES.colour, bed: bedOf(name) }))]));
 }
 
 /** The search's choices of a day, in order (each box decision's chosen id): the page replays the day from them. */
@@ -41,15 +51,20 @@ export function followChoices(choices) {
   };
 }
 
-/** The days' measures gathered (`[{ arrival, colour, deadline, search }]`): each rule's mean late cost, the search's gain on it. */
-export function searchRows(days) {
+/**
+ * The days' measures gathered (`[{ arrival, colour, deadline, search }]`, or the bed rules': `names`): each rule's mean
+ * late cost, patients gone unseen, median stay, longest boarding and the elderly's nights, the search's gain on it.
+ */
+export function searchRows(days, names = SEARCHED) {
   const costs = (name) => days.map((one) => one[name].lateCostNow);
   const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
-  return SEARCHED.map((name) => ({
+  return names.map((name) => ({
     name,
     lateCostNow: mean(costs(name)),
     left: mean(days.map((one) => one[name].exits.parti)),
     stayMedian: mean(days.map((one) => one[name].stay.median)),
+    boardingMax: mean(days.map((one) => one[name].boarding.max)),
+    elderlyNights: mean(days.map((one) => one[name].boarding.elderlyNights)),
     gain: name === "search" ? null : paired(costs(name), costs("search")),
   }));
 }

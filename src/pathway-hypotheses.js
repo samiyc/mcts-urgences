@@ -161,6 +161,12 @@ export const FATIGUE = Object.freeze({
   handover: 15,
 });
 
+/**
+ * What a minute waiting for a bed costs the bed search (step 6; hypothesis H51): as a green's minute late, three times
+ * that for a patient of 75 or more at night (« No Bed Night »: their mortality from 11.1 to 15.7 %, ressources-rares.md).
+ */
+export const BOARDING_COST = Object.freeze({ perMinute: 2, elderlyAtNight: 3 });
+
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
 export const CELL_METRES = 2;
 

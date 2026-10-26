@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createRng } from "mcts-commun/random.js";
 import { BED_RULES, decide, nextDecision, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
-import { drawWorld, pathwaySearchRule } from "../src/pathway-search.js";
+import { drawWorld, pathwaySearchBedRule, pathwaySearchRule } from "../src/pathway-search.js";
 import { followChoices, searchChoices } from "../src/pathway-search-compare.js";
 import { RULES } from "../src/rules.js";
 
@@ -54,5 +54,21 @@ describe("the search on the pathway (src/pathway-search.js, step 6)", () => {
     const choices = searchChoices({ seed: 2, options, budget: 10 });
     const replayed = pathwayMeasures(runPathway(startPathway(drawPathwayDay(2, options)), { box: followChoices(choices), bed: BED_RULES.oldest }));
     assert.deepEqual(replayed, direct);
+  });
+
+  it("chooses who takes a freed bed among those waiting, the same twice, and plays a whole day", () => {
+    let asked = null;
+    const search = pathwaySearchBedRule({ budget: 10 });
+    const bed = (candidates, context) => {
+      const chosen = search(candidates, context);
+      if (candidates.length > 1 && !asked) asked = { candidates, chosen, again: search(candidates, context) };
+      return chosen;
+    };
+    const drawn = drawPathwayDay(1, { hospital: "moyen", accident: true });
+    const measures = pathwayMeasures(runPathway(startPathway(drawn), { box: RULES.colour, bed }));
+    assert.equal(measures.patients, drawn.patients.length);
+    assert.ok(asked, "aucune décision de lit à plusieurs candidats");
+    assert.ok(asked.candidates.includes(asked.chosen));
+    assert.equal(asked.again.id, asked.chosen.id);
   });
 });

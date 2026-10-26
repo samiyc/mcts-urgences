@@ -1,6 +1,8 @@
 import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { LEVELS, MAX_WAIT } from "./hypotheses.js";
+import { BOARDING_COST } from "./pathway-hypotheses.js";
+import { hourAt } from "./pathway-scenario.js";
 import { BED_RULES, decide, followed, nextDecision } from "./pathway.js";
 import { cloneDay } from "./pathway-clone.js";
 import { arrivalsByHour, pathwayOf } from "./pathway-scenario.js";
@@ -75,21 +77,45 @@ export function drawWorld(day, rng, horizon) {
   }
   addComings(world, rng, horizon);
   world.pending = [...world.patients.values()].filter((patient) => patient.start === null && patient.exit === null && patient.arrival <= now + horizon).map((patient) => patient.id);
+  // Who waits for a bed now: the search choosing the beds counts their wait too.
+  world.boarders = Object.values(world.wards).flatMap((ward) => ward.waiting);
   world.decision = nextDecision(world);
   return world;
 }
 
+/** Every patient waiting for a bed when the search began has one, or is gone. */
+const allBedded = (world) => world.boarders.every((id) => world.patients.get(id).bedAt !== undefined || world.patients.get(id).exit !== null);
+
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null || world.patients.get(id).exit !== null);
 
-/** Plays the decision with `id` (a box), then the day to its next box decision, the bed decisions by the bed rule. */
-function advance(world, id, bed) {
+/**
+ * Plays the decision with `id`, then the day to its next decision: a box's, the bed decisions by the bed rule; or
+ * either kind with `beds` (the search choosing the beds as well).
+ */
+function advance(world, id, { bed, beds }) {
   decide(world, world.decision, id);
   world.decision = nextDecision(world);
-  while (world.decision?.kind === "bed") {
+  while (!beds && world.decision?.kind === "bed") {
     decide(world, world.decision, Number(bed(world.decision.candidates).id));
     world.decision = nextDecision(world);
   }
   return world;
+}
+
+/**
+ * The wait for a bed of the patients waiting for one when the search began, until their bed (BOARDING_COST: a minute
+ * on a stretcher, more for a patient of 75 or more at night, « No Bed Night »): what the bed search adds to its score.
+ */
+function boardingCost(world, from) {
+  const hour = hourAt(world.settings, from);
+  const night = hour >= 20 || hour < 8;
+  let cost = 0;
+  for (const id of world.boarders) {
+    const patient = world.patients.get(id);
+    const weight = BOARDING_COST.perMinute * (night && patient.elderly ? BOARDING_COST.elderlyAtNight : 1);
+    cost += weight * Math.max(0, (patient.bedAt ?? patient.exitAt ?? world.events.now) - from);
+  }
+  return cost;
 }
 
 function pendingCost(world) {
@@ -110,28 +136,46 @@ function shortlistOf(moves, width) {
   return [...new Map(ranked.map((move) => [move.key, move])).values()].slice(0, width);
 }
 
-/** The problem the search solves on the day, scored `scale / (scale + cost)`. */
-function problemFor({ scale, width, horizon, bed }) {
+/** The moves of the decision the world stands at: a box's patients, or (when the search chooses them) a bed's. */
+function movesOf(world, beds) {
+  const { decision } = world;
+  if (decision?.kind === "box") return decision.candidates.map((view) => ({ id: view.id, view, key: keyOf(view) }));
+  return beds && decision?.kind === "bed" ? decision.candidates.map((view) => ({ id: view.id, view, key: `lit-${view.id}`, bed: true })) : [];
+}
+
+/** The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`: the bed decisions are moves too. */
+function problemFor({ scale, width, horizon, bed, beds = false, from = 0 }) {
+  const rules = { bed, beds };
+  const cost = (world) => pendingCost(world) + (beds ? boardingCost(world, from) : 0);
+  // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the horizon).
+  const done = (world) => allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon);
   return {
     sample: (day, rng) => drawWorld(day, rng, horizon),
     actor: () => "service",
-    moves: (world) => (world.decision?.kind === "box" ? world.decision.candidates.map((view) => ({ id: view.id, view, key: keyOf(view) })) : []),
-    shortlist: (world, moves) => shortlistOf(moves, width),
+    moves: (world) => movesOf(world, beds),
+    shortlist: (world, moves) => (moves[0]?.bed ? moves : shortlistOf(moves, width)),
     key: (move) => move.key,
-    play: (world, move) => advance(world, move.id, bed),
-    over: (world) => allIn(world) || world.decision === null,
+    play: (world, move) => advance(world, move.id, rules),
+    over: (world) => done(world) || world.decision === null,
     rollout(world) {
-      while (!allIn(world) && world.decision?.kind === "box") advance(world, Number(RULES.colour(world.decision.candidates).id), bed);
+      while (!done(world) && world.decision) {
+        const rule = world.decision.kind === "box" ? RULES.colour : bed;
+        advance(world, Number(rule(world.decision.candidates).id), rules);
+      }
       return world;
     },
-    score: (world) => scale / (scale + pendingCost(world)),
+    score: (world) => scale / (scale + cost(world)),
   };
 }
 
 /** The colour rule's cost on a few worlds: the score's scale, so that the rule scores about ½. */
-function scaleOf(day, rng, { horizon, bed }) {
+function scaleOf(day, rng, { horizon, bed, beds = false }) {
+  const from = day.events.now;
   let total = 0;
-  for (let i = 0; i < 3; i += 1) total += pendingCost(problemFor({ scale: 1, width: 1, horizon, bed }).rollout(drawWorld(day, rng, horizon)));
+  for (let i = 0; i < 3; i += 1) {
+    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, from }).rollout(drawWorld(day, rng, horizon));
+    total += pendingCost(world) + (beds ? boardingCost(world, from) : 0);
+  }
   return Math.max(20, total / 3);
 }
 
@@ -149,5 +193,23 @@ export function pathwaySearchRule(options = {}) {
     const scale = scaleOf(day, rng, { horizon, bed });
     const found = search(day, problemFor({ scale, width, horizon, bed }), { budget, rng, depth, explore, common: true });
     return candidates.find((view) => view.id === found.move?.id) ?? RULES.colour(candidates);
+  };
+}
+
+/**
+ * The search as a bed rule of the pathway (runPathway's `bed`, reading `context.day`): who takes the bed a ward frees,
+ * the box choices that follow by the colour rule; one patient waiting takes it at once. Scored on the late cost and the
+ * wait for a bed (`boardingCost`). Not for a day with an intern.
+ */
+export function pathwaySearchBedRule(options = {}) {
+  const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
+  const bed = options.bed ?? BED_RULES.oldest;
+  return (candidates, { day }) => {
+    if (candidates.length === 1) return candidates[0];
+    if (day.intern) throw new Error("la recherche du parcours ne joue pas une journée avec un interne");
+    const rng = createRng((Math.imul(seed, 0x85ebca6b) + Math.round(day.events.now * 1000) * 37 + Number(candidates[0].id) * 11 + candidates.length) >>> 0);
+    const scale = scaleOf(day, rng, { horizon, bed, beds: true });
+    const found = search(day, problemFor({ scale, width, horizon, bed, beds: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    return candidates.find((view) => view.id === found.move?.id) ?? bed(candidates);
   };
 }
