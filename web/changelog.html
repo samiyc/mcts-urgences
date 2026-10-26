@@ -31,6 +31,17 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.12</span> Les onglets, et le parcours sur son plan <span class="date">26/10</span></h3>
+        <ul>
+          <li>La page en onglets, comme celle de lopin : Garde simple, Service en plan, Parcours détaillé, Replays, Stats ; les réglages de l'onglet dans un panneau à gauche, qui se replie.</li>
+          <li>Le parcours détaillé, étape 2 : une journée de 24 h sur un plan en texte, rejouée minute par minute, avec les patients présents (où, ce qu'ils attendent, depuis quand), les chiffres de la journée et ce qu'elle a marché, par rôle.</li>
+          <li>Le plan se modifie dans le panneau : il fixe les box, la SAUV, l'isolement, l'UHCD et les scanners, et ses erreurs s'affichent. Sur l'hôpital moyen pendant l'accident, mettre le scanner au fond fait marcher les brancardiers 15 % de plus.</li>
+          <li>Les brancardiers (1, 2 ou 3 selon l'hôpital) sont dessinés ; la marche ne retarde pas encore les soins, ce sera l'étape 3. Les journées se gardent et se rouvrent dans Replays ; Stats compare les règles du parcours sur les mêmes journées.</li>
+        </ul>
+        <p class="commits"><code>36f0ccc</code> <code>f6c500a</code> <code>d285934</code> <code>4a79ef1</code></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.11</span> Le projet solidifié, avant l'étape 2 du parcours <span class="date">26/10</span></h3>
         <ul>
           <li>Le lint de lopin et son budget de complexité (npm run lint) : 57 erreurs trouvées, toutes corrigées en découpant les fichiers trop longs (le parcours détaillé, le plan, la page), sans relever les limites.</li>

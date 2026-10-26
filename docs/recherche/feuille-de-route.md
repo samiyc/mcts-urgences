@@ -44,7 +44,7 @@ simple vient d'abord ; la recherche doit la battre.
 - Les règles de référence sont comparées sur les mêmes gardes (`node scripts/pathway-compare.js`).
 - Pas de page, pas de plan, pas de recherche : c'est le moteur des étapes suivantes.
 
-## Étape 2 : le plan détaillé
+## Étape 2 : le plan détaillé (faite le 26/10, [modele.md](../modele.md), « Le plan détaillé »)
 
 - Un plan par hôpital avec les pièces du parcours :
   - l'accueil et le tri ;
@@ -63,7 +63,10 @@ Les choix de Sami (26/10, avant de coder) :
   mesurera alors son coût, avec et sans, sur les mêmes journées, comme le 23/10 pour la garde simple ;
 - **les plans** : trois plans en texte proposés par Claude, avec leur légende, autant de places que les capacités de
   chaque hôpital (`pathway-hypotheses.js`), que Sami corrige ensuite ;
-- **une page à part**, `web/parcours.html`, avec un lien depuis la page de la garde, qui reste telle quelle ;
+- **un onglet** « Parcours détaillé » de la page, passée en onglets comme celle de lopin (Garde simple, Service en
+  plan, Parcours détaillé, Replays, Stats), au lieu de la page à part `web/parcours.html` d'abord prévue ;
+- **le plan en texte se modifie dans le panneau de gauche** : il fixe les places (box, SAUV, isolement, UHCD,
+  scanners), et les trajets se mesurent par rôle ;
 - **les brancardiers** : 1 à l'hôpital de proximité, 2 au moyen, 3 au CHU (hypothèse, sans source). Ils sont
   dessinés à l'étape 2 et ne font attendre qu'à partir de l'étape 3, quand la marche compte.
 

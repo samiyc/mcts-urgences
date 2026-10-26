@@ -359,6 +359,66 @@ au-delà des lits. Les recherches sont dans [`docs/recherche/`](recherche/README
 - la règle ne voit jamais le vrai niveau ;
 - les pics et les max.
 
+## Le plan détaillé, étape 2 (26/10, Sami)
+
+Le parcours détaillé se voit maintenant sur un plan en texte, dans l'onglet « Parcours détaillé » de la page
+(`src/pathway-plans.js`, `src/pathway-trace.js`, `src/pathway-walk.js`, `src/pathway-status.js`).
+
+La légende :
+- `#` un mur, `.` le sol, `E` l'entrée ;
+- `A` l'accueil, `T` le tri, `w` un siège d'attente, `r` un siège pour l'attente des résultats ;
+- `b` un box, `S` la SAUV, `I` l'isolement, `U` un lit d'UHCD ;
+- `X` un scanner, `L` le labo, `P` la pharmacie ;
+- `O` la porte du bloc, `H` les ascenseurs ;
+- `D` la salle des médecins, `R` la pause, `B` la base des brancardiers.
+
+Le plan de l'hôpital moyen :
+
+```text
+######################################################
+#S..S#b.b.b.b.b.b#U.U.U.U.U.U#X..#O..#H..#wwwwwwwwww.#
+#....#...........#...........#...#...#...#...........#
+#....#...........#...........#...#...#...#wwwwwwwwww.#
+#....................................................E
+#....#...........#...........#...#...#...#A.T........#
+#....#...........#...........#...#...#...#wwwwwwwwww.#
+#I...#b.b.b.b.b.b#D...R...B..#L..#P..#...#rrrrrr.....#
+######################################################
+```
+
+**Le plan fixe les places.** Le nombre de box, de lits de SAUV, d'UHCD, de chambres d'isolement et de scanners est
+compté sur le plan :
+- les trois plans par défaut ont exactement les capacités de l'étape 1, donc une journée sur le plan de son hôpital
+  est la journée de l'étape 1. Les empreintes n'ont pas changé ;
+- un plan modifié dans le panneau change les capacités, et la journée suit.
+
+Les staffs, les taux d'arrivée et les lits des services restent ceux de l'hôpital choisi.
+
+**La marche est dessinée, pas comptée** (le choix de Sami). Chaque déplacement du journal devient un chemin, une case
+toutes les 6 s :
+- les patients vont de l'entrée à l'accueil, au tri, à un siège, au box, au scanner, puis sortent par l'entrée, les
+  ascenseurs ou le bloc ;
+- les médecins vont au lit de leur patient ;
+- les brancardiers sont attribués après coup : le plus proche des libres fait l'aller, le transport et le retour.
+
+Personne n'attend une marche, donc le patient peut être examiné avant que le dessin ne l'ait amené au box : c'est
+ce que l'étape 3 corrigera.
+
+Ce qui se marche, sur l'hôpital moyen, couleur puis ordre d'arrivée, en moyenne sur 20 journées :
+
+| | patients | médecins | brancardiers | transports | sans brancardier libre | délai du brancardier |
+|---|---|---|---|---|---|---|
+| jour ordinaire | 28,9 km | 14,1 km | 9,0 km | 81 | 3,6 | 1,7 min |
+| accident | 28,4 km | 13,6 km | 10,1 km | 92 | 4,0 | 1,6 min |
+| accident, scanner au fond | 28,0 km | 13,6 km | 11,6 km | 92 | 4,8 | 2,4 min |
+
+Le dernier cas met le scanner à l'autre bout du couloir, dans la salle de la SAUV : les brancardiers marchent 15 %
+de plus, et un transport attend son brancardier 50 % plus longtemps. C'est l'usage que Sami veut faire des plans :
+raccourcir les trajets, ou au contraire grossir la congestion pour éprouver la recherche.
+
+À l'étape 3, ces minutes compteront : l'examen attendra que le patient et le médecin soient au lit, et un transport
+son brancardier.
+
 ## La suite
 
 Les étapes communes aux trois dépôts sont dans la [feuille de route](https://github.com/samiyc/lopin/blob/main/docs/ismcts-ailleurs/feuille-de-route.md) § 6 (Sami, 23/10 au soir) : l'ordonnanceur en commun pour les mesures de nuit, les replays avec un humain pour analyser les écarts, la vitrine. Le journal des versions est dans la page (`web/changelog.html`).

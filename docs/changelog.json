@@ -50,6 +50,23 @@
   ],
   "versions": [
     {
+      "version": "0.12",
+      "date": "26/10",
+      "title": "Les onglets, et le parcours sur son plan",
+      "commits": [
+        "36f0ccc",
+        "f6c500a",
+        "d285934",
+        "4a79ef1"
+      ],
+      "items": [
+        "La page en onglets, comme celle de lopin : Garde simple, Service en plan, Parcours détaillé, Replays, Stats ; les réglages de l'onglet dans un panneau à gauche, qui se replie.",
+        "Le parcours détaillé, étape 2 : une journée de 24 h sur un plan en texte, rejouée minute par minute, avec les patients présents (où, ce qu'ils attendent, depuis quand), les chiffres de la journée et ce qu'elle a marché, par rôle.",
+        "Le plan se modifie dans le panneau : il fixe les box, la SAUV, l'isolement, l'UHCD et les scanners, et ses erreurs s'affichent. Sur l'hôpital moyen pendant l'accident, mettre le scanner au fond fait marcher les brancardiers 15 % de plus.",
+        "Les brancardiers (1, 2 ou 3 selon l'hôpital) sont dessinés ; la marche ne retarde pas encore les soins, ce sera l'étape 3. Les journées se gardent et se rouvrent dans Replays ; Stats compare les règles du parcours sur les mêmes journées."
+      ]
+    },
+    {
       "version": "0.11",
       "date": "26/10",
       "title": "Le projet solidifié, avant l'étape 2 du parcours",

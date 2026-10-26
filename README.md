@@ -16,10 +16,18 @@ juste après l'ordonnanceur de Lopin, dont il reprend toutes les pièces.
 ## Voir la page
 
 `npm install` (une fois : il relie `../mcts-commun`), puis `npm run page` et ouvrir
-http://127.0.0.1:4801/web/. Une garde tirée, jouée sous la règle choisie, dans l'hôpital choisi, avec ou sans
+http://127.0.0.1:4801/web/. La page est en onglets depuis le 26/10/2026, chacun avec ses réglages dans le panneau de
+gauche, qui se replie :
+- **Garde simple** : la garde de 8 h et « Jouer la garde vous-même » ;
+- **Service en plan** : un soignant au clavier ;
+- **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau ;
+- **Replays** : les parties gardées et le dossier `replays/` ;
+- **Stats** : les règles comparées sur la garde et sur le parcours.
+
+Dans l'onglet Garde simple : une garde tirée, jouée sous la règle choisie, dans l'hôpital choisi, avec ou sans
 l'accident : la garde rejouée sur un plan du service (l'entrée, la salle d'attente, les box, à la vitesse
 choisie), les box au fil de la garde, la salle d'attente, les patients les plus mal servis avec leur
-niveau réel (ce que personne ne voyait), puis les trois règles sur les mêmes 100 gardes. Avec la recherche, la
+niveau réel (ce que personne ne voyait), puis, dans Stats, les trois règles sur les mêmes 100 gardes. Avec la recherche, la
 comparaison se fait sur 12 gardes, jouées côte à côte dans des *workers* (`web/shift-worker.js`, tous les cœurs
 sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul cœur (23/10/2026).
 
