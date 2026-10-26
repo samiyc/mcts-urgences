@@ -1,8 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { atKeyboard, internBenchmarks, internMeasures, internReplayOf, minuteOf, playInternReplay, runInternGame, startInternGame, stepInternGame } from "../src/pathway-game.js";
+import { atKeyboard, internBenchmarks, internMeasures, internReplayOf, internResult, minuteOf, playInternReplay, runInternGame, startInternGame, stepInternGame } from "../src/pathway-game.js";
 import { INTERN } from "../src/pathway-hypotheses.js";
 import { tasksHere, TASKS } from "../src/pathway-intern.js";
+import { INTERN_RULES } from "../src/pathway-intern-decided.js";
+import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
+import { pathwaySearchInternRule } from "../src/pathway-search.js";
+import { RULES } from "../src/rules.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
 import { walkSteps } from "../src/ward-moves.js";
 
@@ -74,5 +78,40 @@ describe("the intern (src/pathway-intern.js, src/pathway-game.js, step 3)", () =
     assert.deepEqual(Object.keys(benchmarks), ["robot", "random", "none"]);
     assert.equal(benchmarks.none.intern, null);
     assert.ok(benchmarks.robot.intern.done > 0);
+  });
+});
+
+describe("the intern decided a task at a time (src/pathway-intern-decided.js, step 6)", () => {
+  const decidedDay = (seed, intern, options = {}) => runPathway(startPathway(drawPathwayDay(seed, { hospital: "moyen", accident: true, walk: true, intern: INTERN, internDecided: true, ...options })), { box: RULES.colour, bed: BED_RULES.oldest, intern });
+
+  it("asks which task to do, walks there for the walk's time, does every kind of task, and leaves none open", () => {
+    const asked = [];
+    const day = decidedDay(1, (candidates, context) => {
+      asked.push({ t: context.now, candidates });
+      return INTERN_RULES.dueFirst(candidates);
+    });
+    assert.ok(asked.length > 50);
+    assert.ok(asked.every(({ candidates }) => candidates.every((one) => Number.isInteger(one.id) && one.steps >= 0)));
+    const kinds = new Set(day.intern.done.map((task) => task.kind));
+    for (const kind of Object.keys(TASKS)) assert.ok(kinds.has(kind), `jamais fait : ${kind}`);
+    assert.equal(internMeasures(day).open, 0);
+    assert.ok(internMeasures(day).metres > 0);
+  });
+
+  it("plays the step-by-step robot's day nearly: the same patients followed, the late cost close", () => {
+    const decided = pathwayMeasures(decidedDay(1, INTERN_RULES.dueFirst));
+    const stepped = internResult(runInternGame(startInternGame({ mode: "robot", seed: 1 }))).measures;
+    assert.ok(Math.abs(decided.lateCostNow - stepped.lateCostNow) < 0.1 * stepped.lateCostNow, `${decided.lateCostNow} contre ${stepped.lateCostNow}`);
+  });
+
+  it("lets the search choose the intern's next task", () => {
+    let seen = null;
+    const search = pathwaySearchInternRule({ budget: 6 });
+    decidedDay(2, (candidates, context) => {
+      const chosen = candidates.length > 1 && !seen ? search(candidates, context) : INTERN_RULES.dueFirst(candidates);
+      if (candidates.length > 1 && !seen) seen = { candidates, chosen };
+      return chosen;
+    }, { hospital: "proximite" });
+    assert.ok(seen && seen.candidates.includes(seen.chosen));
   });
 });

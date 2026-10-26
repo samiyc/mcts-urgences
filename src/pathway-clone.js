@@ -25,6 +25,12 @@ function copyTrace(trace, walk) {
   };
 }
 
+/** The decided intern of a world (pathway-intern-decided.js): their tasks copied, the ones done in the world kept apart. */
+function copyIntern(intern) {
+  if (!intern) return null;
+  return { ...intern, assigned: new Set(intern.assigned), tasks: intern.tasks.map((task) => ({ ...task })), done: [], track: [], cell: { ...intern.cell }, goingTo: intern.goingTo && { ...intern.goingTo } };
+}
+
 function copyFatigue(fatigue) {
   if (!fatigue) return null;
   return {
@@ -52,6 +58,7 @@ export function cloneDay(day, keep = () => true) {
     trace: copyTrace(day.trace, day.settings.walk),
     porters: day.porters.map((porter) => ({ ...porter })),
     fatigue: copyFatigue(day.fatigue),
+    intern: copyIntern(day.intern),
     series: [],
     nextSample: Infinity,
   };

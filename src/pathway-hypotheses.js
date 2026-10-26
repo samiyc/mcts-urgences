@@ -58,6 +58,8 @@ export const PATHWAY_DEFAULTS = Object.freeze({
   walk: false,
   /** The intern (INTERN, step 3), or none: without one, the day is the same as before. */
   intern: null,
+  /** The intern decided a task at a time, by events (pathway-intern-decided.js, step 6), instead of a step at a time. */
+  internDecided: false,
   /** The doctors' fatigue and breaks (FATIGUE, step 4), or none: without it, the day is the same as before. */
   fatigue: null,
   /**
@@ -166,6 +168,12 @@ export const FATIGUE = Object.freeze({
  * that for a patient of 75 or more at night (« No Bed Night »: their mortality from 11.1 to 15.7 %, ressources-rares.md).
  */
 export const BOARDING_COST = Object.freeze({ perMinute: 2, elderlyAtNight: 3 });
+
+/**
+ * What a minute past due of one of the intern's tasks costs the search choosing them (step 6; hypothesis H52): as a
+ * yellow's minute late. How strict the follow-up should be (Sami, 25/10: « le temps et la rigueur du suivi »).
+ */
+export const INTERN_LATE = Object.freeze({ perMinute: 4 });
 
 /** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
 export const CELL_METRES = 2;

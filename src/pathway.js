@@ -4,6 +4,7 @@ import { account, keepPeaks } from "./pathway-measures.js";
 import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take, walkDelay } from "./pathway-places.js";
 import { BREAK_DECIDERS, breakDecision, breakTimes, decideBreak, slowOf, startFatigue } from "./pathway-fatigue.js";
 import { drop, startIntern } from "./pathway-intern.js";
+import { INTERN_RULES, decideIntern, internDecision } from "./pathway-intern-decided.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
 import { serve, startBreak } from "./pathway-serve.js";
@@ -203,7 +204,7 @@ function bedDecision(day) {
  * The decision the day is at, or null: `{ kind: "box", candidates }` (views of the waiting patients a place is free
  * for, a doctor free), or `{ kind: "bed", ward, candidates }` (a ward has a bed, two patients or more wait for it).
  */
-const decisionAt = (day) => boxDecision(day) ?? bedDecision(day) ?? breakDecision(day);
+const decisionAt = (day) => boxDecision(day) ?? bedDecision(day) ?? breakDecision(day) ?? internDecision(day);
 
 /** Whether the day is over: past the overtime, or nothing left to happen and no task left to the intern. */
 const endsNow = (day, next, end) => (next ? next.at > end : (day.intern?.tasks.length ?? 0) === 0);
@@ -251,6 +252,7 @@ function handleNext(day, until) {
 export function decide(day, decision, id) {
   if (decision.kind === "bed") return giveBed(day, decision.ward, id);
   if (decision.kind === "break") return decideBreak(day, decision, id, startBreak);
+  if (decision.kind === "intern") return decideIntern(day, id);
   const patient = day.patients.get(id);
   const place = patient && day.queues.waiting.includes(id) ? placeFor(day, patient) : null;
   if (!place || free(day, "doctors") <= 0) throw new Error("la règle doit choisir un patient qui attend, pour qui une place est libre");
@@ -269,7 +271,7 @@ export function decide(day, decision, id) {
 /**
  * Plays `day` to its end: the box choices by `rules.box` (a rule of rules.js), the bed choices by `rules.bed` (BED_RULES).
  * @param {Day} day
- * @param {{ box: Rule, bed: BedRule, breaks?: Function }} rules
+ * @param {{ box: Rule, bed: BedRule, breaks?: Function, intern?: Function }} rules
  * @returns {Day}
  */
 export function runPathway(day, rules) {
@@ -281,11 +283,11 @@ export function runPathway(day, rules) {
  * A decision taken by its rule: the box rule, the bed rule, the break decider (« au creux » by default).
  * @param {Day} day
  * @param {Decision} decision
- * @param {{ box: Function, bed: Function, breaks?: Function }} rules
+ * @param {{ box: Function, bed: Function, breaks?: Function, intern?: Function }} rules
  */
-export function choose(day, decision, { box, bed, breaks = BREAK_DECIDERS.quiet }) {
+export function choose(day, decision, { box, bed, breaks = BREAK_DECIDERS.quiet, intern = INTERN_RULES.dueFirst }) {
   const context = { now: now(day), day };
-  const rule = { box, bed, break: breaks }[decision.kind];
+  const rule = { box, bed, break: breaks, intern }[decision.kind];
   const chosen = rule(decision.candidates, context);
   decide(day, decision, decision.kind === "break" ? chosen.id : Number(chosen.id));
 }
@@ -294,7 +296,7 @@ export function choose(day, decision, { box, bed, breaks = BREAK_DECIDERS.quiet 
  * Plays `day` up to minute `until`, the choices by `rules` (runPathway's): the intern acts between two such calls.
  * @param {Day} day
  * @param {number} until
- * @param {{ box: Rule, bed: BedRule, breaks?: Function }} rules
+ * @param {{ box: Rule, bed: BedRule, breaks?: Function, intern?: Function }} rules
  */
 export function runUntil(day, until, rules) {
   if (day.over) return day;

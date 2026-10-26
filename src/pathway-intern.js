@@ -34,7 +34,7 @@ export const TASKS = Object.freeze({
 
 export function startIntern(settings, layout) {
   if (!settings.intern) return null;
-  return { assigned: new Set(), followed: 0, tasks: [], done: [], cell: { ...layout.points.room }, busyUntil: 0, following: null, pickedAt: null, track: [], recoloured: 0, dropped: 0 };
+  return { assigned: new Set(), followed: 0, tasks: [], done: [], cell: { ...layout.points.room }, busyUntil: 0, following: null, pickedAt: null, track: [], recoloured: 0, dropped: 0, asked: 0, walkingUntil: 0, goingTo: null };
 }
 
 /** Whether the intern follows patient `id`. */
@@ -43,7 +43,8 @@ export const follows = (day, id) => Boolean(day.intern?.assigned.has(id));
 /** A task to do for patient `id`, due after its delay (settings.intern.due). */
 export function ask(day, kind, id) {
   const now = day.events.now;
-  day.intern.tasks.push({ kind, id, since: now, due: now + day.settings.intern.due[kind] });
+  day.intern.asked += 1;
+  day.intern.tasks.push({ uid: day.intern.asked, kind, id, since: now, due: now + day.settings.intern.due[kind] });
 }
 
 /** Out of triage: the intern takes a non-urgent patient while they follow fewer than their number; vitals due. */
@@ -74,7 +75,7 @@ export function targetsOf(day, task) {
   return (at[task.kind] ?? [positionOf(day, task.id)]).filter(Boolean);
 }
 
-const near = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= 1;
+export const near = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= 1;
 export const busy = (day) => day.intern.busyUntil > day.events.now + 1e-9;
 
 /** The tasks the intern may do where they stand, the most overdue first. */
@@ -86,10 +87,15 @@ export const tasksHere = (day) =>
  * what the page says.
  */
 export function useHere(day) {
-  const { intern } = day;
   if (busy(day)) return "Occupé : la tâche en cours n'est pas finie.";
   const [task] = tasksHere(day);
   if (!task) return "Rien à faire ici : E à côté d'un patient suivi, au labo, à la pharmacie, au poste ou au scanner.";
+  return useTask(day, task);
+}
+
+/** Task `task` done now, for its minutes; its effect at their end. Returns what the page says. */
+export function useTask(day, task) {
+  const { intern } = day;
   const now = day.events.now;
   intern.tasks = intern.tasks.filter((one) => one !== task);
   intern.done.push({ ...task, at: now });

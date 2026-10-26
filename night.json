@@ -50,6 +50,18 @@
       "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --pauses",
       "estimate": "30 min",
       "threads": 8
+    },
+    {
+      "id": "parcours-interne-moyen-accident",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --interne",
+      "estimate": "30 min",
+      "threads": 8
+    },
+    {
+      "id": "parcours-interne-moyen",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --interne",
+      "estimate": "20 min",
+      "threads": 8
     }
   ]
 }

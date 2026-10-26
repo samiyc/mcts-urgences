@@ -2,8 +2,10 @@ import { paired } from "mcts-commun/measure.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "./pathway.js";
 import { drawPathwayDay } from "./pathway-scenario.js";
 import { BREAK_DECIDERS, DECIDED, fatigueMeasures } from "./pathway-fatigue.js";
-import { FATIGUE } from "./pathway-hypotheses.js";
-import { pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchRule } from "./pathway-search.js";
+import { FATIGUE, INTERN } from "./pathway-hypotheses.js";
+import { INTERN_RULES } from "./pathway-intern-decided.js";
+import { internMeasures } from "./pathway-game.js";
+import { pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchRule } from "./pathway-search.js";
 import { RULES } from "./rules.js";
 
 /**
@@ -46,6 +48,21 @@ export function playBreakSearchDay({ seed, options, budget }) {
       const [fatigue, breaks] = ways[name];
       const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, fatigue })), { box: RULES.colour, bed: BED_RULES.oldest, breaks });
       return [name, { ...pathwayMeasures(day), fatigue: fatigueMeasures(day) }];
+    }),
+  );
+}
+
+/** The intern's tasks: no intern, the reference rules, the search choosing them (step 6), walking counted. */
+export const INTERN_SEARCHED = Object.freeze(["none", "dueFirst", "nearest", "urgent", "search"]);
+
+/** One day: each way of ordering the intern's tasks, its measures and the intern's; the box rule « couleur ». */
+export function playInternSearchDay({ seed, options, budget }) {
+  const ruleOf = (name) => (name === "search" ? pathwaySearchInternRule({ budget }) : INTERN_RULES[name]);
+  return Object.fromEntries(
+    INTERN_SEARCHED.map((name) => {
+      const intern = name === "none" ? null : INTERN;
+      const day = runPathway(startPathway(drawPathwayDay(seed, { ...options, walk: true, intern, internDecided: intern !== null })), { box: RULES.colour, bed: BED_RULES.oldest, intern: ruleOf(name) });
+      return [name, { ...pathwayMeasures(day), intern: day.intern ? internMeasures(day) : null }];
     }),
   );
 }

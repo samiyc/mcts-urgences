@@ -116,6 +116,7 @@ Les codes de métier :
 | H46 | Au moins 2 médecins présents, jamais tous en pause | `FATIGUE.minDoctors` | Combien de médecins doivent rester en poste pendant une pause ? | CDS | à vérifier |
 | H47 | Un résultat oublié 1 fois sur 100, plus 0,4 point par heure de fatigue ; relu 30 min plus tard | `FATIGUE.oversight`, `oversightDelay` | Les résultats lus en retard sont-ils plus fréquents en fin de garde, et de combien ? | URG, BIO | à vérifier |
 | H48 | Une relève de 15 min, sans prendre de patient | `FATIGUE.handover` | Combien dure une relève entre deux équipes, et que fait le service pendant ce temps ? | CDS, URG | à vérifier |
+| H52 | Une minute de retard d'une tâche de l'interne coûte comme une minute de retard d'un jaune | `INTERN_LATE` | Que coûte un prélèvement ou un résultat regardé en retard, comparé à l'attente d'un patient ? | URG, INT | à vérifier |
 | H51 | Une minute d'attente d'un lit coûte comme une minute de retard d'un vert, le triple pour un patient de 75 ans et plus la nuit | `BOARDING_COST` | Comment comparer une heure sur un brancard et une heure de retard au box ? | URG, GL | à vérifier |
 | H50 | L'interne de garde ralentit comme un médecin (même courbe), sans pause | `internSlowOf`, `src/pathway-fatigue.js` | Un interne de garde a-t-il des pauses, et ralentit-il comme les seniors ? | INT, URG | à vérifier |
 | H49 | « Au creux » : 3 patients en attente ou moins | `FATIGUE.quietWaiting` | Quand une équipe estime-t-elle pouvoir lâcher un médecin pour sa pause ? | CDS | à vérifier |

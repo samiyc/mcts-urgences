@@ -48,6 +48,7 @@ function cellOf(trace, who, to) {
     pause: () => points.pause ?? points.room,
     patient: () => trace.where.get(to.id)?.cell ?? points.room,
     out: () => points[to.door] ?? points.entrance,
+    cell: () => to.cell,
   };
   return (pick[to.at] ?? (() => places[to.at]?.[to.slot] ?? points.entrance))();
 }
@@ -129,6 +130,12 @@ export function outOfScanner(day, patient) {
  */
 export function followedTo(day, patient) {
   const { intern, trace } = day;
+  // An intern decided by events (pathway-intern-decided.js) keeps no cells a step: the patient walks to them.
+  if (intern.track.length === 0) {
+    locate(day, patient.id, { at: "cell", cell: { ...intern.cell } });
+    Object.assign(intern, { following: null, pickedAt: null });
+    return;
+  }
   const path = intern.track.slice(intern.pickedAt).map((cell) => ({ ...cell }));
   const walk = { who: patient.id, role: "patient", t0: (intern.pickedAt + 1) * STEP, path: path.length ? path : [{ ...intern.cell }], at: "intern", from: trace.where.get(patient.id)?.at ?? null };
   trace.walks.push(walk);

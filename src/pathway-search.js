@@ -2,7 +2,8 @@ import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { LEVELS, MAX_WAIT } from "./hypotheses.js";
 import { BREAK_DECIDERS } from "./pathway-fatigue.js";
-import { BOARDING_COST } from "./pathway-hypotheses.js";
+import { BOARDING_COST, INTERN_LATE } from "./pathway-hypotheses.js";
+import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { hourAt } from "./pathway-scenario.js";
 import { BED_RULES, decide, followed, nextDecision } from "./pathway.js";
 import { cloneDay } from "./pathway-clone.js";
@@ -90,11 +91,11 @@ const allBedded = (world) => world.boarders.every((id) => world.patients.get(id)
 const allIn = (world) => world.pending.every((id) => world.patients.get(id).start !== null || world.patients.get(id).exit !== null);
 
 /** Whether the search chooses this decision: a box's always; a bed's with `beds`; a break's with `breaks`. */
-const inTree = (decision, { beds, breaks }) => decision.kind === "box" || (beds && decision.kind === "bed") || (breaks && decision.kind === "break");
+const inTree = (decision, { beds, breaks, interns }) => decision.kind === "box" || (beds && decision.kind === "bed") || (breaks && decision.kind === "break") || (interns && decision.kind === "intern");
 
 /** A decision's answer by its rule in the worlds: the colour rule, the bed rule, the break « au creux ». */
 function ruled(world, decision, { bed }) {
-  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet }[decision.kind];
+  const rule = { box: RULES.colour, bed, break: BREAK_DECIDERS.quiet, intern: INTERN_RULES.dueFirst }[decision.kind];
   const chosen = rule(decision.candidates, { day: world });
   return decision.kind === "break" ? chosen.id : Number(chosen.id);
 }
@@ -151,6 +152,7 @@ const MOVES_OF = {
   box: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: keyOf(view) })),
   bed: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `lit-${view.id}`, whole: true })),
   break: () => [...BREAK_MOVES],
+  intern: (decision) => decision.candidates.map((view) => ({ id: view.id, view, key: `tâche-${view.id}`, whole: true })),
 };
 
 function movesOf(world, rules) {
@@ -159,14 +161,30 @@ function movesOf(world, rules) {
 }
 
 /**
+ * How late the intern's tasks were in a world (INTERN_LATE a minute past due, H52): those done in it, and those still
+ * open at its end. What the search choosing the intern's tasks adds to its score.
+ */
+function internLateness(world) {
+  const now = world.events.now;
+  const late = (task, at) => Math.max(0, at - task.due);
+  const done = world.intern.done.reduce((sum, task) => sum + late(task, task.at), 0);
+  const open = world.intern.tasks.reduce((sum, task) => sum + late(task, now), 0);
+  return INTERN_LATE.perMinute * (done + open);
+}
+
+/** A world's cost: the late cost, the wait for a bed when the search chooses beds, the intern's lateness for their tasks. */
+const costOf = (world, { beds, interns }, from) => pendingCost(world) + (beds ? boardingCost(world, from) : 0) + (interns ? internLateness(world) : 0);
+
+/**
  * The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`, `breaks`: the bed decisions, the
  * break decisions are moves too.
  */
-function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, from = 0 }) {
-  const rules = { bed, beds, breaks };
-  const cost = (world) => pendingCost(world) + (beds ? boardingCost(world, from) : 0);
-  // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the horizon).
-  const done = (world) => allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon);
+function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, interns = false, from = 0 }) {
+  const rules = { bed, beds, breaks, interns };
+  const cost = (world) => costOf(world, rules, from);
+  // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the
+  // horizon); choosing the intern's tasks, over the horizon.
+  const done = (world) => (interns ? world.events.now > from + horizon : allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon));
   return {
     sample: (day, rng) => drawWorld(day, rng, horizon),
     actor: () => "service",
@@ -184,12 +202,12 @@ function problemFor({ scale, width, horizon, bed, beds = false, breaks = false, 
 }
 
 /** The colour rule's cost on a few worlds: the score's scale, so that the rule scores about ½. */
-function scaleOf(day, rng, { horizon, bed, beds = false, breaks = false }) {
+function scaleOf(day, rng, { horizon, bed, beds = false, breaks = false, interns = false }) {
   const from = day.events.now;
   let total = 0;
   for (let i = 0; i < 3; i += 1) {
-    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, breaks, from }).rollout(drawWorld(day, rng, horizon));
-    total += pendingCost(world) + (beds ? boardingCost(world, from) : 0);
+    const world = problemFor({ scale: 1, width: 1, horizon, bed, beds, breaks, interns, from }).rollout(drawWorld(day, rng, horizon));
+    total += costOf(world, { beds, interns }, from);
   }
   return Math.max(20, total / 3);
 }
@@ -203,7 +221,7 @@ export function pathwaySearchRule(options = {}) {
   const bed = options.bed ?? BED_RULES.oldest;
   return (candidates, { day }) => {
     if (candidates.length === 1) return candidates[0];
-    if (day.intern) throw new Error("la recherche du parcours ne joue pas une journée avec un interne");
+    if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(day.events.now * 1000) * 31 + Number(candidates[0].id) * 7 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed });
     const found = search(day, problemFor({ scale, width, horizon, bed }), { budget, rng, depth, explore, common: true });
@@ -221,7 +239,7 @@ export function pathwaySearchBedRule(options = {}) {
   const bed = options.bed ?? BED_RULES.oldest;
   return (candidates, { day }) => {
     if (candidates.length === 1) return candidates[0];
-    if (day.intern) throw new Error("la recherche du parcours ne joue pas une journée avec un interne");
+    if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x85ebca6b) + Math.round(day.events.now * 1000) * 37 + Number(candidates[0].id) * 11 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, beds: true });
     const found = search(day, problemFor({ scale, width, horizon, bed, beds: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
@@ -238,10 +256,27 @@ export function pathwaySearchBreakRule(options = {}) {
   const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
   const bed = options.bed ?? BED_RULES.oldest;
   return (candidates, { day }) => {
-    if (day.intern) throw new Error("la recherche du parcours ne joue pas une journée avec un interne");
+    if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0xc2b2ae35) + Math.round(day.events.now * 1000) * 41) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, breaks: true });
     const found = search(day, problemFor({ scale, width, horizon, bed, breaks: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
     return candidates.find((one) => one.id === found.move?.id) ?? BREAK_DECIDERS.quiet(candidates, { day });
+  };
+}
+
+/**
+ * The search choosing the intern's next task (step 6; runPathway's `intern`, a day with `internDecided`): the other
+ * decisions by their rules in its worlds, played over the horizon, scored on the late cost and the intern's lateness
+ * (INTERN_LATE, H52: how strict the follow-up is, Sami's « rigueur du suivi »).
+ */
+export function pathwaySearchInternRule(options = {}) {
+  const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
+  const bed = options.bed ?? BED_RULES.oldest;
+  return (candidates, { day }) => {
+    if (candidates.length === 1) return candidates[0];
+    const rng = createRng((Math.imul(seed, 0x27d4eb2f) + Math.round(day.events.now * 1000) * 43 + candidates.length) >>> 0);
+    const scale = scaleOf(day, rng, { horizon, bed, interns: true });
+    const found = search(day, problemFor({ scale, width, horizon, bed, interns: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    return candidates.find((view) => view.id === found.move?.id) ?? INTERN_RULES.dueFirst(candidates);
   };
 }

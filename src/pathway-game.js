@@ -128,7 +128,9 @@ export function runInternGame(game) {
 export function internMeasures(day) {
   const { done, tasks, dropped, recoloured, track, followed } = day.intern;
   const late = done.map((task) => Math.max(0, task.at - task.due));
-  const moves = track.filter((cell, i) => i > 0 && (cell.x !== track[i - 1].x || cell.y !== track[i - 1].y)).length;
+  // A step at a time, the cells the intern changed; decided by events, the cells of their walks.
+  const stepped = track.filter((cell, i) => i > 0 && (cell.x !== track[i - 1].x || cell.y !== track[i - 1].y)).length;
+  const moves = track.length ? stepped : day.trace.walks.filter((walk) => walk.who === "intern").reduce((sum, walk) => sum + walk.path.length - 1, 0);
   return {
     followed,
     done: done.length,

@@ -1,5 +1,6 @@
 import { endBreak, newTeam } from "./pathway-fatigue.js";
 import { give, now } from "./pathway-places.js";
+import { internArrive } from "./pathway-intern-decided.js";
 import { locate } from "./pathway-trace.js";
 
 /**
@@ -11,6 +12,8 @@ export const STAFF_HANDLERS = {
   porterFree() {},
   /** A step of the plan played by the intern (pathway-game.js): only the clock. */
   tick() {},
+  /** The intern decided by events at their task's place (pathway-intern-decided.js). */
+  internArrive,
   /** A window for breaks opens or closes (pathway-fatigue.js): the breaks are served at every event. */
   breakCheck() {},
   breakEnd(day, event) {
