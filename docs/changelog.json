@@ -50,6 +50,22 @@
   ],
   "versions": [
     {
+      "version": "0.22",
+      "date": "27/10, après-midi",
+      "title": "Les mesures de jour",
+      "commits": [
+        "24abf18",
+        "77f8f38",
+        "9c3354e"
+      ],
+      "items": [
+        "Le Plan blanc, mesuré de nouveau avec la chambre d'isolement prêtée : pendant l'accident, la recherche le déclenche mieux que le seuil (4,6 % de moins) et que « jamais » (6,1 %). Au pic de l'épidémie, elle bat « jamais » de justesse. Avant, elle ne gagnait rien de sûr.",
+        "Le scanner, le bloc et la sortie de SAUV pendant l'accident : la recherche garde son gain, de 2,3 à 3,1 %. L'ordre des tâches de l'interne ne lui donne toujours rien de sûr.",
+        "Les pauses pendant l'accident : la recherche bat toujours la règle « au creux » (5 % de moins), avec plus de repas. Elle coûte un peu plus que de n'en donner aucune (moins de 2 %).",
+        "Les jobs de la file disent où ils en sont et écrivent leurs résultats au fil de l'eau. Les plus longs sont coupés en tranches, rassemblées une fois finies, comme le recommande mcts-commun."
+      ]
+    },
+    {
       "version": "0.21",
       "date": "27/10, matin",
       "title": "Les mesures de la nuit",
