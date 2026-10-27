@@ -49,12 +49,16 @@ export function playSearchDay(job) {
 /** The bed rules and the search choosing the beds, the box rule « couleur » (step 6, the downstream beds). */
 export const BED_SEARCHED = Object.freeze(["oldest", "box", "elderly", "search"]);
 
-/** One day: each bed rule's measures and the search's for the beds. */
+/**
+ * One day: each bed rule's measures and the search's for the beds; with `convex`, a row "convex" too, the search
+ * scoring the wait for a bed convex (H79).
+ */
 export function playBedSearchDay(job) {
   const drawn = drawPathwayDay(job.seed, job.options);
   const searches = searchesOf(job, pathwaySearchBedRule);
-  const bedOf = (name) => searches.rules[name] ?? BED_RULES[name];
-  return searches.done(Object.fromEntries(searches.rows(BED_SEARCHED).map((name) => [name, pathwayMeasures(runPathway(startPathway(drawn), { box: RULES.colour, bed: bedOf(name) }))])));
+  const convex = job.convex ? { convex: pathwaySearchBedRule({ budget: job.budget, convex: true }) } : {};
+  const bedOf = (name) => convex[name] ?? searches.rules[name] ?? BED_RULES[name];
+  return searches.done(Object.fromEntries(searches.rows(job.convex ? [...BED_SEARCHED, "convex"] : BED_SEARCHED).map((name) => [name, pathwayMeasures(runPathway(startPathway(drawn), { box: RULES.colour, bed: bedOf(name) }))])));
 }
 
 /** The breaks: none, the rule « au creux », the same decided one at a time, and the search deciding them (step 6). */

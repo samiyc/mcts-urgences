@@ -18,17 +18,19 @@ import { searchTried } from "./search-trials.js";
 /**
  * The search as a bed rule of the pathway (runPathway's `bed`, reading `context.day`): who takes the bed a ward frees,
  * the box choices that follow by the colour rule; one patient waiting takes it at once. Scored on the late cost and the
- * wait for a bed (`boardingCost`). Not for a day with an intern.
+ * wait for a bed (`boardingCost`), by the minute, or with `convex` more the longer one has waited (H79). Not for a day
+ * with an intern.
  */
 export function pathwaySearchBedRule(options = {}) {
   const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
   const bed = options.bed ?? BED_RULES.oldest;
+  const convex = Boolean(options.convex);
   return (candidates, { day }) => {
     if (candidates.length === 1) return candidates[0];
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x85ebca6b) + Math.round(day.events.now * 1000) * 37 + Number(candidates[0].id) * 11 + candidates.length) >>> 0);
-    const scale = scaleOf(day, rng, { horizon, bed, beds: true });
-    const found = searchTried(day, problemFor({ scale, width, horizon, bed, beds: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
+    const scale = scaleOf(day, rng, { horizon, bed, beds: true, convex });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, beds: true, convex, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? bed(candidates);
   };
 }

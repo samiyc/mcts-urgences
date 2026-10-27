@@ -192,6 +192,13 @@ export const FATIGUE = Object.freeze({
 export const BOARDING_COST = Object.freeze({ perMinute: 2, elderlyAtNight: 3 });
 
 /**
+ * The bed search's convex wait (27/10/2026, hypothesis H79; off by default, `convex`): a minute waiting for a bed costs
+ * more the longer the patient has waited, twice as much at 12 h (the « 12-hour trolley waits »). The waits' sum is the
+ * same whoever takes a bed, so a cost by the minute alone leaves the search blind (docs/parcours-ajouts.md).
+ */
+export const BOARDING_CONVEX = Object.freeze({ over: 720 });
+
+/**
  * What a minute past due of one of the intern's tasks costs the search choosing them (step 6; hypothesis H52): as a
  * yellow's minute late. How strict the follow-up should be (Sami, 25/10: « le temps et la rigueur du suivi »).
  */

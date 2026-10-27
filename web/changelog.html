@@ -31,6 +31,17 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.24</span> La note des lits <span class="date">27/10, soir</span></h3>
+        <ul>
+          <li>Pourquoi la recherche des lits ne voit rien : qui que prenne le lit, le retard des box et l'attente totale restent les mêmes. Seul l'ordre change, donc qui attend le plus.</li>
+          <li>Une note qui pèse plus lourd sur les longues attentes (éteinte par défaut, H79) : la recherche rejoint alors la règle « la décision la plus ancienne », sans faire mieux, sur les trois hôpitaux.</li>
+          <li>Les lits ne demandent pas de recherche : le vrai choix, entre la plus courte attente maximale et les nuits sur un brancard des 75 ans et plus, est à poser aux professionnels.</li>
+          <li>Le pour et le contre d'earlyStop et de diagnose, dans les docs.</li>
+        </ul>
+        <p class="commits"></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.23</span> Les essais de mcts-commun <span class="date">27/10, soir</span></h3>
         <ul>
           <li>Les nouveaux réglages de la recherche de mcts-commun, essayés sur la garde et sur chaque décision du parcours. Ils sont éteints par défaut : rien ne change sans eux.</li>
@@ -38,7 +49,7 @@
           <li>Ce que voient les recherches : des coups presque à égalité partout, et un score plat pour les lits d'aval. La recherche ne les départage pas, alors que le choix compte.</li>
           <li>DyRo-MCTS, une recherche « robuste » publiée en 2025, lue sans rien coder : son idée pourrait départager les coups à égalité.</li>
         </ul>
-        <p class="commits"><code>b7a6502</code></p>
+        <p class="commits"><code>b7a6502</code> <code>4e866b1</code></p>
       </article>
 
       <article class="version">

@@ -171,3 +171,11 @@ Les sources sont dans [oublis.md](oublis.md), « Les quatre ajouts, en chiffres 
 | H76 | À la fin de l'examen, un patient de niveau 1 meurt 4 fois sur 100, un niveau 2 2 fois sur 1 000 (pour environ 0,2 % des passages) | `DEATHS.base` | Combien de décès aux urgences, et pour quels patients ? | URG | à vérifier |
 | H77 | Le risque monte de 10 % par heure d'attente au-delà de l'attente maximale du niveau | `DEATHS.perHour` | De combien l'attente augmente-t-elle le risque de décès ? | URG | à vérifier |
 | H78 | Un décès retient le médecin 45 min (la réanimation, l'annonce à la famille), et la place 90 min de plus | `DEATHS.resus`, `after` | Combien de temps un décès immobilise-t-il un médecin et un box ? | URG, CDS | à vérifier |
+
+## La note de la recherche des lits (27/10 au soir, `BOARDING_CONVEX`, `src/pathway-hypotheses.js`)
+
+Une option de la recherche, éteinte par défaut ([parcours-ajouts.md](../parcours-ajouts.md), « La note des lits »).
+
+| N° | Valeur prise | Dans le code | La question | Qui | Statut |
+|---|---|---|---|---|---|
+| H79 | Une minute d'attente d'un lit pèse d'autant plus que le patient attend depuis longtemps : le double à 12 h, le triple à 24 h | `BOARDING_CONVEX.over` | Une heure de plus sur un brancard pèse-t-elle plus après une longue attente ? À partir de quand ? | URG, GL | à vérifier |

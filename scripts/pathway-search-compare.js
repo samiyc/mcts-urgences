@@ -6,7 +6,7 @@ import { addResult, gatherResults, optionOf, progressReporter, startResults } fr
 import { printSearchTable } from "./pathway-search-table.js";
 
 /**
- * `node scripts/pathway-search-compare.js [--days 10] [--first 1] [--budget 50] [--hopital moyen] [--accident] [--hiver] [--familles] [--interpretes] [--circuit-court] [--deces] [--marche] [--lits | --pauses | --interne | --files | --plan | --het | --sauv] [--early-stop] [--diagnose] [--out FICHIER]` (Sami,
+ * `node scripts/pathway-search-compare.js [--days 10] [--first 1] [--budget 50] [--hopital moyen] [--accident] [--hiver] [--familles] [--interpretes] [--circuit-court] [--deces] [--marche] [--lits | --pauses | --interne | --files | --plan | --het | --sauv] [--early-stop] [--diagnose] [--attente-convexe] [--out FICHIER]` (Sami,
  * 26/10/2026, the detailed pathway's step 6): the box rules and the search on the same days, the bed rule « la
  * décision la plus ancienne », the days played side by side in threads (16 at most: the machine's limit is 18). The
  * late cost at the level of the moment, and the search's gain on each rule by pairs. Budgets above 400 are for the
@@ -25,7 +25,8 @@ import { printSearchTable } from "./pathway-search-table.js";
  *
  * The trials mcts-commun asked (27/10/2026, src/search-trials.js): `--early-stop` adds the search with `earlyStop` on, a
  * row of its own on the same days, its gain paired with the search's; `--diagnose` counts what each search saw (its
- * iterations, its time and `diagnose`'s codes), printed under the table. Neither changes the other rows.
+ * iterations, its time and `diagnose`'s codes), printed under the table. Neither changes the other rows. With `--lits`,
+ * `--attente-convexe` adds the search scoring the wait for a bed convex (H79), a row of its own.
  */
 
 const PLAYS = { beds: playBedSearchDay, breaks: playBreakSearchDay, interns: playInternSearchDay, queues: playQueueSearchDay, alerts: playAlertSearchDay, hets: playHetSearchDay, sauvs: playSauvSearchDay };
@@ -41,18 +42,18 @@ function settingsOf(args) {
   const options = { hospital, accident: args.includes("--accident"), epidemic: args.includes("--hiver"), walk: args.includes("--marche"), ...Object.fromEntries(additions.map(([, name]) => [name, true])) };
   const kind = KINDS[Object.keys(KINDS).find((flag) => args.includes(flag))] ?? "boxes";
   const numbers = { budget: Number(optionOf(args, "--budget", 50)), first: Number(optionOf(args, "--first", 1)), days: Number(optionOf(args, "--days", 10)) };
-  const trials = { early: args.includes("--early-stop"), diagnose: args.includes("--diagnose") };
+  const trials = { early: args.includes("--early-stop"), diagnose: args.includes("--diagnose"), convex: args.includes("--attente-convexe") };
   return { hospital, options, additions: additions.map(([flag]) => flag.slice(2)), kind, ...numbers, ...trials };
 }
 
 /** Plays the days in `threads` workers, each day's results written to `out` as it ends; rejects if a worker fails. */
-function playDays({ first, days, options, budget, kind, early, diagnose }, threads, out) {
+function playDays({ first, days, options, budget, kind, early, diagnose, convex }, threads, out) {
   const report = progressReporter("journée", days);
   return new Promise((resolve, reject) => {
     const done = [];
     const workers = [];
     let next = first;
-    const feed = (worker) => (next < first + days ? worker.postMessage({ seed: next++, options, budget, kind, early, diagnose }) : worker.terminate());
+    const feed = (worker) => (next < first + days ? worker.postMessage({ seed: next++, options, budget, kind, early, diagnose, convex }) : worker.terminate());
     const fail = (error) => {
       for (const worker of workers) worker.terminate();
       reject(error);

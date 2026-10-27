@@ -107,7 +107,9 @@ mcts-commun), jamais sur la vraie.
   ses itérations, son temps et les codes de `diagnose` ;
 - `--early-stop` (`pathway-search-compare.js`), ou la variante `earlyStop=1` (`search-bench.js`), ajoute la recherche
   arrêtée dès que son coup de tête ne peut plus être rattrapé, jouée sur les mêmes journées. On la compare par paires
-  à la recherche entière, avec ce qu'elle épargne.
+  à la recherche entière, avec ce qu'elle épargne ;
+- `--attente-convexe` (`pathway-search-compare.js --lits`) ajoute la recherche des lits notée par une attente convexe
+  (H79), une ligne de plus sur les mêmes journées.
 
 Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun ».
 

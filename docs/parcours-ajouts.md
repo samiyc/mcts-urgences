@@ -2,7 +2,7 @@
 
 La suite de [parcours.md](parcours.md) : ce que Sami a demandé une fois les six étapes de la feuille de route faites.
 Chaque ajout est un réglage, éteint par défaut : la journée reste celle d'avant, et les empreintes ne changent pas.
-Les valeurs estimées sont dans [hypotheses-a-verifier.md](recherche/hypotheses-a-verifier.md) (H61 à H78), les sources
+Les valeurs estimées sont dans [hypotheses-a-verifier.md](recherche/hypotheses-a-verifier.md) (H61 à H79), les sources
 dans [oublis.md](recherche/oublis.md).
 
 ## La chambre d'isolement prêtée (26/10 au soir, Sami)
@@ -284,3 +284,57 @@ corrige est en grande partie absent. Son idée servirait à deux endroits, sans 
 - **départager les coups à égalité** : préférer celui qui garde une place (un box, la SAUV) pour un rouge pas encore
   annoncé, puisqu'une crise que personne n'annonce n'est jamais tirée ;
 - **les décisions dont l'effet dépasse l'horizon**, le Plan blanc et le HET.
+
+**Le pour et le contre** (Sami, 27/10 au soir : « le pour et le contre des features earlyStop et diagnose »).
+
+`earlyStop` change la façon dont la recherche travaille : il arrête le dépouillement des visites dès que le coup de
+tête ne peut plus être rattrapé.
+- **Pour** : le choix est garanti le même (vérifié sur 200 journées par décision) ; il va plus vite quand le choix est
+  net (32 % sur le Plan blanc, 16 % sur le HET) ; éteint, il ne coûte rien.
+- **Contre** : il ne fait rien là où c'est serré, c'est-à-dire presque partout ici (0 à 7 %) ; il gagne du temps, pas
+  de la qualité, et ce temps ne sert que si on le redonne aux décisions serrées. Rien n'est limité par le temps ici :
+  il compte plus pour un bot à 50 ms par tour (CodinGame).
+- **Ici** : éteint par défaut. Il peut s'allumer sans risque pour le Plan blanc et le HET, sans que rien presse.
+
+`diagnose` ne change rien : c'est un rapport après chaque recherche.
+- **Pour** : aucun effet sur les résultats ; il trouve ce qu'on ne voyait pas (la note des lits plate, celle de
+  l'interne une fois sur deux) ; il dit aussi ce qui ne sert à rien (`shallow` presque absent, donc pas de `widening`).
+- **Contre** : `closeCall` sortait presque toujours (corrigé par mcts-commun le soir même, a2c66bd : il juge
+  maintenant l'écart apparié du coup joué sur le suivant) ; un code est une piste, pas une preuve, que seule une
+  mesure par paires tranche ; il compte, donc il ralentit un peu.
+- **Ici** : une option de mesure, allumée dans les comparaisons, jamais par défaut.
+
+**La note des lits** (Sami, 27/10 au soir : chiffrer ce que `flatScore` montre sur les lits). Pourquoi elle est
+plate, et ce qu'y change une note revue.
+
+Sur 200 journées d'accident à l'hôpital moyen, les trois règles des lits donnent :
+
+| Règle | retard des box | attente totale d'un lit | la plus longue | au-delà de 12 h | 75+ une nuit sur un brancard |
+|---|---|---|---|---|---|
+| la décision la plus ancienne | 32 645 | 4 441 min | **1 121 min** | 2,37 | 3,13 |
+| celui qui tient un box | 32 645 | 4 434 min | 1 191 min | **2,25** | 3,10 |
+| les 75 ans et plus d'abord | 32 645 | 4 439 min | 1 167 min | 2,29 | **3,04** |
+
+- **Le choix ne change ni le retard des box ni l'attente totale.** Les services libèrent leurs lits aux mêmes heures
+  quelle que soit la règle : l'attente totale est la même à la minute près sur 158 à 200 journées. Seul l'ordre change,
+  donc qui attend le plus. Une note qui additionne les minutes ne peut rien voir : c'est le `flatScore` à 94 %.
+- **La note revue** (`--attente-convexe`, H79, éteinte par défaut) fait peser une minute d'autant plus que le patient
+  attend depuis longtemps. La recherche rejoint alors la décision la plus ancienne, sans faire mieux :
+
+| Situation (200 journées) | la plus ancienne | la recherche, à la minute | la recherche, attente convexe |
+|---|---|---|---|
+| hôpital moyen, accident (50 itérations) | **1 121 min** | 1 133 | 1 125 |
+| hôpital moyen, accident (200 itérations) | **1 121** | 1 133 | 1 125 |
+| hôpital moyen, ordinaire | **746** | 746 | 746 |
+| hôpital de proximité, accident | **1 200** | 1 209 | 1 205 |
+| CHU, accident | **750** | 751 | 750 |
+
+  Le retard ne bouge nulle part (au plus 29 points sur 51 496 à l'hôpital de proximité, dans le bruit).
+- **Ce qu'on en retient : les lits ne demandent pas de recherche.** Une note convexe est la plus basse quand le patient
+  qui attend depuis le plus longtemps passe d'abord, ce que fait déjà la règle. La recherche ne voit qu'un lit à la
+  fois dans son horizon, et n'a rien d'autre à trouver. Le vrai choix est une question de valeurs, à poser aux
+  professionnels plutôt qu'à la recherche : la plus courte attente maximale (la plus ancienne), ou une nuit sur un
+  brancard de moins pour les 75 ans et plus (0,09 par jour, pour 46 min d'attente maximale en plus).
+- **`diagnose` avait raison** : un score plat sur une décision qui compte disait qu'il n'y avait rien à départager
+  dans l'horizon. Les jobs sont `lits-convexe-*-2026-10-27-soir-lits` de la file. Avec le `closeCall` corrigé de
+  mcts-commun (a2c66bd), il ne sort plus que dans 2 à 7 % des recherches des lits.

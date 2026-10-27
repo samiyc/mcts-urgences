@@ -31,7 +31,9 @@ const LABELS = {
 };
 const NAMES = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: SEARCHED };
 /** A row's name: the search with earlyStop (`--early-stop`) after the search's own name. */
-const labelOf = (kind, name) => (name === "early" ? `${LABELS[kind]("search")}, arrêt anticipé` : LABELS[kind](name));
+const labelOf = (kind, name) => ({ early: `${LABELS[kind]("search")}, arrêt anticipé`, convex: `${LABELS[kind]("search")}, attente convexe` })[name] ?? LABELS[kind](name);
+/** The rows of a run: its kind's, then the convex wait's (`--attente-convexe`) and the early stop's (`--early-stop`). */
+const rowsOf = ({ kind, convex, early }) => [...NAMES[kind], ...(convex && kind === "beds" ? ["convex"] : []), ...(early ? ["early"] : [])];
 
 const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
 const comma = (value, digits) => value.toFixed(digits).replace(".", ",");
@@ -64,7 +66,7 @@ function titleOf({ hospital, options, additions, budget }, results, how) {
 export function printSearchTable(results, settings, how) {
   const { kind } = settings;
   console.log(titleOf(settings, results, how));
-  for (const row of searchRows(results.map((one) => one.measures), settings.early ? [...NAMES[kind], "early"] : NAMES[kind])) {
+  for (const row of searchRows(results.map((one) => one.measures), rowsOf(settings))) {
     const against = row.gain ? ` · la recherche contre elle : ${gainOf(row.gain)}` : "";
     const extra = EXTRAS[kind]?.(row, results) ?? "";
     console.log(`${labelOf(kind, row.name).padEnd(36)} coût au moment ${fixed(row.lateCostNow).padStart(8)} · partis ${comma(row.left, 1)}${extra}${against}`);

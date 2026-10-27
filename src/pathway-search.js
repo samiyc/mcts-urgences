@@ -1,7 +1,7 @@
 import { createRng } from "mcts-commun/random.js";
 import { LEVELS, MAX_WAIT } from "./hypotheses.js";
 import { BREAK_DECIDERS } from "./pathway-fatigue.js";
-import { BOARDING_COST, INTERN_LATE } from "./pathway-hypotheses.js";
+import { BOARDING_CONVEX, BOARDING_COST, INTERN_LATE } from "./pathway-hypotheses.js";
 import { INTERN_RULES } from "./pathway-intern-decided.js";
 import { QUEUE_RULES } from "./pathway-queues.js";
 import { ALERT_RULES, recalledHours } from "./pathway-alert.js";
@@ -128,18 +128,23 @@ function advance(world, id, rules) {
 /**
  * The wait for a bed of the patients waiting for one when the search began, until their bed (BOARDING_COST: a minute
  * on a stretcher, more for a patient of 75 or more at night, « No Bed Night »): what the bed search adds to its score.
+ * `convex`: a minute weighs more the longer the patient has waited since their admission (BOARDING_CONVEX, H79).
  */
-function boardingCost(world, from) {
+function boardingCost(world, from, convex) {
   const hour = hourAt(world.settings, from);
   const night = hour >= 20 || hour < 8;
   let cost = 0;
   for (const id of world.boarders) {
     const patient = world.patients.get(id);
     const weight = BOARDING_COST.perMinute * (night && patient.elderly ? BOARDING_COST.elderlyAtNight : 1);
-    cost += weight * Math.max(0, (patient.bedAt ?? patient.exitAt ?? world.events.now) - from);
+    const minutes = Math.max(0, (patient.bedAt ?? patient.exitAt ?? world.events.now) - from);
+    cost += weight * (convex ? convexMinutes(from - patient.admitAt, minutes) : minutes);
   }
   return cost;
 }
+
+/** `minutes` of wait after `waited` already, each weighing 1 + the wait so far / BOARDING_CONVEX.over. */
+const convexMinutes = (waited, minutes) => minutes + (minutes * (2 * waited + minutes)) / (2 * BOARDING_CONVEX.over);
 
 function pendingCost(world) {
   let cost = 0;
@@ -197,7 +202,7 @@ function internLateness(world) {
  * @param {SearchFlags} flags
  * @param {number} from
  */
-const costOf = (world, { beds, interns, alerts, hets }, from) => pendingCost(world) + (beds || hets ? boardingCost(world, from) : 0) + (interns ? internLateness(world) : 0) + (alerts ? alertCost(world, from) : 0) + (hets ? hetBedsSince(world, from) * world.settings.het.bedCost : 0) + deathCost(world, from);
+const costOf = (world, { beds, interns, alerts, hets, convex }, from) => pendingCost(world) + (beds || hets ? boardingCost(world, from, convex) : 0) + (interns ? internLateness(world) : 0) + (alerts ? alertCost(world, from) : 0) + (hets ? hetBedsSince(world, from) * world.settings.het.bedCost : 0) + deathCost(world, from);
 
 /** The deaths in a world after its start, at their weight (DEATHS.cost), on a day with deaths. */
 const deathCost = (world, from) => (world.settings.deaths ? deathsSince(world, from) * world.settings.deaths.cost : 0);
@@ -206,8 +211,9 @@ const deathCost = (world, from) => (world.settings.deaths ? deathsSince(world, f
 const alertCost = (world, from) => (recalledHours(world, world.events.now) - recalledHours(world, from)) * world.settings.alert.doctorHour;
 
 /**
- * The decisions the search chooses besides the box's, each absent or false when it does not.
- * @typedef {{ beds?: boolean, breaks?: boolean, interns?: boolean, queues?: boolean, alerts?: boolean, hets?: boolean, sauvs?: boolean }} SearchFlags
+ * The decisions the search chooses besides the box's, each absent or false when it does not; `convex`, the wait for a
+ * bed scored convex (H79).
+ * @typedef {{ beds?: boolean, breaks?: boolean, interns?: boolean, queues?: boolean, alerts?: boolean, hets?: boolean, sauvs?: boolean, convex?: boolean }} SearchFlags
  */
 
 /**

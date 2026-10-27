@@ -50,11 +50,24 @@
   ],
   "versions": [
     {
+      "version": "0.24",
+      "date": "27/10, soir",
+      "title": "La note des lits",
+      "commits": [],
+      "items": [
+        "Pourquoi la recherche des lits ne voit rien : qui que prenne le lit, le retard des box et l'attente totale restent les mêmes. Seul l'ordre change, donc qui attend le plus.",
+        "Une note qui pèse plus lourd sur les longues attentes (éteinte par défaut, H79) : la recherche rejoint alors la règle « la décision la plus ancienne », sans faire mieux, sur les trois hôpitaux.",
+        "Les lits ne demandent pas de recherche : le vrai choix, entre la plus courte attente maximale et les nuits sur un brancard des 75 ans et plus, est à poser aux professionnels.",
+        "Le pour et le contre d'earlyStop et de diagnose, dans les docs."
+      ]
+    },
+    {
       "version": "0.23",
       "date": "27/10, soir",
       "title": "Les essais de mcts-commun",
       "commits": [
-        "b7a6502"
+        "b7a6502",
+        "4e866b1"
       ],
       "items": [
         "Les nouveaux réglages de la recherche de mcts-commun, essayés sur la garde et sur chaque décision du parcours. Ils sont éteints par défaut : rien ne change sans eux.",
