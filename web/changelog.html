@@ -34,7 +34,7 @@
         <h3><span class="tag">0.23</span> Les essais de mcts-commun <span class="date">27/10, soir</span></h3>
         <ul>
           <li>Les nouveaux réglages de la recherche de mcts-commun, essayés sur la garde et sur chaque décision du parcours. Ils sont éteints par défaut : rien ne change sans eux.</li>
-          <li>L'arrêt anticipé rejoue exactement les mêmes journées, mais n'épargne que 0 à 2 % des itérations : les deux premiers coups restent trop proches.</li>
+          <li>L'arrêt anticipé rejoue exactement les mêmes journées. Il épargne 32 % des itérations sur le Plan blanc et 16 % sur le HET, des choix à deux coups souvent tranchés, mais 0 à 7 % ailleurs, où les deux premiers coups restent trop proches.</li>
           <li>Ce que voient les recherches : des coups presque à égalité partout, et un score plat pour les lits d'aval. La recherche ne les départage pas, alors que le choix compte.</li>
           <li>DyRo-MCTS, une recherche « robuste » publiée en 2025, lue sans rien coder : son idée pourrait départager les coups à égalité.</li>
         </ul>
