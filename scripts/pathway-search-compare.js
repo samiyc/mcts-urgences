@@ -74,7 +74,7 @@ async function main(args) {
   if (gather) {
     const files = gather.split(",");
     const { header, units, expected } = gatherResults(files);
-    printSearchTable(units, header, `${files.length} tranches rassemblées`);
+    printSearchTable(units, header, files.length > 1 ? `${files.length} tranches rassemblées` : "relu de son fichier");
     if (units.length < expected) throw new Error(`${units.length} journées sur ${expected} : une tranche s'est arrêtée avant sa fin`);
     return;
   }
