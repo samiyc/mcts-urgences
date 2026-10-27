@@ -216,3 +216,55 @@ Ce qu'on en retient :
   l'équipe coûte plus que ce que le circuit court rend ;
 - **tout allumé en hiver**, l'ordre d'arrivée s'effondre (18 728), et la couleur rejoint l'échéance (14 942).
 
+
+## Les essais de mcts-commun (27/10 au soir)
+
+mcts-commun a ajouté deux réglages de la recherche, éteints par défaut (a9a4c99, 4abc577 ; son `docs/recherche.md`) :
+- **`diagnose`** dit ce qu'a vu une recherche ;
+- **l'arrêt anticipé** (`earlyStop`) arrête la recherche dès que son coup de tête ne peut plus être rattrapé.
+
+Sa session a demandé à chaque projet de les essayer. Ici, toutes les recherches y passent (`src/search-trials.js`) :
+la garde et les huit décisions du parcours. Les options sont `--diagnose` et `--early-stop`
+([outillage.md](outillage.md)). Les empreintes n'ont pas bougé.
+
+**L'arrêt anticipé ne change aucun choix**, et la journée reste la même patient pour patient. L'écart par paires vaut
+0 (0 à 0) partout. Chaque décision tire son propre aléa, si bien que s'arrêter plus tôt ne décale rien ensuite. Il
+n'épargne presque rien : 1 % des itérations sur la garde, 2 % sur la sortie de SAUV, rien sur les lits. Les deux
+premiers coups restent trop proches pour que le premier ne puisse plus être rattrapé. Le temps mesuré favorise la
+ligne jouée en second, où le code est déjà chaud : il faut juger l'épargne sur les itérations.
+
+**Ce que dit `diagnose`**, en part des recherches (une recherche peut donner plusieurs codes) :
+
+| Décision | recherches | peu d'itérations | score plat | coups à égalité | arbre court |
+|---|---|---|---|---|---|
+| la garde, hôpital moyen, accident (5 gardes, 100 itérations) | 316 | 0 % | 3 % | 96 % | 0 % |
+| le box du parcours, accident (4 journées, 50 itérations) | 283 | 95 % | 0 % | 99 % | 0 % |
+| la sortie de SAUV, accident (200 journées, 50 itérations) | 667 | 48 % | 5 % | 95 % | 0 % |
+| le lit d'aval, accident (200 journées, 50 itérations) | 444 | 61 % | **94 %** | 6 % | 38 % |
+
+Les codes de mcts-commun sont `fewIterations`, `flatScore`, `closeCall` et `shallow`. Ce qu'on en retient :
+- **les coups à égalité dominent presque partout**, et c'est vrai. Sur les box d'une journée d'accident, 8 graines ne
+  font le même choix qu'à 65 à 75 % (50 itérations), et 79 à 85 % (400). Le critère ne départage pourtant rien chez
+  nous, pour deux raisons :
+  - il borne l'écart type par p(1 − p), le plus haut à ½, là où notre score est centré par construction ;
+  - il ignore les mondes communs, qui comparent les coups par paires.
+- **le score des lits est plat** : 94 % des recherches voient la même valeur pour chaque patient. Le choix compte
+  pourtant : selon la règle, le boarding le plus long passe de 1 121 à 1 191 min. Qui que prenne le lit, le retard
+  dans l'horizon est le même, et l'attente d'un lit passe d'un patient à l'autre au même poids, sauf un patient de
+  75 ans et plus la nuit. Ce serait le score à revoir, si les lits valaient une recherche ;
+- **peu d'itérations** : à 50 itérations, une racine de 4 patients et l'attente donne 10 visites par coup, sous les 20
+  de mcts-commun. À 100 itérations, le code disparaît sur la garde ;
+- **l'arbre court** n'apparaît que sur les lits, où il y a peu de décisions dans l'horizon. `widening` n'a donc pas sa
+  place ici.
+
+Les mesures sur 200 journées des autres décisions sont dans la file (tag `essais-commun-2026-10-27`). Ce tableau
+sera complété quand elles auront fini.
+
+**DyRo-MCTS** (2025, [arXiv 2509.21902](https://arxiv.org/abs/2509.21902)). Pour un atelier où des tâches arrivent en
+cours de route, la note d'un coup mêle le retard et une robustesse : le temps mort des machines, compté surtout tout
+de suite (α = 0,6). La robustesse compense des mondes qui ne tirent jamais les arrivées futures. Elle gagne environ
+3 % sur une MCTS ordinaire. Nos mondes tirent les arrivées (les taux de l'hôpital, l'épidémie) : le biais qu'elle
+corrige est en grande partie absent. Son idée servirait à deux endroits, sans rien coder pour l'instant :
+- **départager les coups à égalité** : préférer celui qui garde une place (un box, la SAUV) pour un rouge pas encore
+  annoncé, puisqu'une crise que personne n'annonce n'est jamais tirée ;
+- **les décisions dont l'effet dépasse l'horizon**, le Plan blanc et le HET.

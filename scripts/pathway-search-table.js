@@ -1,5 +1,6 @@
 import { HOSPITALS } from "../src/hypotheses.js";
-import { ALERT_SEARCHED, BED_SEARCHED, BREAK_SEARCHED, HET_SEARCHED, INTERN_SEARCHED, QUEUE_SEARCHED, SAUV_SEARCHED, searchRows } from "../src/pathway-search-compare.js";
+import { ALERT_SEARCHED, BED_SEARCHED, BREAK_SEARCHED, HET_SEARCHED, INTERN_SEARCHED, QUEUE_SEARCHED, SAUV_SEARCHED, SEARCHED, searchRows } from "../src/pathway-search-compare.js";
+import { printTallies } from "./search-tallies.js";
 import { QUEUE_LABELS } from "../src/pathway-queues.js";
 import { INTERN_LABELS } from "../src/pathway-intern-decided.js";
 import { BED_LABELS } from "../src/pathway.js";
@@ -28,7 +29,9 @@ const LABELS = {
   sauvs: (name) => `sortie de SAUV : ${SAUV_NAMES[name]}`,
   boxes: (name) => RULE_LABELS[name],
 };
-const NAMES = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: undefined };
+const NAMES = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: SEARCHED };
+/** A row's name: the search with earlyStop (`--early-stop`) after the search's own name. */
+const labelOf = (kind, name) => (name === "early" ? `${LABELS[kind]("search")}, arrêt anticipé` : LABELS[kind](name));
 
 const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
 const comma = (value, digits) => value.toFixed(digits).replace(".", ",");
@@ -61,9 +64,10 @@ function titleOf({ hospital, options, additions, budget }, results, how) {
 export function printSearchTable(results, settings, how) {
   const { kind } = settings;
   console.log(titleOf(settings, results, how));
-  for (const row of searchRows(results.map((one) => one.measures), NAMES[kind])) {
+  for (const row of searchRows(results.map((one) => one.measures), settings.early ? [...NAMES[kind], "early"] : NAMES[kind])) {
     const against = row.gain ? ` · la recherche contre elle : ${gainOf(row.gain)}` : "";
     const extra = EXTRAS[kind]?.(row, results) ?? "";
-    console.log(`${LABELS[kind](row.name).padEnd(36)} coût au moment ${fixed(row.lateCostNow).padStart(8)} · partis ${comma(row.left, 1)}${extra}${against}`);
+    console.log(`${labelOf(kind, row.name).padEnd(36)} coût au moment ${fixed(row.lateCostNow).padStart(8)} · partis ${comma(row.left, 1)}${extra}${against}`);
   }
+  if (results[0]?.measures.tallies) printTallies(results.map((one) => one.measures.tallies), (name) => labelOf(kind, name));
 }

@@ -50,6 +50,18 @@
   ],
   "versions": [
     {
+      "version": "0.23",
+      "date": "27/10, soir",
+      "title": "Les essais de mcts-commun",
+      "commits": [],
+      "items": [
+        "Les nouveaux réglages de la recherche de mcts-commun, essayés sur la garde et sur chaque décision du parcours. Ils sont éteints par défaut : rien ne change sans eux.",
+        "L'arrêt anticipé rejoue exactement les mêmes journées, mais n'épargne que 0 à 2 % des itérations : les deux premiers coups restent trop proches.",
+        "Ce que voient les recherches : des coups presque à égalité partout, et un score plat pour les lits d'aval. La recherche ne les départage pas, alors que le choix compte.",
+        "DyRo-MCTS, une recherche « robuste » publiée en 2025, lue sans rien coder : son idée pourrait départager les coups à égalité."
+      ]
+    },
+    {
       "version": "0.22",
       "date": "27/10, après-midi",
       "title": "Les mesures de jour",

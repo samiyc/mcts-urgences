@@ -1,8 +1,8 @@
-import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { LATE_WEIGHT, LEVELS, MAX_WAIT } from "./hypotheses.js";
 import { NURSE_RULES, RULES } from "./rules.js";
 import { arrivals, patientOf } from "./scenario.js";
+import { searchTried } from "./search-trials.js";
 import { HOLD, act, candidateViewsOf, choose, cloneShift, hold, lateCostNow, nextChoice, reassess, rest, scheduleWorsening, viewsOf } from "./simulate.js";
 
 /**
@@ -243,7 +243,7 @@ export function searchRule(options = {}) {
   return (waiting, { shift, kind }) => {
     if (kind !== "nurse" && waiting.length === 1 && !onItsWay(shift)) return waiting[0];
     const rng = createRng(choiceSeed(seed, shift, waiting, kind));
-    const found = search(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, horizon, omniscient, measure }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, horizon, omniscient, measure }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return answerOf(found.move, waiting, kind);
   };
 }

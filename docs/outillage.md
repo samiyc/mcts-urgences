@@ -102,6 +102,15 @@ scripts qu'elle lance suivent les recommandations de mcts-commun (`docs/backlog.
 Un changement de ces scripts s'essaie sur une file temporaire (`--home` d'un dossier temporaire, la recette de
 mcts-commun), jamais sur la vraie.
 
+**Les réglages de mcts-commun du 27/10 au soir** (`src/search-trials.js`, sa recommandation 8), éteints par défaut :
+- `--diagnose` (`pathway-search-compare.js`, `search-bench.js`) compte, sous le tableau, ce qu'a vu chaque recherche :
+  ses itérations, son temps et les codes de `diagnose` ;
+- `--early-stop` (`pathway-search-compare.js`), ou la variante `earlyStop=1` (`search-bench.js`), ajoute la recherche
+  arrêtée dès que son coup de tête ne peut plus être rattrapé, jouée sur les mêmes journées. On la compare par paires
+  à la recherche entière, avec ce qu'elle épargne.
+
+Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun ».
+
 ## Pour les autres projets mcts-*
 
 Ce qui se reprend tel quel dans mcts-commun, mcts-cuisine et mcts-entrepot, chacun dans sa propre session :

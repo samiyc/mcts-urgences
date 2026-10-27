@@ -1,4 +1,3 @@
-import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { ALERT_RULES } from "./pathway-alert.js";
 import { HET_RULES } from "./pathway-het.js";
@@ -8,6 +7,7 @@ import { QUEUE_RULES } from "./pathway-queues.js";
 import { SAUV_RULES } from "./pathway-sauv.js";
 import { BED_RULES } from "./pathway.js";
 import { PATHWAY_SEARCH, problemFor, scaleOf } from "./pathway-search.js";
+import { searchTried } from "./search-trials.js";
 
 /**
  * The search of the pathway for its other decisions (Sami, 26/10/2026, step 6), as rules of runPathway: the beds, the
@@ -28,7 +28,7 @@ export function pathwaySearchBedRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x85ebca6b) + Math.round(day.events.now * 1000) * 37 + Number(candidates[0].id) * 11 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, beds: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, beds: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, beds: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? bed(candidates);
   };
 }
@@ -45,7 +45,7 @@ export function pathwaySearchBreakRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0xc2b2ae35) + Math.round(day.events.now * 1000) * 41) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, breaks: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, breaks: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, breaks: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((one) => one.id === found.move?.id) ?? BREAK_DECIDERS.quiet(candidates, { day });
   };
 }
@@ -62,7 +62,7 @@ export function pathwaySearchInternRule(options = {}) {
     if (candidates.length === 1) return candidates[0];
     const rng = createRng((Math.imul(seed, 0x27d4eb2f) + Math.round(day.events.now * 1000) * 43 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, interns: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, interns: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, interns: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? INTERN_RULES.dueFirst(candidates);
   };
 }
@@ -78,7 +78,7 @@ export function pathwaySearchQueueRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x165667b1) + Math.round(day.events.now * 1000) * 47 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, queues: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, queues: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, queues: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? QUEUE_RULES.colour(candidates);
   };
 }
@@ -96,7 +96,7 @@ export function pathwaySearchAlertRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x9e3779b9) + Math.round(day.events.now * 1000) * 53) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, alerts: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, alerts: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, alerts: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((one) => one.id === found.move?.id) ?? ALERT_RULES.threshold(candidates, { day });
   };
 }
@@ -112,7 +112,7 @@ export function pathwaySearchSauvRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x7feb352d) + Math.round(day.events.now * 1000) * 59 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, sauvs: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, sauvs: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, sauvs: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? SAUV_RULES.never(candidates);
   };
 }
@@ -130,7 +130,7 @@ export function pathwaySearchHetRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x2545f491) + Math.round(day.events.now * 1000) * 61) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed, hets: true });
-    const found = search(day, problemFor({ scale, width, horizon, bed, hets: true, from: day.events.now }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, hets: true, from: day.events.now }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((one) => one.id === found.move?.id) ?? HET_RULES.threshold(candidates, { day });
   };
 }

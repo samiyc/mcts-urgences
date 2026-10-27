@@ -1,4 +1,3 @@
-import { search } from "mcts-commun/mcts.js";
 import { createRng } from "mcts-commun/random.js";
 import { LEVELS, MAX_WAIT } from "./hypotheses.js";
 import { BREAK_DECIDERS } from "./pathway-fatigue.js";
@@ -20,6 +19,7 @@ import { RULES } from "./rules.js";
 import { patientOf } from "./scenario.js";
 import { levelOdds } from "./search.js";
 import { lateCostNow, scheduleWorsening } from "./simulate.js";
+import { searchTried } from "./search-trials.js";
 
 /**
  * The search on the detailed pathway (Sami, 26/10/2026, docs/recherche/feuille-de-route.md, step 6): the ISMCTS of
@@ -267,7 +267,7 @@ export function pathwaySearchRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(day.events.now * 1000) * 31 + Number(candidates[0].id) * 7 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed });
-    const found = search(day, problemFor({ scale, width, horizon, bed }), { budget, rng, depth, explore, common: true });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? RULES.colour(candidates);
   };
 }

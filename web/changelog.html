@@ -31,6 +31,17 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.23</span> Les essais de mcts-commun <span class="date">27/10, soir</span></h3>
+        <ul>
+          <li>Les nouveaux réglages de la recherche de mcts-commun, essayés sur la garde et sur chaque décision du parcours. Ils sont éteints par défaut : rien ne change sans eux.</li>
+          <li>L'arrêt anticipé rejoue exactement les mêmes journées, mais n'épargne que 0 à 2 % des itérations : les deux premiers coups restent trop proches.</li>
+          <li>Ce que voient les recherches : des coups presque à égalité partout, et un score plat pour les lits d'aval. La recherche ne les départage pas, alors que le choix compte.</li>
+          <li>DyRo-MCTS, une recherche « robuste » publiée en 2025, lue sans rien coder : son idée pourrait départager les coups à égalité.</li>
+        </ul>
+        <p class="commits"></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.22</span> Les mesures de jour <span class="date">27/10, après-midi</span></h3>
         <ul>
           <li>Le Plan blanc, mesuré de nouveau avec la chambre d'isolement prêtée : pendant l'accident, la recherche le déclenche mieux que le seuil (4,6 % de moins) et que « jamais » (6,1 %). Au pic de l'épidémie, elle bat « jamais » de justesse. Avant, elle ne gagnait rien de sûr.</li>
