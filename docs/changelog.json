@@ -50,6 +50,21 @@
   ],
   "versions": [
     {
+      "version": "0.21",
+      "date": "27/10, matin",
+      "title": "Les mesures de la nuit",
+      "commits": [
+        "44c1458",
+        "b2be1b5"
+      ],
+      "items": [
+        "La recherche des box, refaite avec la chambre d'isolement prêtée et chaque place nettoyée : elle fait de 14 à 37 % de moins que la meilleure règle, selon l'hôpital et le jour (37 % pendant l'accident à l'hôpital moyen, 14 % au grand CHU).",
+        "Avec les accompagnants, l'interprète, le circuit court ou les décès, elle garde un gain de 23 à 36 %, et chaque ajout lui coûte en général moins qu'aux règles.",
+        "Le HET, aux deux autres hôpitaux pendant l'accident : la recherche obtient deux fois plus de lits que le seuil, et le bat comme à l'hôpital moyen.",
+        "Au petit hôpital, le circuit court coûte très cher (un médecin pris à une petite équipe : +37 % pendant l'accident) ; les accompagnants n'y coûtent rien de sûr."
+      ]
+    },
+    {
       "version": "0.20",
       "date": "26/10, soir",
       "title": "Les accompagnants, l'interprète, le circuit court, les décès",
