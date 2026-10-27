@@ -42,10 +42,24 @@ La chambre vide d'un jour ordinaire était une place perdue : la prêter vaut un
 service déborde. Les empreintes du parcours ont changé (le parcours, la marche, l'interne, la fatigue, la recherche,
 l'épidémie) ; les mesures des sections d'avant datent du modèle sans prêt.
 
-**La recherche des box, avec la chambre prêtée** (200 journées, 100 itérations, les jobs `parcours-pret-*`, mesurée
-avec l'échange sans nettoyage, qui changeait à peine le coût) : un jour
-ordinaire, **2 189** contre 2 757 pour l'échéance (−21 %, +568, de +193 à +943) ; pendant l'accident, **20 114** contre
-31 648 (−36 %, +11 534, de +9 513 à +13 555). Le gain de la recherche tient avec le prêt.
+**La recherche des box sur le modèle actuel**, la chambre prêtée et chaque place nettoyée (200 journées,
+100 itérations, les jobs de `night.json` refaits la nuit du 26 au 27/10 ; la dernière colonne : les mesures d'avant le
+prêt, dans [parcours.md](parcours.md)) :
+
+| Situation | l'échéance | la recherche | la recherche contre l'échéance (IC 95 %) | avant le prêt |
+|---|---|---|---|---|
+| hôpital moyen, jour ordinaire | 2 760 | **2 184** (−21 %) | +576 (+207 à +946) | +913 (−27 %) |
+| hôpital moyen, accident | 31 714 | **20 045** (−37 %) | +11 668 (+9 625 à +13 712) | +13 724 (−37 %) |
+| hôpital de proximité, accident | 49 536 | **36 530** (−26 %) | +13 006 (+10 742 à +15 269) | +17 187 (−29 %) |
+| grand CHU, accident | 3 988 | **3 428** (−14 %) | +560 (+252 à +869) | +1 447 (−26 %) |
+| hôpital moyen, pic de l'épidémie | 7 811 | **5 814** (−26 %) | +1 997 (+1 246 à +2 748) | +3 104 (−33 %) |
+
+- **Le gain tient partout**, et aucun intervalle ne passe par zéro. La recherche laisse partir sans être vus un peu
+  moins de patients que l'échéance (6,4 contre 6,9 pendant l'accident).
+- **Il baisse là où la chambre servait de box en plus** : un jour ordinaire, au CHU, en hiver. Prêtée, elle donne aux
+  règles une partie de ce que la recherche trouvait seule. Pendant l'accident à l'hôpital moyen, il reste de 37 %.
+- **Le nettoyage ne change presque rien** : mesurée avec l'échange sans nettoyage (les jobs `parcours-pret-*`), la
+  recherche faisait 2 189 un jour ordinaire et 20 114 pendant l'accident.
 
 ## L'hôpital en tension, le HET (26/10 au soir, Sami)
 
@@ -80,6 +94,17 @@ obtenus :
   dans les trois situations. Le retard aux urgences change peu ; ce sont les lits qui comptent, comme le veut le HET.
 - L'attente d'un lit la plus longue baisse de 1 121 à 1 004 min pendant l'accident, de 1 419 à 1 227 au pic de
   l'épidémie.
+
+**Aux deux autres hôpitaux, pendant l'accident** (les mêmes 200 journées, 50 itérations, la nuit du 26 au 27/10) :
+
+| Hôpital | jamais | au seuil | la recherche | contre jamais (IC 95 %) | contre le seuil | lits obtenus (seuil ; recherche) | attente d'un lit (jamais ; recherche) |
+|---|---|---|---|---|---|---|---|
+| de proximité | 60 339 | 57 709 | **56 701** | +3 637 (+2 505 à +4 769) | +1 008 (+588 à +1 428) | 1,5 ; 3,1 | 8 843 ; 6 322 |
+| grand CHU | 18 130 | 17 018 | **15 963** | +2 167 (+1 619 à +2 715) | +1 055 (+786 à +1 324) | 1,8 ; 3,8 | 12 825 ; 10 205 |
+
+La même chose qu'à l'hôpital moyen : la recherche bat le seuil dans les cinq mesures, avec deux fois plus de lits
+obtenus. Au CHU, le retard ne bouge pas (5 304 sans HET, 5 301 avec la recherche) : tout le gain vient des lits.
+L'attente d'un lit la plus longue baisse de 1 200 à 993 min à l'hôpital de proximité, de 750 à 657 min au CHU.
 
 ## Les quatre ajouts (26/10 au soir, Sami)
 
@@ -148,12 +173,46 @@ l'écart sur la journée sans ajout et son IC 95 %) :
 - **Les décès** : 0,37 par jour un jour ordinaire, 0,98 pendant l'accident. Le coût monte de leur poids (868 pour
   0,37 décès à 1 920 l'unité, plus le temps qu'ils immobilisent).
 
-**La recherche des box avec les ajouts** (200 journées, 100 itérations, les jobs `parcours-deces-*` et
-`parcours-circuit-court-*`) :
-- **avec les décès**, un jour ordinaire : **2 755** contre 3 628 pour l'échéance (+873, de +399 à +1 346) ; pendant
-  l'accident, **22 463** contre 34 465 pour la couleur, la meilleure règle ce jour-là (+12 002, de +10 014 à +13 990). Le
-  poids des décès est dans sa note : elle garde son gain ;
-- **avec le circuit court**, un jour ordinaire : **3 388** contre 4 380 pour l'échéance (+992, de +395 à +1 589). Elle
-  bat les règles, mais reste loin des 2 189 qu'elle fait sans circuit court : un médecin pris à l'équipe coûte plus que
-  ce que le circuit court rend.
+**Aux deux autres hôpitaux** (les mêmes 200 journées, la nuit du 26 au 27/10 ; entre parenthèses, le coût sans ajout) :
+
+| Ajout | proximité, ordinaire (3 181) | proximité, accident (49 536) | CHU, ordinaire (1 150) | CHU, accident (3 988) |
+|---|---|---|---|---|
+| les familles | +37 (−110 à +185) | −149 (−1 262 à +964) | +90 (+61 à +118) | +880 (+442 à +1 319) |
+| l'interprète, seul | +54 (−59 à +166) | +750 (+222 à +1 279) | +122 (+96 à +149) | +513 (+227 à +800) |
+| l'interprète, avec les familles | +55 (−99 à +209) | +461 (−723 à +1 644) | +166 (+127 à +204) | +1 226 (+645 à +1 807) |
+| le circuit court | **+2 481** (+1 656 à +3 305) | **+18 297** (+15 805 à +20 789) | **+461** (+381 à +541) | **+3 566** (+2 329 à +4 803) |
+| les décès | +240 (+36 à +444) | +2 491 (+1 780 à +3 203) | +1 003 (+811 à +1 195) | +1 710 (+1 391 à +2 029) |
+
+- **Le circuit court coûte le plus partout**, et surtout au petit hôpital, qui prend un médecin à une petite équipe :
+  +37 % pendant l'accident. Il y voit 12 à 16 patients par jour, 34 à 37 au CHU.
+- **Les familles ne coûtent rien de sûr à l'hôpital de proximité**, où les intervalles passent par zéro ; au CHU,
+  elles prennent 315 à 330 min d'information par jour. Pendant l'accident, 13,7 patients restent debout à l'hôpital de
+  proximité, 2,9 au CHU.
+- **Les décès** : 0,20 par jour à l'hôpital de proximité un jour ordinaire, 1,05 pendant l'accident ; 0,52 et 0,80 au
+  CHU. Au CHU un jour ordinaire, le coût vient presque tout de leur poids (0,52 × 1 920 ≈ 998 sur +1 003) : le retard
+  seul passe de 1 150 à 1 155.
+
+**La recherche des box avec les ajouts** (l'hôpital moyen, 200 journées, 100 itérations ; les jobs
+`parcours-deces-*`, `parcours-circuit-court-*`, `parcours-familles-*` et `parcours-tout-*`). La dernière colonne
+dit ce que les ajouts coûtent à cette règle et à la recherche, sur leur journée sans ajout :
+
+| Ajouts | jour | la meilleure règle | la recherche | la recherche contre la règle (IC 95 %) | ce qu'ils coûtent : à la règle ; à la recherche |
+|---|---|---|---|---|---|
+| les décès | ordinaire | l'échéance 3 628 | **2 755** | +873 (+399 à +1 346) | +868 ; +571 |
+| les décès | accident | la couleur 34 465 | **22 463** | +12 002 (+10 014 à +13 990) | +1 820 ; +2 418 |
+| les décès | pic de l'épidémie | l'échéance 8 669 | **6 308** | +2 361 (+1 496 à +3 227) | +858 ; +494 |
+| le circuit court | ordinaire | l'échéance 4 380 | **3 388** | +992 (+395 à +1 589) | +1 620 ; +1 204 |
+| le circuit court | accident | la couleur 42 582 | **28 021** | +14 560 (+12 351 à +16 769) | +9 937 ; +7 976 |
+| les familles et l'interprète | ordinaire | l'échéance 3 294 | **2 475** | +820 (+379 à +1 260) | +534 ; +291 |
+| les familles et l'interprète | accident | la couleur 35 764 | **22 729** | +13 035 (+11 054 à +15 017) | +3 119 ; +2 684 |
+| tout | pic de l'épidémie | l'échéance 14 822 | **11 053** | +3 769 (+2 595 à +4 943) | +7 011 ; +5 239 |
+
+Ce qu'on en retient :
+- **la recherche garde son gain avec chaque ajout**, de 23 à 36 % sous la meilleure règle, et aucun intervalle ne
+  passe par zéro. Le poids des décès est dans sa note ;
+- **chaque ajout lui coûte moins qu'à la règle**, de la moitié aux quatre cinquièmes, sauf les décès pendant l'accident
+  (+2 418 contre +1 820 pour la couleur) ;
+- **le circuit court reste cher, même pour elle** : 28 021 pendant l'accident, contre 20 045 sans lui. Un médecin pris à
+  l'équipe coûte plus que ce que le circuit court rend ;
+- **tout allumé en hiver**, l'ordre d'arrivée s'effondre (18 728), et la couleur rejoint l'échéance (14 942).
 

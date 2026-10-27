@@ -334,7 +334,8 @@ partout :
 | grand CHU, accident | 5 595 | **4 148** (−26 %) | +1 447 (+734 à +2 159) |
 
 Aucun intervalle ne passe par zéro. La recherche laisse partir sans être vus à peu près autant de patients que
-l'échéance, et nettement moins que la couleur.
+l'échéance, et nettement moins que la couleur. Ces mesures datent d'avant la chambre d'isolement prêtée ; refaites sur
+le modèle actuel, le gain va de 14 à 37 % ([parcours-ajouts.md](parcours-ajouts.md)).
 
 **Plus rapide** : 1,6 fois, sans rien changer à ce qu'elle choisit (les empreintes sont les mêmes). Un monde où la
 marche ne compte pas ne fait marcher personne, les patients déjà sortis sont partagés au lieu d'être copiés, et les
@@ -397,7 +398,7 @@ autres décisions par leurs règles. Les mesures portent sur les mêmes 200 jour
   beaucoup plus : un tri rapide écarte, il ne promeut pas.
 
 Ce que la recherche gagne donc sur le parcours :
-- le box d'abord, de 26 à 37 % ;
+- le box d'abord, de 26 à 37 % (de 14 à 37 % depuis la chambre prêtée) ;
 - les pauses, autant de repas que la règle « au creux » pour moins cher ;
 - le scanner et le bloc, et la sortie de SAUV, pendant l'accident : de 2 à 2,4 %.
 
@@ -455,6 +456,9 @@ semaines, que le simulateur ne joue pas. Les chiffres de cette section datent d'
   l'échéance (2,2 contre 2,3) ;
 - **le Plan blanc**, à 50 itérations : 9 103 contre 9 835 pour « jamais » (+733, de −42 à +1 507) et 10 058 au seuil.
   C'est le jour où il sert le plus, mais l'intervalle touche encore zéro : rien de sûr.
+
+Refaite avec la chambre prêtée, la recherche des box fait 5 814 contre 7 811 pour l'échéance au pic de l'épidémie
+(−26 %, [parcours-ajouts.md](parcours-ajouts.md)).
 
 ## La suite : la chambre prêtée, le HET, les quatre ajouts
 
