@@ -53,7 +53,9 @@
       "version": "0.23",
       "date": "27/10, soir",
       "title": "Les essais de mcts-commun",
-      "commits": [],
+      "commits": [
+        "b7a6502"
+      ],
       "items": [
         "Les nouveaux réglages de la recherche de mcts-commun, essayés sur la garde et sur chaque décision du parcours. Ils sont éteints par défaut : rien ne change sans eux.",
         "L'arrêt anticipé rejoue exactement les mêmes journées, mais n'épargne que 0 à 2 % des itérations : les deux premiers coups restent trop proches.",
