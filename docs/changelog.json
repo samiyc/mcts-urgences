@@ -53,7 +53,9 @@
       "version": "0.24",
       "date": "27/10, soir",
       "title": "La note des lits",
-      "commits": [],
+      "commits": [
+        "0658c88"
+      ],
       "items": [
         "Pourquoi la recherche des lits ne voit rien : qui que prenne le lit, le retard des box et l'attente totale restent les mêmes. Seul l'ordre change, donc qui attend le plus.",
         "Une note qui pèse plus lourd sur les longues attentes (éteinte par défaut, H79) : la recherche rejoint alors la règle « la décision la plus ancienne », sans faire mieux, sur les trois hôpitaux.",
