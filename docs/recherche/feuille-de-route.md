@@ -123,9 +123,10 @@ D'après [soignants.md](soignants.md) :
 
 ## Étape 6 : la recherche sur le parcours (faite le 26/10, [parcours.md](../parcours.md), « La recherche sur le parcours »)
 
-Toutes les décisions sont faites et mesurées sur 200 journées. La recherche gagne sur le box (de 26 à 37 %), sur les
-pauses des médecins, et pendant l'accident sur le scanner, le bloc et la sortie de SAUV (2 à 2,4 %). Elle ne gagne
-rien de sûr sur le lit d'aval, l'ordre des tâches de l'interne et le Plan blanc.
+Toutes les décisions sont faites et mesurées sur 200 journées. Sur le modèle du 27/10 (la chambre prêtée), la
+recherche gagne sur le box (de 14 à 37 %), sur les pauses des médecins, et pendant l'accident sur le scanner, le bloc
+et la sortie de SAUV (2,3 à 3,1 %) et sur le Plan blanc (4,6 %). Elle ne gagne rien de sûr sur le lit d'aval et
+l'ordre des tâches de l'interne.
 
 - Les décisions de machine du parcours ([ressources-rares.md](ressources-rares.md), dernière section) :
   - le box ;

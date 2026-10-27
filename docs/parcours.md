@@ -362,6 +362,11 @@ La recherche donne autant de pauses que la règle, et plus pendant l'accident, p
 l'accident, elle ne coûte pas plus que de ne donner aucune pause : l'écart, −490 (−1 157 à +177), passe par zéro. Elle
 place la pause quand le médecin manquera le moins.
 
+Refaites le 27/10 sur le modèle actuel (la chambre prêtée, chaque place nettoyée), pendant l'accident : aucune pause
+39 110 ; au creux 42 030, ou 41 672 décidée toutes les 15 min ; la recherche **39 840**. Elle bat toujours la règle,
++2 190 (+1 506 à +2 873), avec plus de repas (8,5 contre 6,5) et au plus 12,6 h sans pause (16,0 h). Elle coûte en
+revanche un peu plus que de n'en donner aucune : −731 (−1 363 à −98), moins de 2 %.
+
 **Sur la page.** La recherche est une règle des box de l'onglet Parcours détaillé : elle joue la journée dans un
 worker (une demi-minute à 50 itérations), puis l'onglet rejoue exactement la même journée d'après ses choix. Stats la
 compare aux règles sur 8 journées, dans des workers.
@@ -369,40 +374,49 @@ compare aux règles sur 8 journées, dans des workers.
 **Les autres décisions** (26/10 au soir). Chacune a un réglage, éteint par défaut : la journée reste alors celle
 d'avant, et les empreintes n'ont pas changé. Chacune a aussi des règles de référence, et la recherche y joue les
 autres décisions par leurs règles. Les mesures portent sur les mêmes 200 journées de l'hôpital moyen, à 50 itérations
-(`npm run pathway:search -- --interne | --files | --sauv | --plan`, les jobs de `night.json`).
+(`npm run pathway:search -- --interne | --files | --sauv | --plan`, les jobs de `night.json`). Elles ont été refaites
+le 27/10 sur le modèle actuel (H61, H62) ; la dernière colonne donne le gain d'avant le prêt.
 
-| Décision | jour | les règles | la recherche | la recherche contre la meilleure règle (IC 95 %) |
-|---|---|---|---|---|
-| l'ordre des tâches de l'interne | ordinaire | la tâche due la première 7 725 ; le plus grave 7 629 ; la plus proche 8 514 | 7 667 | −38 (−352 à +276) |
-| l'ordre des tâches de l'interne | accident | la tâche due la première 54 375 ; le plus grave 53 208 ; la plus proche 60 631 | 53 912 | −704 (−1 523 à +115) |
-| l'ordre du scanner et du bloc | ordinaire | l'ordre fixe 3 842 | 3 744 | +98 (−48 à +244) |
-| l'ordre du scanner et du bloc | accident | l'ordre fixe 37 665 | **36 784** | +881 (+367 à +1 395) |
-| la sortie de SAUV | accident | jamais 37 665 ; le plus ancien 36 651 | **35 828** | +823 (+328 à +1 317) |
-| la sortie de SAUV, hôpital de proximité | accident | jamais 60 093 ; le plus ancien 59 675 | **58 266** | +1 409 (+788 à +2 031) |
-| le Plan blanc | ordinaire | jamais 3 842 ; au seuil 4 120 | 3 701 | +141 (−152 à +434), contre jamais |
-| le Plan blanc | accident | jamais 37 665 ; au seuil 38 259 | 36 966 | +699 (−494 à +1 893), contre jamais |
+| Décision | jour | les règles | la recherche | la recherche contre la meilleure règle (IC 95 %) | avant le prêt |
+|---|---|---|---|---|---|
+| l'ordre des tâches de l'interne | ordinaire | la tâche due la première 6 475 ; le plus grave 6 290 ; la plus proche 6 882 | 6 259 | +31 (−102 à +164) | −38 (−352 à +276) |
+| l'ordre des tâches de l'interne | accident | la tâche due la première 49 170 ; le plus grave 48 970 ; la plus proche 54 113 | 49 434 | −464 (−1 336 à +409) | −704 (−1 523 à +115) |
+| l'ordre du scanner et du bloc | ordinaire | l'ordre fixe 3 055 | 3 050 | +5 (−45 à +55) | +98 (−48 à +244) |
+| l'ordre du scanner et du bloc | accident | l'ordre fixe 32 645 | **31 636** | +1 009 (+415 à +1 604) | +881 (+367 à +1 395) |
+| la sortie de SAUV | accident | jamais 32 645 ; le plus ancien 31 908 | **31 163** | +745 (+215 à +1 276) | +823 (+328 à +1 317) |
+| la sortie de SAUV, hôpital de proximité | accident | jamais 51 496 ; le plus ancien 51 435 | **50 249** | +1 186 (+552 à +1 819) | +1 409 (+788 à +2 031) |
+| le Plan blanc | ordinaire | jamais 3 055 ; au seuil 3 313 | 2 939 | +117 (−125 à +358), contre jamais | +141 (−152 à +434) |
+| le Plan blanc | accident | jamais 32 645 ; au seuil 32 133 | **30 657** | +1 476 (+837 à +2 116), contre le seuil | +699 (−494 à +1 893), contre jamais |
+| le Plan blanc, pic de l'épidémie | ordinaire | jamais 8 358 ; au seuil 8 436 | **7 599** | +759 (+35 à +1 482), contre jamais | +733 (−42 à +1 507) |
 
 - **L'ordre des tâches de l'interne** (`internDecided`, `pathway-intern-decided.js`) : l'interne libre choisit sa
   tâche suivante, et sa marche compte. La recherche fait aussi bien que les meilleures règles, sans les battre. La
-  plus proche d'abord est la pire : elle laisse des tâches en retard (9,2 par journée pendant l'accident).
+  plus proche d'abord est la pire : elle laisse des tâches en retard (9,2 par journée pendant l'accident). Sans
+  interne, la journée coûte 6 988 un jour ordinaire et 50 578 pendant l'accident : l'interne en retire 10 et 3 %.
 - **L'ordre du scanner et du bloc** (`queueDecided`, `pathway-queues.js`) : quand l'un se libère et que deux
   patients ou plus l'attendent, qui passe ? L'ordre fixe (la couleur, puis la demande) est la règle de référence.
-  La recherche gagne 2,3 % pendant l'accident, et rien de sûr un jour ordinaire.
+  La recherche gagne 3,1 % pendant l'accident, et rien de sûr un jour ordinaire.
 - **La sortie de SAUV** (`sauvDecided`, `pathway-sauv.js`) : quand la SAUV est pleine, qu'un box est libre et qu'un
   rouge attend ou est annoncé, faut-il passer en box un patient déjà examiné ? La recherche bat la meilleure règle
-  dans les deux hôpitaux, de 2 à 2,4 %.
+  de 2,3 % dans les deux hôpitaux.
 - **Le Plan blanc** (`alert`, `pathway-alert.js`, H54 et H55) : toutes les 15 min, faut-il le déclencher ? Il rappelle
   2 médecins, qui arrivent 1 h plus tard, et les services rendent 4 lits. Chaque heure de médecin rappelé compte 240
-  dans le coût. La recherche bat le seuil, mais pas « jamais » : l'écart passe par zéro, les jours ordinaires comme
-  pendant l'accident. Le tri rapide sur une seule journée (53 542 contre 70 039 pour « jamais ») promettait
-  beaucoup plus : un tri rapide écarte, il ne promeut pas.
+  dans le coût. Avant le prêt, la recherche battait le seuil, mais pas « jamais » : l'écart passait par zéro, les
+  jours ordinaires comme pendant l'accident. Sur le modèle actuel, pendant l'accident, le seuil fait mieux que
+  « jamais », et la recherche bat les deux : de 4,6 % le seuil, de 6,1 % « jamais ». Elle rappelle à peine plus
+  d'heures de médecin que le seuil (31,6 contre 29,7), et laisse partir moins de patients sans être vus (7,6, contre
+  8,1 au seuil et 11,0 sans Plan blanc). Le retard seul tombe de 32 645 à 23 070. Au pic de l'épidémie, elle bat
+  « jamais » de justesse ; un jour ordinaire, rien de sûr. Le tri rapide sur une seule journée (53 542 contre 70 039
+  pour « jamais ») promettait beaucoup plus : un tri rapide écarte, il ne promeut pas.
 
 Ce que la recherche gagne donc sur le parcours :
 - le box d'abord, de 26 à 37 % (de 14 à 37 % depuis la chambre prêtée) ;
 - les pauses, autant de repas que la règle « au creux » pour moins cher ;
-- le scanner et le bloc, et la sortie de SAUV, pendant l'accident : de 2 à 2,4 %.
+- le scanner et le bloc, et la sortie de SAUV, pendant l'accident : de 2,3 à 3,1 % ;
+- le Plan blanc pendant l'accident, depuis la chambre prêtée : 4,6 % de moins que le seuil.
 
-Les lits, l'ordre des tâches de l'interne et le Plan blanc ne lui donnent rien de sûr dans ce modèle.
+Les lits et l'ordre des tâches de l'interne ne lui donnent rien de sûr dans ce modèle, ni le Plan blanc un jour
+ordinaire.
 
 ## L'épidémie d'hiver (26/10, Sami)
 
@@ -458,7 +472,8 @@ semaines, que le simulateur ne joue pas. Les chiffres de cette section datent d'
   C'est le jour où il sert le plus, mais l'intervalle touche encore zéro : rien de sûr.
 
 Refaite avec la chambre prêtée, la recherche des box fait 5 814 contre 7 811 pour l'échéance au pic de l'épidémie
-(−26 %, [parcours-ajouts.md](parcours-ajouts.md)).
+(−26 %, [parcours-ajouts.md](parcours-ajouts.md)). Celle du Plan blanc fait 7 599 contre 8 358 pour « jamais » et
+8 436 au seuil : +759 (+35 à +1 482), un gain de justesse.
 
 ## La suite : la chambre prêtée, le HET, les quatre ajouts
 
