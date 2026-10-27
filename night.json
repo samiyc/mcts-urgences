@@ -1,225 +1,355 @@
 {
-  "about": "Les mesures de nuit des urgences (Sami, 23/10/2026) : la recherche contre les règles, 200 gardes par situation, au niveau du moment (--now : la recherche y est notée, et le tableau le montre). Une par situation, un fil chacune : mcts-backlog --add-file mcts-urgences/night.json, puis mcts-backlog. Le parcours détaillé (26/10/2026, étape 6) : la recherche contre les règles des box, 200 journées de 24 h, 8 fils chacune (deux côte à côte tiennent sous les 18). Les ajouts (26/10/2026 au soir) : la recherche des box avec chaque ajout, le HET aux deux autres hôpitaux, tout allumé en hiver, et npm run pathway:additions (un fil) au petit hôpital et au CHU.",
+  "about": "Les mesures de nuit des urgences (Sami, 23/10/2026) : la recherche contre les règles, 200 gardes par situation, au niveau du moment (--now : la recherche y est notée, et le tableau le montre). Une par situation, un fil chacune : mcts-backlog --add-file mcts-urgences/night.json, puis mcts-backlog. Le parcours détaillé (26/10/2026, étape 6) : la recherche contre les règles des box, 200 journées de 24 h, 8 fils chacune (deux côte à côte tiennent sous les 18). Les ajouts (26/10/2026 au soir) : la recherche des box avec chaque ajout, le HET aux deux autres hôpitaux, tout allumé en hiver, et npm run pathway:additions (un fil) au petit hôpital et au CHU. Pour la file (27/10/2026, docs/outillage.md) : chaque job écrit ses résultats au fil de l'eau (--out, dans tmp/nuit/) et dit où il en est ; un job de plus de 25 min est coupé en tranches de graines (--first, --days), puis un job sans calcul les rassemble (--gather, after) ; les estimations et les limites viennent des durées déjà mesurées (la pire, ×1,2 et ×2,5).",
   "jobs": [
     {
       "id": "urg-moyen",
-      "command": "npm run compare -- --hopital moyen --shifts 200 --search --now",
-      "estimate": "10 min"
+      "command": "npm run compare -- --hopital moyen --shifts 200 --search --now --out tmp/nuit/urg-moyen.jsonl",
+      "estimate": "4 min",
+      "limit": 20
     },
     {
       "id": "urg-moyen-accident",
-      "command": "npm run compare -- --hopital moyen --shifts 200 --accident --search --now",
-      "estimate": "15 min"
+      "command": "npm run compare -- --hopital moyen --shifts 200 --accident --search --now --out tmp/nuit/urg-moyen-accident.jsonl",
+      "estimate": "6 min",
+      "limit": 20
     },
     {
       "id": "urg-proximite-accident",
-      "command": "npm run compare -- --hopital proximite --shifts 200 --accident --search --now",
-      "estimate": "15 min"
+      "command": "npm run compare -- --hopital proximite --shifts 200 --accident --search --now --out tmp/nuit/urg-proximite-accident.jsonl",
+      "estimate": "3 min",
+      "limit": 20
     },
     {
       "id": "urg-chu-accident",
-      "command": "npm run compare -- --hopital chu --shifts 200 --accident --search --now",
-      "estimate": "20 min"
+      "command": "npm run compare -- --hopital chu --shifts 200 --accident --search --now --out tmp/nuit/urg-chu-accident.jsonl",
+      "estimate": "22 min",
+      "limit": 45
     },
     {
-      "id": "parcours-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 100",
-      "estimate": "30 min",
+      "id": "parcours-moyen-accident-1",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 100 --budget 100 --out tmp/nuit/parcours-moyen-accident-1.jsonl",
+      "estimate": "20 min",
+      "limit": 40,
       "threads": 8
     },
     {
+      "id": "parcours-moyen-accident-2",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 101 --days 100 --budget 100 --out tmp/nuit/parcours-moyen-accident-2.jsonl",
+      "estimate": "20 min",
+      "limit": 40,
+      "threads": 8
+    },
+    {
+      "id": "parcours-moyen-accident",
+      "command": "node scripts/pathway-search-compare.js --gather tmp/nuit/parcours-moyen-accident-1.jsonl,tmp/nuit/parcours-moyen-accident-2.jsonl",
+      "estimate": "1 min",
+      "limit": 10,
+      "threads": 1,
+      "after": [
+        "parcours-moyen-accident-1",
+        "parcours-moyen-accident-2"
+      ]
+    },
+    {
       "id": "parcours-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100",
-      "estimate": "25 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100 --out tmp/nuit/parcours-moyen.jsonl",
+      "estimate": "15 min",
+      "limit": 30,
       "threads": 8
     },
     {
       "id": "parcours-proximite-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 100",
-      "estimate": "10 min",
+      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 100 --out tmp/nuit/parcours-proximite-accident.jsonl",
+      "estimate": "8 min",
+      "limit": 20,
+      "threads": 8
+    },
+    {
+      "id": "parcours-chu-accident-1",
+      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --first 1 --days 67 --budget 100 --out tmp/nuit/parcours-chu-accident-1.jsonl",
+      "estimate": "20 min",
+      "limit": 40,
+      "threads": 8
+    },
+    {
+      "id": "parcours-chu-accident-2",
+      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --first 68 --days 67 --budget 100 --out tmp/nuit/parcours-chu-accident-2.jsonl",
+      "estimate": "20 min",
+      "limit": 40,
+      "threads": 8
+    },
+    {
+      "id": "parcours-chu-accident-3",
+      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --first 135 --days 66 --budget 100 --out tmp/nuit/parcours-chu-accident-3.jsonl",
+      "estimate": "20 min",
+      "limit": 40,
       "threads": 8
     },
     {
       "id": "parcours-chu-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --days 200 --budget 100",
-      "estimate": "40 min",
+      "command": "node scripts/pathway-search-compare.js --gather tmp/nuit/parcours-chu-accident-1.jsonl,tmp/nuit/parcours-chu-accident-2.jsonl,tmp/nuit/parcours-chu-accident-3.jsonl",
+      "estimate": "1 min",
+      "limit": 10,
+      "threads": 1,
+      "after": [
+        "parcours-chu-accident-1",
+        "parcours-chu-accident-2",
+        "parcours-chu-accident-3"
+      ]
+    },
+    {
+      "id": "parcours-pauses-moyen-accident-1",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 100 --budget 50 --pauses --out tmp/nuit/parcours-pauses-moyen-accident-1.jsonl",
+      "estimate": "24 min",
+      "limit": 50,
+      "threads": 8
+    },
+    {
+      "id": "parcours-pauses-moyen-accident-2",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 101 --days 100 --budget 50 --pauses --out tmp/nuit/parcours-pauses-moyen-accident-2.jsonl",
+      "estimate": "24 min",
+      "limit": 50,
       "threads": 8
     },
     {
       "id": "parcours-pauses-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --pauses",
-      "estimate": "30 min",
+      "command": "node scripts/pathway-search-compare.js --gather tmp/nuit/parcours-pauses-moyen-accident-1.jsonl,tmp/nuit/parcours-pauses-moyen-accident-2.jsonl",
+      "estimate": "1 min",
+      "limit": 10,
+      "threads": 1,
+      "after": [
+        "parcours-pauses-moyen-accident-1",
+        "parcours-pauses-moyen-accident-2"
+      ]
+    },
+    {
+      "id": "parcours-interne-moyen-accident-1",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 67 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-1.jsonl",
+      "estimate": "20 min",
+      "limit": 41,
+      "threads": 8
+    },
+    {
+      "id": "parcours-interne-moyen-accident-2",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 68 --days 67 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-2.jsonl",
+      "estimate": "20 min",
+      "limit": 41,
+      "threads": 8
+    },
+    {
+      "id": "parcours-interne-moyen-accident-3",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 135 --days 66 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-3.jsonl",
+      "estimate": "20 min",
+      "limit": 41,
       "threads": 8
     },
     {
       "id": "parcours-interne-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --interne",
-      "estimate": "30 min",
-      "threads": 8
+      "command": "node scripts/pathway-search-compare.js --gather tmp/nuit/parcours-interne-moyen-accident-1.jsonl,tmp/nuit/parcours-interne-moyen-accident-2.jsonl,tmp/nuit/parcours-interne-moyen-accident-3.jsonl",
+      "estimate": "1 min",
+      "limit": 10,
+      "threads": 1,
+      "after": [
+        "parcours-interne-moyen-accident-1",
+        "parcours-interne-moyen-accident-2",
+        "parcours-interne-moyen-accident-3"
+      ]
     },
     {
       "id": "parcours-interne-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --interne",
-      "estimate": "20 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen.jsonl",
+      "estimate": "17 min",
+      "limit": 35,
       "threads": 8
     },
     {
       "id": "parcours-files-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --files",
-      "estimate": "15 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --files --out tmp/nuit/parcours-files-moyen-accident.jsonl",
+      "estimate": "2 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-files-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --files",
-      "estimate": "10 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --files --out tmp/nuit/parcours-files-moyen.jsonl",
+      "estimate": "2 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-plan-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --plan",
-      "estimate": "30 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --plan --out tmp/nuit/parcours-plan-moyen-accident.jsonl",
+      "estimate": "6 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-plan-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --plan",
-      "estimate": "40 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --plan --out tmp/nuit/parcours-plan-moyen.jsonl",
+      "estimate": "18 min",
+      "limit": 38,
       "threads": 8
     },
     {
       "id": "parcours-sauv-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --sauv",
-      "estimate": "15 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --sauv --out tmp/nuit/parcours-sauv-moyen-accident.jsonl",
+      "estimate": "2 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-sauv-proximite-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 50 --sauv",
-      "estimate": "10 min",
+      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 50 --sauv --out tmp/nuit/parcours-sauv-proximite-accident.jsonl",
+      "estimate": "2 min",
+      "limit": 20,
+      "threads": 8
+    },
+    {
+      "id": "parcours-hiver-moyen-1",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --first 1 --days 100 --budget 100 --out tmp/nuit/parcours-hiver-moyen-1.jsonl",
+      "estimate": "17 min",
+      "limit": 34,
+      "threads": 8
+    },
+    {
+      "id": "parcours-hiver-moyen-2",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --first 101 --days 100 --budget 100 --out tmp/nuit/parcours-hiver-moyen-2.jsonl",
+      "estimate": "17 min",
+      "limit": 34,
       "threads": 8
     },
     {
       "id": "parcours-hiver-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 100",
-      "estimate": "1 h",
-      "threads": 8
+      "command": "node scripts/pathway-search-compare.js --gather tmp/nuit/parcours-hiver-moyen-1.jsonl,tmp/nuit/parcours-hiver-moyen-2.jsonl",
+      "estimate": "1 min",
+      "limit": 10,
+      "threads": 1,
+      "after": [
+        "parcours-hiver-moyen-1",
+        "parcours-hiver-moyen-2"
+      ]
     },
     {
       "id": "parcours-hiver-plan-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --plan",
-      "estimate": "30 min",
-      "threads": 8
-    },
-    {
-      "id": "parcours-pret-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100",
-      "estimate": "40 min",
-      "threads": 8
-    },
-    {
-      "id": "parcours-pret-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 100",
-      "estimate": "40 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --plan --out tmp/nuit/parcours-hiver-plan-moyen.jsonl",
+      "estimate": "29 min",
+      "limit": 60,
       "threads": 8
     },
     {
       "id": "parcours-het-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --het",
-      "estimate": "20 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen.jsonl",
+      "estimate": "14 min",
+      "limit": 28,
       "threads": 8
     },
     {
       "id": "parcours-het-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --het",
-      "estimate": "15 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen-accident.jsonl",
+      "estimate": "12 min",
+      "limit": 25,
       "threads": 8
     },
     {
       "id": "parcours-het-moyen-hiver",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --het",
-      "estimate": "30 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen-hiver.jsonl",
+      "estimate": "14 min",
+      "limit": 28,
       "threads": 8
     },
     {
       "id": "parcours-deces-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --deces --days 200 --budget 100",
-      "estimate": "30 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen.jsonl",
+      "estimate": "8 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-deces-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --deces --days 200 --budget 100",
-      "estimate": "45 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen-accident.jsonl",
+      "estimate": "23 min",
+      "limit": 48,
       "threads": 8
     },
     {
       "id": "parcours-circuit-court-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --circuit-court --days 200 --budget 100",
-      "estimate": "30 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --circuit-court --days 200 --budget 100 --out tmp/nuit/parcours-circuit-court-moyen.jsonl",
+      "estimate": "10 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-circuit-court-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --circuit-court --days 200 --budget 100",
-      "estimate": "45 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --circuit-court --days 200 --budget 100 --out tmp/nuit/parcours-circuit-court-moyen-accident.jsonl",
+      "estimate": "23 min",
+      "limit": 48,
       "threads": 8
     },
     {
       "id": "parcours-familles-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --familles --interpretes --days 200 --budget 100",
-      "estimate": "35 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --familles --interpretes --days 200 --budget 100 --out tmp/nuit/parcours-familles-moyen.jsonl",
+      "estimate": "8 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-familles-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --familles --interpretes --days 200 --budget 100",
-      "estimate": "45 min",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --familles --interpretes --days 200 --budget 100 --out tmp/nuit/parcours-familles-moyen-accident.jsonl",
+      "estimate": "21 min",
+      "limit": 43,
       "threads": 8
     },
     {
       "id": "parcours-deces-moyen-hiver",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --deces --days 200 --budget 100",
-      "estimate": "1 h",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen-hiver.jsonl",
+      "estimate": "11 min",
+      "limit": 23,
       "threads": 8
     },
     {
       "id": "parcours-het-proximite-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --het --days 200 --budget 50",
-      "estimate": "15 min",
+      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --het --days 200 --budget 50 --out tmp/nuit/parcours-het-proximite-accident.jsonl",
+      "estimate": "4 min",
+      "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-het-chu-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --het --days 200 --budget 50",
-      "estimate": "40 min",
+      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --het --days 200 --budget 50 --out tmp/nuit/parcours-het-chu-accident.jsonl",
+      "estimate": "28 min",
+      "limit": 58,
       "threads": 8
     },
     {
       "id": "parcours-tout-moyen-hiver",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --familles --interpretes --circuit-court --deces --days 200 --budget 100",
-      "estimate": "1 h",
+      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --familles --interpretes --circuit-court --deces --days 200 --budget 100 --out tmp/nuit/parcours-tout-moyen-hiver.jsonl",
+      "estimate": "15 min",
+      "limit": 30,
       "threads": 8
     },
     {
       "id": "ajouts-proximite",
-      "command": "node scripts/additions-compare.js --hopital proximite --days 200",
-      "estimate": "10 min"
+      "command": "node scripts/additions-compare.js --hopital proximite --days 200 --out tmp/nuit/ajouts-proximite.jsonl",
+      "estimate": "2 min",
+      "limit": 20
     },
     {
       "id": "ajouts-proximite-accident",
-      "command": "node scripts/additions-compare.js --hopital proximite --accident --days 200",
-      "estimate": "10 min"
+      "command": "node scripts/additions-compare.js --hopital proximite --accident --days 200 --out tmp/nuit/ajouts-proximite-accident.jsonl",
+      "estimate": "2 min",
+      "limit": 20
     },
     {
       "id": "ajouts-chu",
-      "command": "node scripts/additions-compare.js --hopital chu --days 200",
-      "estimate": "10 min"
+      "command": "node scripts/additions-compare.js --hopital chu --days 200 --out tmp/nuit/ajouts-chu.jsonl",
+      "estimate": "3 min",
+      "limit": 20
     },
     {
       "id": "ajouts-chu-accident",
-      "command": "node scripts/additions-compare.js --hopital chu --accident --days 200",
-      "estimate": "10 min"
+      "command": "node scripts/additions-compare.js --hopital chu --accident --days 200 --out tmp/nuit/ajouts-chu-accident.jsonl",
+      "estimate": "3 min",
+      "limit": 20
     }
   ]
 }

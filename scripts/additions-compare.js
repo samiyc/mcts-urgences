@@ -3,12 +3,14 @@ import { HOSPITALS } from "../src/hypotheses.js";
 import { BED_RULES, pathwayMeasures, runPathway, startPathway } from "../src/pathway.js";
 import { drawPathwayDay } from "../src/pathway-scenario.js";
 import { RULES } from "../src/rules.js";
+import { addResult, progressReporter, startResults } from "./night-results.js";
 
 /**
  * `node scripts/additions-compare.js [--days 200] [--hopital moyen] [--accident] [--hiver]` (Sami, 26/10/2026,
  * docs/parcours-ajouts.md): each later addition off against on, on the same drawn days, by the deadline rule (the best
  * of the reference rules) and the oldest bed decision. The cost at the level of the moment (with the deaths, their
- * weight in it), its change by pairs, and what each addition counts.
+ * weight in it), its change by pairs, and what each addition counts. With `--out FICHIER` (27/10/2026,
+ * scripts/night-results.js), each addition's days written as it ends: a line each, its costs and departures by day.
  */
 const args = process.argv.slice(2);
 const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
@@ -16,6 +18,7 @@ const hospital = option("--hopital", "moyen");
 if (!HOSPITALS[hospital]) throw new Error(`hôpital inconnu ; au choix : ${Object.keys(HOSPITALS).join(", ")}`);
 const days = Number(option("--days", 200));
 const base = { hospital, accident: args.includes("--accident"), epidemic: args.includes("--hiver") };
+const out = option("--out", null);
 
 /** @type {Array<[string, object, (m: any) => string]>} */
 const ADDITIONS = [
@@ -26,7 +29,20 @@ const ADDITIONS = [
   ["les décès", { deaths: true }, (m) => `${decimals(m.deaths.count, 2)} décès, retard seul ${Math.round(m.lateCostOnly)}`],
 ];
 
-const played = (options) => Array.from({ length: days }, (_, i) => pathwayMeasures(runPathway(startPathway(drawPathwayDay(1 + i, { ...base, ...options })), { box: RULES.deadline, bed: BED_RULES.oldest })));
+// The days of every addition and of none, said as they end.
+const report = progressReporter("journée", days * (ADDITIONS.length + 1));
+let playedDays = 0;
+/** The days with `options`, each said to the queue, then written to `out` under `name`. */
+function played(name, options) {
+  const list = Array.from({ length: days }, (_, i) => {
+    const measures = pathwayMeasures(runPathway(startPathway(drawPathwayDay(1 + i, { ...base, ...options })), { box: RULES.deadline, bed: BED_RULES.oldest }));
+    playedDays += 1;
+    report(playedDays);
+    return measures;
+  });
+  addResult(out, { addition: name, lateCostNow: list.map((m) => m.lateCostNow), left: list.map((m) => m.exits.parti) });
+  return list;
+}
 const mean = (list, read) => list.reduce((sum, one) => sum + read(one), 0) / list.length;
 /** The means of an addition's counts over the days, as one object of numbers. */
 function meanOf(list, key) {
@@ -38,11 +54,12 @@ const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
 const decimals = (value, digits) => value.toFixed(digits).replace(".", ",");
 
 const t0 = Date.now();
-const without = played({});
+startResults(out, { ...base, days });
+const without = played("sans ajout", {});
 const situation = `${base.accident ? "avec l'accident" : "jour ordinaire"}${base.epidemic ? ", en pleine épidémie d'hiver" : ""}`;
 console.log(`${HOSPITALS[hospital].label}, ${situation} : ${days} journées, par l'échéance. Sans ajout : ${fixed(mean(without, (m) => m.lateCostNow))} · partis ${decimals(mean(without, (m) => m.exits.parti), 1)}`);
 for (const [name, options, describe] of ADDITIONS) {
-  const withIt = played(options);
+  const withIt = played(name, options);
   const gap = paired(withIt.map((m) => m.lateCostNow), without.map((m) => m.lateCostNow));
   const counted = Object.fromEntries(["family", "interpreter", "fast", "deaths"].filter((key) => withIt[0][key]).map((key) => [key, meanOf(withIt, key)]));
   const late = withIt[0].lateCostOnly === undefined ? {} : { lateCostOnly: mean(withIt, (m) => m.lateCostOnly) };

@@ -80,6 +80,28 @@ Deux tests surveillent les tailles :
 d'abord, avec ses commits. `npm run changelog` en fait `web/changelog.html`. Avant le 26/10, un script hors du dépôt
 écrivait ce fichier.
 
+## Les jobs de la file de nuit
+
+Les mesures longues passent par la file commune (`mcts-backlog --add-file night.json --tag AAAA-MM-JJ`). Les
+scripts qu'elle lance suivent les recommandations de mcts-commun (`docs/backlog.md`, « Recommandations aux projets »,
+27/10) par `scripts/night-results.js` :
+- **ils disent où ils en sont** : `progress` de `mcts-commun/trace.js` à chaque journée ou garde (« journée 12/100 »
+  dans les vues de la file), et une ligne tous les dixièmes sur la sortie d'erreur ; le tableau final reste seul sur
+  la sortie standard ;
+- **ils écrivent leurs résultats au fil de l'eau** (`--out tmp/nuit/ID.jsonl`) : les réglages en première ligne, puis
+  une ligne par journée ou par garde. Un job arrêté garde ce qu'il a joué, et `--gather FICHIER` en refait le tableau
+  (avec un code non nul, puisqu'il en manque) ;
+- **un job de plus de 25 min est coupé en tranches de graines** (`--first`, `--days`), d'au plus 20 min chacune. Un
+  job `--gather` sans calcul les rassemble une fois finies (`after`) : le même tableau qu'en une fois, vérifié. Il
+  refuse des tranches aux réglages différents ou une journée présente deux fois ;
+- **les estimations et les limites viennent des durées mesurées** : la pire passée ×1,2, et la limite ×2,5, 20 min au
+  moins ;
+- **un échec sort avec un code non nul**, un fil de calcul qui tombe compris. Les fils sont ceux que la file donne
+  (`MCTS_THREADS`).
+
+Un changement de ces scripts s'essaie sur une file temporaire (`--home` d'un dossier temporaire, la recette de
+mcts-commun), jamais sur la vraie.
+
 ## Pour les autres projets mcts-*
 
 Ce qui se reprend tel quel dans mcts-commun, mcts-cuisine et mcts-entrepot, chacun dans sa propre session :

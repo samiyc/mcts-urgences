@@ -32,17 +32,21 @@ function summaryOf(measures, baseline) {
   };
 }
 
-/** Each rule's measures on each shift. */
-function runsOf({ shifts, seed, settings, rules, nurseRule }) {
+/** Each rule's measures on each shift; `onShift(done, shifts, seed, measures)` told of each as it ends. */
+function runsOf({ shifts, seed, settings, rules, nurseRule, onShift }) {
   const runs = Object.fromEntries(Object.keys(rules).map((name) => [name, []]));
   for (let i = 0; i < shifts; i += 1) {
     const patients = drawShift(seed + i, settings);
-    for (const [name, rule] of Object.entries(rules)) runs[name].push(simulateShift(patients, rule, settings, nurseRule).measures);
+    const measures = Object.fromEntries(Object.entries(rules).map(([name, rule]) => [name, simulateShift(patients, rule, settings, nurseRule).measures]));
+    for (const name of Object.keys(rules)) runs[name].push(measures[name]);
+    onShift?.(i + 1, shifts, seed + i, measures);
   }
   return runs;
 }
 
-export function compareRules({ shifts = 200, seed = 1, settings = {}, rules = RULES, nurseRule = null } = {}) {
-  const runs = runsOf({ shifts, seed, settings, rules, nurseRule });
-  return Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, summaryOf(measures, runs.arrival)]));
+/** Each rule's summary from its measures on each shift (`runs`, the arrival order's among them). */
+export const summariesOf = (runs) => Object.fromEntries(Object.entries(runs).map(([name, measures]) => [name, summaryOf(measures, runs.arrival)]));
+
+export function compareRules({ shifts = 200, seed = 1, settings = {}, rules = RULES, nurseRule = null, onShift = null } = {}) {
+  return summariesOf(runsOf({ shifts, seed, settings, rules, nurseRule, onShift }));
 }

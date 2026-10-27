@@ -1,14 +1,12 @@
 import { availableParallelism } from "node:os";
 import { Worker, isMainThread, parentPort } from "node:worker_threads";
 import { HOSPITALS } from "../src/hypotheses.js";
-import { ALERT_SEARCHED, HET_SEARCHED, playHetSearchDay, SAUV_SEARCHED, playSauvSearchDay, BED_SEARCHED, BREAK_SEARCHED, INTERN_SEARCHED, QUEUE_SEARCHED, playAlertSearchDay, playBedSearchDay, playBreakSearchDay, playInternSearchDay, playQueueSearchDay, playSearchDay, searchRows } from "../src/pathway-search-compare.js";
-import { QUEUE_LABELS } from "../src/pathway-queues.js";
-import { INTERN_LABELS } from "../src/pathway-intern-decided.js";
-import { BED_LABELS } from "../src/pathway.js";
-import { RULE_LABELS } from "../src/rules.js";
+import { playHetSearchDay, playSauvSearchDay, playAlertSearchDay, playBedSearchDay, playBreakSearchDay, playInternSearchDay, playQueueSearchDay, playSearchDay } from "../src/pathway-search-compare.js";
+import { addResult, gatherResults, optionOf, progressReporter, startResults } from "./night-results.js";
+import { printSearchTable } from "./pathway-search-table.js";
 
 /**
- * `node scripts/pathway-search-compare.js [--days 10] [--budget 50] [--hopital moyen] [--accident] [--hiver] [--familles] [--interpretes] [--circuit-court] [--deces] [--marche] [--lits | --pauses | --interne | --files | --plan | --het | --sauv]` (Sami,
+ * `node scripts/pathway-search-compare.js [--days 10] [--first 1] [--budget 50] [--hopital moyen] [--accident] [--hiver] [--familles] [--interpretes] [--circuit-court] [--deces] [--marche] [--lits | --pauses | --interne | --files | --plan | --het | --sauv] [--out FICHIER]` (Sami,
  * 26/10/2026, the detailed pathway's step 6): the box rules and the search on the same days, the bed rule « la
  * décision la plus ancienne », the days played side by side in threads (16 at most: the machine's limit is 18). The
  * late cost at the level of the moment, and the search's gain on each rule by pairs. Budgets above 400 are for the
@@ -20,62 +18,82 @@ import { RULE_LABELS } from "../src/rules.js";
  * decided, against the search choosing it; with `--plan`, the crisis plan never, at the threshold, or by the search (the
  * cost then counts the doctor-hours called back); with `--het`, the HET likewise (the cost then counts the beds it
  * gives); with `--sauv`, moving a patient out of the SAUV for a red.
+ *
+ * For the night's queue (27/10/2026, scripts/night-results.js): `--out` writes each day's results as it ends, so a
+ * job stopped keeps what it played; `--first` and `--days` cut a job in slices of seeds, and
+ * `--gather FICHIER,FICHIER` prints the table of the slices' files, failing when a slice stopped before its end.
  */
 
 const PLAYS = { beds: playBedSearchDay, breaks: playBreakSearchDay, interns: playInternSearchDay, queues: playQueueSearchDay, alerts: playAlertSearchDay, hets: playHetSearchDay, sauvs: playSauvSearchDay };
-const BREAK_NAMES = { none: "aucune pause", quiet: "au creux (la règle)", decided: "au creux, une à une", search: "la recherche" };
+// The later additions (docs/parcours-ajouts.md), each by its flag.
+const ADDITION_FLAGS = { "--familles": "family", "--interpretes": "interpreter", "--circuit-court": "fastTrack", "--deces": "deaths" };
+const KINDS = { "--lits": "beds", "--pauses": "breaks", "--interne": "interns", "--files": "queues", "--plan": "alerts", "--het": "hets", "--sauv": "sauvs" };
 
-if (!isMainThread) {
-  parentPort.on("message", (job) => parentPort.postMessage({ seed: job.seed, measures: (PLAYS[job.kind] ?? playSearchDay)(job) }));
-} else {
-  const args = process.argv.slice(2);
-  const option = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
-  const hospital = option("--hopital", "moyen");
+/** The run's settings, read from the command line: what its results file keeps as its header. */
+function settingsOf(args) {
+  const hospital = optionOf(args, "--hopital", "moyen");
   if (!HOSPITALS[hospital]) throw new Error(`hôpital inconnu ; au choix : ${Object.keys(HOSPITALS).join(", ")}`);
-  const days = Number(option("--days", 10));
-  const budget = Number(option("--budget", 50));
-  // The later additions (docs/parcours-ajouts.md), each by its flag.
-  const ADDITION_FLAGS = { "--familles": "family", "--interpretes": "interpreter", "--circuit-court": "fastTrack", "--deces": "deaths" };
   const additions = Object.entries(ADDITION_FLAGS).filter(([flag]) => args.includes(flag));
-  const withAdditions = additions.length ? ", avec " + additions.map(([flag]) => flag.slice(2)).join(", ") : "";
   const options = { hospital, accident: args.includes("--accident"), epidemic: args.includes("--hiver"), walk: args.includes("--marche"), ...Object.fromEntries(additions.map(([, name]) => [name, true])) };
-  const KINDS = { "--lits": "beds", "--pauses": "breaks", "--interne": "interns", "--files": "queues", "--plan": "alerts", "--het": "hets", "--sauv": "sauvs" };
   const kind = KINDS[Object.keys(KINDS).find((flag) => args.includes(flag))] ?? "boxes";
-  const beds = kind === "beds";
-  // The scheduler (mcts-backlog) says how many threads it gives; else the machine's, two kept free, 16 at most.
-  const threads = Math.max(1, Math.min(Number(process.env.MCTS_THREADS) || 16, availableParallelism() - 2, days));
-  const t0 = Date.now();
-  const results = await new Promise((resolve) => {
+  const numbers = { budget: Number(optionOf(args, "--budget", 50)), first: Number(optionOf(args, "--first", 1)), days: Number(optionOf(args, "--days", 10)) };
+  return { hospital, options, additions: additions.map(([flag]) => flag.slice(2)), kind, ...numbers };
+}
+
+/** Plays the days in `threads` workers, each day's results written to `out` as it ends; rejects if a worker fails. */
+function playDays({ first, days, options, budget, kind }, threads, out) {
+  const report = progressReporter("journée", days);
+  return new Promise((resolve, reject) => {
     const done = [];
-    let next = 1;
-    const feed = (worker) => (next <= days ? worker.postMessage({ seed: next++, options, budget, kind }) : worker.terminate());
+    const workers = [];
+    let next = first;
+    const feed = (worker) => (next < first + days ? worker.postMessage({ seed: next++, options, budget, kind }) : worker.terminate());
+    const fail = (error) => {
+      for (const worker of workers) worker.terminate();
+      reject(error);
+    };
     for (let i = 0; i < threads; i += 1) {
       const worker = new Worker(new URL(import.meta.url));
+      workers.push(worker);
+      worker.on("error", fail);
       worker.on("message", (result) => {
         done.push(result);
-        if (done.length === days) resolve(done.sort((a, b) => a.seed - b.seed));
+        addResult(out, result);
+        report(done.length);
+        if (done.length === days) resolve(done);
         feed(worker);
       });
       feed(worker);
     }
   });
-  const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
-  const gainOf = (g) => `${fixed(g.mean)} (${fixed(g.low)} à ${fixed(g.high)})`;
-  console.log(`${HOSPITALS[hospital].label}${options.accident ? ", avec l'accident" : ", jour ordinaire"}${options.epidemic ? ", en pleine épidémie d'hiver" : ""}${withAdditions}${options.walk ? ", marche comptée" : ""} : ${days} journées, la recherche à ${budget} itérations, ${threads} fils, ${Math.round((Date.now() - t0) / 1000)} s.`);
-  const bedName = (name) => (name === "search" ? "la recherche" : BED_LABELS[name]);
-  const queueName = (name) => ({ fixed: "l'ordre fixe", search: "la recherche" })[name] ?? `décidé, ${QUEUE_LABELS[name]}`;
-  const internName = (name) => ({ none: "pas d'interne", search: "la recherche" })[name] ?? INTERN_LABELS[name];
-  const label = (name) => ({ beds: () => `lit : ${bedName(name)}`, breaks: () => `pauses : ${BREAK_NAMES[name]}`, interns: () => `interne : ${internName(name)}`, queues: () => `scanner et bloc : ${queueName(name)}`, alerts: () => `plan blanc : ${({ never: "jamais", threshold: "au seuil", search: "la recherche" })[name]}`, hets: () => `HET : ${({ never: "jamais", threshold: "au seuil", search: "la recherche" })[name]}`, sauvs: () => `sortie de SAUV : ${({ never: "jamais", longest: "le plus ancien, dès qu'un rouge attend", search: "la recherche" })[name]}`, boxes: () => RULE_LABELS[name] })[kind]();
-  const names = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: undefined }[kind];
-  const internFigure = (name, read) => (results.reduce((sum, one) => sum + (one.measures[name].intern ? read(one.measures[name].intern) : 0), 0) / results.length).toFixed(2).replace(".", ",");
-  const breakFigure = (name, key) => (results.reduce((sum, one) => sum + one.measures[name].fatigue[key], 0) / results.length).toFixed(1).replace(".", ",");
-  for (const row of searchRows(results.map((one) => one.measures), names)) {
-    const against = row.gain ? ` · la recherche contre elle : ${gainOf(row.gain)}` : "";
-    const nights = beds ? ` · boarding max ${Math.round(row.boardingMax)} min · 75+ la nuit ${row.elderlyNights.toFixed(1).replace(".", ",")}` : "";
-    const breaks = kind === "breaks" ? ` · repas ${breakFigure(row.name, "meals")} · repos ${breakFigure(row.name, "rests")} · sans pause au plus ${breakFigure(row.name, "longest")} h` : "";
-    const tasks = kind === "interns" && row.name !== "none" ? ` · passage méd. ${Math.round(row.stayMedian)} min · tâches en retard ${internFigure(row.name, (i) => i.late)} · retard moyen ${internFigure(row.name, (i) => i.lateness.mean)} min · aggravations vues ${internFigure(row.name, (i) => i.recoloured)}` : "";
-    const tension = kind === "hets" ? ` · retard seul ${Math.round(results.reduce((sum, one) => sum + one.measures[row.name].lateCostOnly, 0) / results.length)} · attente d'un lit ${Math.round(results.reduce((sum, one) => sum + one.measures[row.name].boardingCost, 0) / results.length)} · lits obtenus ${(results.reduce((sum, one) => sum + one.measures[row.name].het.beds, 0) / results.length).toFixed(1).replace(".", ",")} · boarding max ${Math.round(row.boardingMax)} min` : "";
-    const plan = kind === "alerts" ? ` · retard seul ${Math.round(results.reduce((sum, one) => sum + one.measures[row.name].lateCostOnly, 0) / results.length)} · heures de médecin rappelées ${(results.reduce((sum, one) => sum + one.measures[row.name].alert.hours, 0) / results.length).toFixed(1).replace(".", ",")}` : "";
-    console.log(`${label(row.name).padEnd(36)} coût au moment ${fixed(row.lateCostNow).padStart(8)} · partis ${row.left.toFixed(1).replace(".", ",")}${nights}${breaks}${tasks}${plan}${tension}${against}`);
+}
+
+/** Plays the run the command line asks for, or gathers its slices, and prints the table. */
+async function main(args) {
+  const gather = optionOf(args, "--gather", null);
+  if (gather) {
+    const files = gather.split(",");
+    const { header, units, expected } = gatherResults(files);
+    printSearchTable(units, header, `${files.length} tranches rassemblées`);
+    if (units.length < expected) throw new Error(`${units.length} journées sur ${expected} : une tranche s'est arrêtée avant sa fin`);
+    return;
   }
+  const settings = settingsOf(args);
+  // The scheduler (mcts-backlog) says how many threads it gives; else the machine's, two kept free, 16 at most.
+  const threads = Math.max(1, Math.min(Number(process.env.MCTS_THREADS) || 16, availableParallelism() - 2, settings.days));
+  const out = optionOf(args, "--out", null);
+  const t0 = Date.now();
+  startResults(out, settings);
+  const results = (await playDays(settings, threads, out)).sort((a, b) => a.seed - b.seed);
+  printSearchTable(results, settings, `${threads} fils, ${Math.round((Date.now() - t0) / 1000)} s`);
+}
+
+if (!isMainThread) {
+  parentPort.on("message", (job) => parentPort.postMessage({ seed: job.seed, measures: (PLAYS[job.kind] ?? playSearchDay)(job) }));
+} else {
+  // A failure exits non-zero, the queue's sign that the job failed (the workers stopped with it).
+  await main(process.argv.slice(2)).catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }
