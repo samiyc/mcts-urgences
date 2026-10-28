@@ -105,7 +105,7 @@ export function pathwayPlanOf(text) {
     results: plan.find("r"),
     passable: passableOn(plan),
   };
-  return Object.assign(layout, { walker: { fields: new Map(), layout } });
+  return Object.assign(layout, { walker: { fields: new Map(), paths: new Map(), layout } });
 }
 
 /** How many of each place the plan has: the capacities a day on it takes (`pathwaySettingsOf`). */

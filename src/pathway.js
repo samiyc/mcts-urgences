@@ -1,7 +1,7 @@
 import { createEvents } from "mcts-commun/events.js";
 import { HANDLERS } from "./pathway-handlers.js";
 import { account, keepPeaks } from "./pathway-measures.js";
-import { POOLS, free, moveTo, now, placeFor, removeFrom, startReview, take, walkDelay } from "./pathway-places.js";
+import { POOLS, anyPlace, free, moveTo, now, placeFor, removeFrom, startReview, take, walkDelay } from "./pathway-places.js";
 import { BREAK_DECIDERS, breakDecision, breakTimes, decideBreak, slowOf, startFatigue } from "./pathway-fatigue.js";
 import { drop, startIntern } from "./pathway-intern.js";
 import { INTERN_RULES, decideIntern, internDecision } from "./pathway-intern-decided.js";
@@ -11,6 +11,7 @@ import { HET_RULES, decideHet, hetDecision, startHet } from "./pathway-het.js";
 import { SAUV_RULES, decideSauv, sauvDecision } from "./pathway-sauv.js";
 import { noteLent, startIsolation } from "./pathway-isolation.js";
 import { fastPools, startAdditions } from "./pathway-additions.js";
+import { bedViewOf, giveBed } from "./pathway-beds.js";
 import { interpreterWait, languageSlowOf } from "./pathway-interpreter.js";
 import { startPorters } from "./pathway-porters.js";
 import { hourAt } from "./pathway-scenario.js";
@@ -46,7 +47,7 @@ import { doctorTo, startTrace } from "./pathway-trace.js";
  * source; for a bed, when the admission was decided, where the patient waits, whether they are 75 or more.
  *
  * The parts: the places and pools (pathway-places.js), the events (pathway-handlers.js), the fixed orders
- * (pathway-serve.js), the bed rules (pathway-beds.js), the measures (pathway-measures.js).
+ * (pathway-serve.js), the bed rules and the bed given (pathway-beds.js), the measures (pathway-measures.js).
  */
 
 export const STEPS = Object.freeze({
@@ -182,21 +183,11 @@ export function startPathway(day) {
 
 /** What a box rule sees of a waiting patient. */
 const viewOf = (patient) => ({ id: patient.id, arrival: patient.arrival, colour: patient.colour, source: patient.source });
-/** What a bed rule sees of a patient waiting for a bed. */
-const bedViewOf = (patient) => ({ id: patient.id, arrival: patient.arrival, colour: patient.colour, admitAt: patient.admitAt, inBox: patient.place === "boxes" || patient.place === "sauv" || patient.place === "isolation", elderly: patient.elderly });
-
-function giveBed(day, ward, id) {
-  const patient = day.patients.get(id);
-  if (!removeFrom(day.wards[ward].waiting, id)) throw new Error("la règle doit choisir un patient qui attend un lit de ce service");
-  day.wards[ward].free -= 1;
-  Object.assign(patient, { bedAt: now(day), step: "leaving" });
-  day.events.schedule(now(day) + day.settings.toBed, { type: "toBed", id });
-}
 
 /** The box decision, or null; without `reviewFirst`, a free doctor reads results only when nobody can be taken in. */
 function boxDecision(day) {
   if (free(day, "doctors") <= 0) return null;
-  const candidates = day.queues.waiting.map((id) => day.patients.get(id)).filter((patient) => placeFor(day, patient));
+  const candidates = anyPlace(day) ? day.queues.waiting.map((id) => day.patients.get(id)).filter((patient) => placeFor(day, patient)) : [];
   if (candidates.length) return { kind: "box", candidates: candidates.map(viewOf) };
   if (!day.settings.reviewFirst && day.queues.review.length) startReview(day, day.queues.review.shift());
   return null;
@@ -204,7 +195,8 @@ function boxDecision(day) {
 
 /** The first ward with a bed and two patients or more waiting for it; a patient alone takes it at once. */
 function bedDecision(day) {
-  for (const [ward, { free: beds, waiting }] of Object.entries(day.wards)) {
+  for (const ward in day.wards) {
+    const { free: beds, waiting } = day.wards[ward];
     if (beds <= 0 || waiting.length === 0) continue;
     if (waiting.length > 1) return { kind: "bed", ward, candidates: waiting.map((id) => bedViewOf(day.patients.get(id))) };
     giveBed(day, ward, waiting[0]);

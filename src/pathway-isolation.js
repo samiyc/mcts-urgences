@@ -34,6 +34,9 @@ export function noteLent(day, patient, place) {
 /** The patient to isolate whom a box holds, or undefined. */
 const isolatedInBox = (day) => day.trace.slots.boxes.map((id) => typeof id === "number" && day.patients.get(id)).find((patient) => patient && patient.isolate);
 
+/** The patient to isolate whom a box holds, while the isolation room is free; else undefined. */
+const reclaimable = (day) => (free(day, "isolation") > 0 ? isolatedInBox(day) : undefined);
+
 /** The borrower leaves the room: to a free box, or else to a chair. */
 function moveOut(day, borrower) {
   if (free(day, "boxes") > 0) moveTo(day, borrower, "boxes");
@@ -53,7 +56,7 @@ function movable(day, id) {
 /** The isolation room taken back from its borrowers for a patient to isolate (a fixed order, pathway-serve.js). */
 export function reclaimIsolation(day) {
   if (!day.isolation) return;
-  for (let isolated = isolatedInBox(day); isolated && free(day, "isolation") > 0; isolated = isolatedInBox(day)) {
+  for (let isolated = reclaimable(day); isolated; isolated = reclaimable(day)) {
     moveTo(day, isolated, "isolation");
     day.isolation.back += 1;
   }

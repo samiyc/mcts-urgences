@@ -86,11 +86,8 @@ export function drawWorld(day, rng, horizon) {
   const now = day.events.now;
   const unknown = (patient) => patient.announcedAt > now;
   const hidden = (event) => event.type === "worsen" || ((event.type === "arrive" || event.type === "announce") && unknown(day.patients.get(event.id)));
-  const world = cloneDay(day, (event) => !hidden(event));
-  for (const [id, patient] of world.patients) {
-    if (unknown(patient)) world.patients.delete(id);
-    else if (patient.start === null && patient.exit === null && patient.step !== "coming") redraw(world, patient, rng);
-  }
+  const world = cloneDay(day, (event) => !hidden(event), (patient) => !unknown(patient));
+  for (const patient of world.patients.values()) if (patient.start === null && patient.exit === null && patient.step !== "coming") redraw(world, patient, rng);
   addComings(world, rng, horizon);
   world.pending = [...world.patients.values()].filter((patient) => patient.start === null && patient.exit === null && patient.arrival <= now + horizon).map((patient) => patient.id);
   // Who waits for a bed now: the search choosing the beds counts their wait too.

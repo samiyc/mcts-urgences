@@ -38,6 +38,9 @@ export function exitPatient(day, patient, exit) {
   drop(day, patient.id);
 }
 
+/** Whether a place of any kind is free: else `placeFor` finds none for anybody waiting. */
+export const anyPlace = (day) => free(day, "boxes") > 0 || free(day, "sauv") > 0 || free(day, "isolation") > 0;
+
 /**
  * The place a waiting patient would take now, or null: the SAUV for a red, the isolation room for an isolated one (or,
  * lent, for a light and young one, pathway-isolation.js), else a box.

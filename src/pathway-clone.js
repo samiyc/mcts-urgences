@@ -49,12 +49,21 @@ const copyAdditions = (day) => ({
   fast: day.fast && { ...day.fast },
 });
 
-export function cloneDay(day, keep = () => true) {
+/** The patients `known` keeps, copied; a patient out of the department changes no more: shared, not copied. */
+function copyPatients(patients, known) {
+  const copy = new Map();
+  for (const [id, patient] of patients) if (known(patient)) copy.set(id, patient.exit === null ? copyPatient(patient) : patient);
+  return copy;
+}
+
+/** A world of the search: `keep(event)` the events kept, `known(patient)` the patients (those the department knows of). */
+export function cloneDay(day, keep = () => true, known = () => true) {
   return {
     ...day,
+    // A world counts no use and no peaks (pathway-measures.js): the search's score reads none.
+    world: true,
     events: day.events.clone(keep),
-    // A patient out of the department changes no more: shared, not copied.
-    patients: new Map([...day.patients].map(([id, patient]) => [id, patient.exit === null ? copyPatient(patient) : patient])),
+    patients: copyPatients(day.patients, known),
     wards: Object.fromEntries(Object.entries(day.wards).map(([ward, { free, waiting }]) => [ward, { free, waiting: [...waiting] }])),
     capacity: { ...day.capacity },
     busy: { ...day.busy },

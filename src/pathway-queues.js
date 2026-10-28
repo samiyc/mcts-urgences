@@ -39,6 +39,7 @@ export const decidedQueue = (day, pool) => day.settings.queueDecided && free(day
 
 /** The decision of a free scanner or theatre with two patients or more waiting; null otherwise. */
 export function queueDecision(day) {
+  if (!day.settings.queueDecided) return null;
   const pool = QUEUE_POOLS.find((one) => decidedQueue(day, one));
   if (!pool) return null;
   return { kind: "queue", pool, candidates: day.queues[pool].map((id, order) => ({ id, order, colour: day.patients.get(id).colour })) };

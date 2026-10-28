@@ -17,9 +17,18 @@ export function layoutOf(text) {
   return layouts.get(text);
 }
 
-/** The cells from `from` to `to`, both included, by the first nearer neighbour (ward-moves.js's `walk`). */
+/**
+ * The cells from `from` to `to`, both included, by the first nearer neighbour (ward-moves.js's `walk`): walked once a
+ * pair of cells on the plan, then shared by every walk between them, frozen (a walk's cells never change).
+ */
 export function pathOf(walker, from, to) {
-  if (walkSteps(walker, from, to) < 0) return [from];
+  const key = `${from.x},${from.y}>${to.x},${to.y}`;
+  if (!walker.paths.has(key)) walker.paths.set(key, Object.freeze(walked(walker, from, to).map((cell) => Object.freeze(cell))));
+  return walker.paths.get(key);
+}
+
+function walked(walker, from, to) {
+  if (walkSteps(walker, from, to) < 0) return [{ x: from.x, y: from.y }];
   const unit = { x: from.x, y: from.y, to };
   const path = [{ x: from.x, y: from.y }];
   while (unit.x !== to.x || unit.y !== to.y) {

@@ -1,4 +1,18 @@
-/** The bed rules of the detailed pathway (pathway.js): who takes a bed a ward frees. */
+import { now, removeFrom } from "./pathway-places.js";
+
+/** The bed rules of the detailed pathway (pathway.js): who takes a bed a ward frees, and the bed given. */
+
+/** What a bed rule sees of a patient waiting for a bed. */
+export const bedViewOf = (patient) => ({ id: patient.id, arrival: patient.arrival, colour: patient.colour, admitAt: patient.admitAt, inBox: patient.place === "boxes" || patient.place === "sauv" || patient.place === "isolation", elderly: patient.elderly });
+
+/** The ward's bed given to `id`, who leaves for it after `toBed` minutes. */
+export function giveBed(day, ward, id) {
+  const patient = day.patients.get(id);
+  if (!removeFrom(day.wards[ward].waiting, id)) throw new Error("la règle doit choisir un patient qui attend un lit de ce service");
+  day.wards[ward].free -= 1;
+  Object.assign(patient, { bedAt: now(day), step: "leaving" });
+  day.events.schedule(now(day) + day.settings.toBed, { type: "toBed", id });
+}
 
 const first = (list, before) => list.reduce((best, one) => (before(one, best) ? one : best));
 

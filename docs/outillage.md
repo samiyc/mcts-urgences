@@ -113,6 +113,37 @@ mcts-commun), jamais sur la vraie.
 
 Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun ».
 
+## La vitesse de la recherche
+
+Sami (28/10/2026) : la recherche est-elle accélérable sur les journées réalistes, avec beaucoup d'ajouts allumés ?
+Une journée jouée par une règle prend 25 ms. La même journée jouée par la recherche prend des secondes, presque
+toutes passées à jouer ses mondes. Le profil (`node --cpu-prof`) a montré trois dépenses qui ne servaient à rien :
+- **la comptabilité des mondes** : chaque événement d'un monde ajoutait l'occupation des pools et les minutes en box,
+  et recomptait les pics en parcourant tous les patients. Seule la vraie journée en fait ses mesures. Un monde est
+  marqué `world` (`pathway-clone.js`), et `account` et `keepPeaks` n'y comptent plus rien ;
+- **les patients que le service ne connaît pas encore** : `drawWorld` les copiait puis les effaçait. `cloneDay` ne
+  les copie plus ;
+- **les chemins à pied** : chaque déplacement refaisait son chemin case par case. Le chemin entre deux cases du plan
+  est toujours le même : `pathOf` le calcule une fois, puis le partage, gelé.
+
+S'y ajoutent deux contrôles faits à chaque événement, qui sortent plus tôt : aucun box libre, ou la chambre
+d'isolement occupée.
+
+Les gains se mesurent sur une journée cherchée pendant l'accident en hiver, avec les quatre ajouts. Le temps est le
+temps CPU, avec l'ancienne et la nouvelle version jouées en alternance, trois graines à 20 itérations :
+
+| Hôpital | avant | après | gain |
+|---|---|---|---|
+| moyen | 8,8 s | 5,5 s | −38 % |
+| moyen, avec la marche | 12,0 s | 6,7 s | −44 % |
+| CHU | 26,4 s | 15,4 s | −42 % |
+| proximité | 2,9 s | 2,3 s | −21 % |
+
+**Les résultats ne changent pas.** Les empreintes tiennent, et les huit recherches (box, lits, pauses, interne,
+files, plan, HET, SAUV) donnent les mêmes mesures, champ par champ, sur 64 journées. Ce qui reste coûte d'abord à
+tirer les mondes : les arrivées inconnues et la copie des patients. On ne peut les alléger sans changer les tirages,
+donc les résultats.
+
 ## Pour les autres projets mcts-*
 
 Ce qui se reprend tel quel dans mcts-commun, mcts-cuisine et mcts-entrepot, chacun dans sa propre session :

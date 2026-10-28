@@ -10,8 +10,16 @@ import { lateCostNow } from "./simulate.js";
 
 /** What the detailed pathway (pathway.js) counts as it goes, and the measures of a finished day. */
 
-/** Adds the minutes since the last event to each pool's use, and to the boarders' minutes in a place. */
+/**
+ * Adds the minutes since the last event to each pool's use, and to the boarders' minutes in a place. A world of the
+ * search (pathway-clone.js) only moves its clock: its score reads none of these.
+ */
 export function account(day, until) {
+  if (!day.world) countSince(day, until);
+  day.clock = until;
+}
+
+function countSince(day, until) {
   sample(day, until);
   const span = until - day.clock;
   for (const pool of POOLS) {
@@ -24,10 +32,11 @@ export function account(day, until) {
       if (patient.place && patient.place !== "uhcd") patient.boxBoarding += span;
     }
   }
-  day.clock = until;
 }
 
+/** The day's peaks of waiting, present and urgent patients; not in a world of the search, whose score reads none. */
 export function keepPeaks(day) {
+  if (day.world) return;
   const waiting = day.queues.register.length + day.queues.triage.length + day.queues.waiting.length;
   let present = 0;
   for (const patient of day.patients.values()) if (patient.step !== "coming" && patient.step !== "out") present += 1;
