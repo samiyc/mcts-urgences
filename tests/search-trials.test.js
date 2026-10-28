@@ -20,4 +20,15 @@ describe("mcts-commun's trials of 27/10/2026 (src/search-trials.js)", () => {
     assert.ok(codes >= tallies.search.searches);
     assert.equal(addTallies([tallies.search, newTally()]).iterations, tallies.search.iterations);
   });
+
+  it("play the step up of the settings (28/10/2026) as rows of their own, the rank played counted", () => {
+    const { tallies, search, C } = playSauvSearchDay({ ...job, tiers: true, diagnose: true });
+    assert.deepEqual(Object.keys(tallies), ["search", "B", "C", "D", "E"]);
+    // The SAUV keeps all its moves: 8 at the root changes nothing there.
+    assert.deepEqual(C, search);
+    assert.equal(tallies.B.iterations, 4 * tallies.search.iterations);
+    const ranked = Object.values(tallies.search.ranks).reduce((sum, count) => sum + count, 0);
+    assert.equal(addTallies([tallies.search]).ranks[1], tallies.search.ranks[1]);
+    assert.ok(ranked > 0 && ranked <= tallies.search.searches);
+  });
 });

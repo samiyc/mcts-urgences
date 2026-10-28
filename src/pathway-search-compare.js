@@ -13,7 +13,7 @@ import { SAUV_RULES } from "./pathway-sauv.js";
 import { pathwaySearchRule } from "./pathway-search.js";
 import { pathwaySearchAlertRule, pathwaySearchHetRule, pathwaySearchBedRule, pathwaySearchBreakRule, pathwaySearchInternRule, pathwaySearchQueueRule, pathwaySearchSauvRule } from "./pathway-search-rules.js";
 import { RULES } from "./rules.js";
-import { newTally } from "./search-trials.js";
+import { TIERS, newTally } from "./search-trials.js";
 
 /**
  * The search on the pathway against the box rules, a day at a time (Sami, 26/10/2026, step 6): shared by
@@ -22,17 +22,21 @@ import { newTally } from "./search-trials.js";
  */
 export const SEARCHED = Object.freeze(["arrival", "colour", "deadline", "search"]);
 
+/** The trials' rows after the search's: the early stop's, the reused worlds', the step up's. */
+const trialsOf = ({ early, pool, tiers }) => [...(early ? ["early"] : []), ...(pool ? ["pool"] : []), ...(tiers ? Object.keys(TIERS) : [])];
+
 /**
  * A day's searches, made by `make` (a search rule's factory) with `budget` iterations: "search", and with `early` an
  * "early" row too, its `earlyStop` on, paired on the same day (mcts-commun's trials of 27/10/2026, src/search-trials.js);
- * with `pool`, a "pool" row, its worlds `pool` at most, reused (pathway-worlds.js, a trial of 28/10/2026).
+ * with `pool`, a "pool" row, its worlds `pool` at most, reused (pathway-worlds.js, a trial of 28/10/2026); with
+ * `tiers`, rows "B" to "E", the step up of the settings (search-trials.js's TIERS, 28/10/2026).
  * With `early` or `diagnose`, each counts what its searches saw, the day's `tallies` beside the rows' measures.
  */
-export function searchesOf({ budget, early = false, diagnose = false, pool = 0 }, make) {
-  const trials = [...(early ? ["early"] : []), ...(pool ? ["pool"] : [])];
+export function searchesOf({ budget, early = false, diagnose = false, pool = 0, tiers = false }, make) {
+  const trials = trialsOf({ early, pool, tiers });
   const names = ["search", ...trials];
   const tallies = early || diagnose ? Object.fromEntries(names.map((name) => [name, newTally()])) : null;
-  const rules = Object.fromEntries(names.map((name) => [name, make({ budget, earlyStop: name === "early", pool: name === "pool" ? pool : undefined, tally: tallies?.[name] })]));
+  const rules = Object.fromEntries(names.map((name) => [name, make({ budget, earlyStop: name === "early", pool: name === "pool" ? pool : undefined, tally: tallies?.[name], ...TIERS[name]?.(budget) })]));
   return {
     rules,
     rows: (base) => [...base, ...trials],

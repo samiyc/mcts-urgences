@@ -111,7 +111,13 @@ mcts-commun), jamais sur la vraie.
 - `--attente-convexe` (`pathway-search-compare.js --lits`) ajoute la recherche des lits notée par une attente convexe
   (H79), une ligne de plus sur les mêmes journées ;
 - `--mondes N` (`pathway-search-compare.js`, 28/10) ajoute la recherche qui réutilise au plus N mondes par décision
-  (« La vitesse de la recherche », plus bas).
+  (« La vitesse de la recherche », plus bas) ;
+- `--palier` (`pathway-search-compare.js`, 28/10 au soir ; Sami trouve nos réglages bas face à lopin, `docs/reglages.md`
+  de mcts-commun) ajoute quatre lignes, B à E, contre les réglages d'aujourd'hui (A) : B quatre fois le budget, C
+  8 coups à la racine, D la profondeur 3 pour deux fois le budget, E tout ensemble (5 coups plus bas, l'élargissement
+  progressif à 1). La garde les prend en variantes de `search-bench.js` (`root=8`, `depth=3`, `width=5`,
+  `widening=1`). Avec `--diagnose`, chaque ligne dit aussi le rang du coup joué dans la liste courte de la racine.
+  Les sept décisions qui gardent tous leurs coups n'ont rien à gagner à C.
 
 Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun ».
 

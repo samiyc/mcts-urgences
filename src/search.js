@@ -196,12 +196,12 @@ function playMove(world, move) {
 }
 
 /** The problem the search solves, scored `scale / (scale + cost)`: about ½ for the colour rule's cost. */
-function problemFor(scale, { width, horizon, omniscient, measure }) {
+function problemFor(scale, { width, root = width, horizon, omniscient, measure }) {
   return {
     sample: (shift, rng) => (omniscient === 1 ? trueWorld(shift, horizon) : drawWorld(shift, rng, horizon, ["", "", "levels", "future"][omniscient])),
     actor: () => "service",
     moves: movesOf,
-    shortlist: (world, moves) => shortlistFor(world, moves, width),
+    shortlist: (world, moves, where) => shortlistFor(world, moves, where?.root ? root : width),
     key: (move) => move.key,
     play(world, move) {
       playMove(world, move);
@@ -243,7 +243,7 @@ export function searchRule(options = {}) {
   return (waiting, { shift, kind }) => {
     if (kind !== "nurse" && waiting.length === 1 && !onItsWay(shift)) return waiting[0];
     const rng = createRng(choiceSeed(seed, shift, waiting, kind));
-    const found = searchTried(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, horizon, omniscient, measure }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
+    const found = searchTried(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, root: options.root, horizon, omniscient, measure }), { budget, rng, depth, explore, earlyStop: options.earlyStop, widening: options.widening, tally: options.tally });
     return answerOf(found.move, waiting, kind);
   };
 }

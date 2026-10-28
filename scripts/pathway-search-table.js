@@ -30,10 +30,12 @@ const LABELS = {
   boxes: (name) => RULE_LABELS[name],
 };
 const NAMES = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: SEARCHED };
-/** A row's name: the search's trials (`--early-stop`, `--attente-convexe`, `--mondes`) after the search's own name. */
-const labelOf = (kind, name) => ({ early: `${LABELS[kind]("search")}, arrêt anticipé`, convex: `${LABELS[kind]("search")}, attente convexe`, pool: `${LABELS[kind]("search")}, mondes réutilisés` })[name] ?? LABELS[kind](name);
-/** The rows of a run: its kind's, then the convex wait's (`--attente-convexe`), the early stop's (`--early-stop`), the reused worlds' (`--mondes`). */
-const rowsOf = ({ kind, convex, early, pool }) => [...NAMES[kind], ...(convex && kind === "beds" ? ["convex"] : []), ...(early ? ["early"] : []), ...(pool ? ["pool"] : [])];
+/** The step up's rows (`--palier`), B to E (src/search-trials.js's TIERS). */
+const TIER_LABELS = Object.freeze({ B: "palier B, budget ×4", C: "palier C, 8 coups à la racine", D: "palier D, profondeur 3, budget ×2", E: "palier E, tout ensemble" });
+/** A row's name: the search's trials (`--early-stop`, `--attente-convexe`, `--mondes`, `--palier`) after the search's own name. */
+const labelOf = (kind, name) => (TIER_LABELS[name] ? `${LABELS[kind]("search")}, ${TIER_LABELS[name]}` : null) ?? ({ early: `${LABELS[kind]("search")}, arrêt anticipé`, convex: `${LABELS[kind]("search")}, attente convexe`, pool: `${LABELS[kind]("search")}, mondes réutilisés` })[name] ?? LABELS[kind](name);
+/** The rows of a run: its kind's, then the convex wait's (`--attente-convexe`), the early stop's (`--early-stop`), the reused worlds' (`--mondes`), the step up's (`--palier`). */
+const rowsOf = ({ kind, convex, early, pool, tiers }) => [...NAMES[kind], ...(convex && kind === "beds" ? ["convex"] : []), ...(early ? ["early"] : []), ...(pool ? ["pool"] : []), ...(tiers ? Object.keys(TIER_LABELS) : [])];
 
 const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
 const comma = (value, digits) => value.toFixed(digits).replace(".", ",");

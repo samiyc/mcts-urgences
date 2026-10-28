@@ -15,7 +15,11 @@ function lineOf(label, tally) {
   const { searches, iterations, ms, codes } = tally;
   const each = `${whole(iterations / Math.max(searches, 1))} itérations et ${(ms / Math.max(searches, 1)).toFixed(1).replace(".", ",")} ms chacune`;
   const shares = [...CODES, "clear", "oneMove"].map((code) => `${{ clear: "aucun", oneMove: "un seul coup" }[code] ?? code} ${share(codes[code], searches)}`);
-  return `${label} : ${whole(searches)} recherches, ${each} · ${shares.join(" · ")}`;
+  // The rank of the move played in the root's shortlist (mcts-commun's `rank`, 28/10/2026): 1 its first.
+  const ranks = Object.entries(tally.ranks ?? {}).sort(([a], [b]) => Number(a) - Number(b));
+  const rankShares = ranks.map(([rank, count]) => rank + " : " + share(count, searches)).join(", ");
+  const ranked = ranks.length ? ` · rang joué ${rankShares}` : "";
+  return `${label} : ${whole(searches)} recherches, ${each} · ${shares.join(" · ")}${ranked}`;
 }
 
 /** Prints the tallies of the days (`[{ search, early? }]`), each row named by `labelOf`, the others against `against`. */
