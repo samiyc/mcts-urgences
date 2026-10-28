@@ -109,7 +109,9 @@ mcts-commun), jamais sur la vraie.
   arrêtée dès que son coup de tête ne peut plus être rattrapé, jouée sur les mêmes journées. On la compare par paires
   à la recherche entière, avec ce qu'elle épargne ;
 - `--attente-convexe` (`pathway-search-compare.js --lits`) ajoute la recherche des lits notée par une attente convexe
-  (H79), une ligne de plus sur les mêmes journées.
+  (H79), une ligne de plus sur les mêmes journées ;
+- `--mondes N` (`pathway-search-compare.js`, 28/10) ajoute la recherche qui réutilise au plus N mondes par décision
+  (« La vitesse de la recherche », plus bas).
 
 Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun ».
 
@@ -140,9 +142,26 @@ temps CPU, avec l'ancienne et la nouvelle version jouées en alternance, trois g
 | proximité | 2,9 s | 2,3 s | −21 % |
 
 **Les résultats ne changent pas.** Les empreintes tiennent, et les huit recherches (box, lits, pauses, interne,
-files, plan, HET, SAUV) donnent les mêmes mesures, champ par champ, sur 64 journées. Ce qui reste coûte d'abord à
-tirer les mondes : les arrivées inconnues et la copie des patients. On ne peut les alléger sans changer les tirages,
-donc les résultats.
+files, plan, HET, SAUV) donnent les mêmes mesures, champ par champ, sur 64 journées.
+
+**Un monde tiré une seule fois** (`src/pathway-worlds.js`, le même jour). Au budget de la nuit, tirer les mondes
+prend 36 % du temps : 18 % pour les arrivées inconnues, 13 % pour la copie de la journée, 4 % pour les patients
+connus tirés à nouveau. Les tirages au hasard eux-mêmes n'en font qu'environ 7 % ; le reste construit et copie des
+objets. Or, sur des mondes communs (`iterateCommon` de mcts-commun), la k-ième visite de chaque coup de la racine
+joue le k-ième monde : le même monde était tiré une fois par coup. Il l'est maintenant une fois, puis copié ; l'état
+du flux avant le tirage le reconnaît. Les mêmes mondes, donc les mêmes résultats (les empreintes, et les huit
+recherches sur 64 journées). C'est 15 % de temps en moins à l'hôpital moyen et 18 % au CHU, à 60 itérations, en plus
+des gains du tableau.
+
+Construire les patients d'un monde sur place, sans les recopier (`Object.assign` au lieu de `{ ...a, ...b }`), garde
+les mêmes tirages, mais va **plus lentement** : l'objet perd la forme fixe que V8 optimise. L'idée est abandonnée.
+
+**Alléger vraiment les tirages change les résultats.** `--mondes N` (`pathway-search-compare.js`, éteint par défaut)
+ajoute la recherche qui tire au plus N mondes par décision, puis les rejoue à tour de rôle. Sur 4 journées de
+l'hôpital moyen pendant l'accident en hiver, avec les quatre ajouts, à 100 itérations, 8 mondes vont 47 % plus vite.
+Mais la recherche y coûte 7 807 de plus (de 650 à 14 963) : moins de mondes, une estimation plus bruitée. La mesure
+à temps égal (8, 16 et 32 mondes, contre la recherche entière à moins d'itérations) passe par la file, tag
+`2026-10-28-mondes`.
 
 ## Pour les autres projets mcts-*
 

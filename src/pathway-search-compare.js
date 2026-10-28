@@ -24,16 +24,18 @@ export const SEARCHED = Object.freeze(["arrival", "colour", "deadline", "search"
 
 /**
  * A day's searches, made by `make` (a search rule's factory) with `budget` iterations: "search", and with `early` an
- * "early" row too, its `earlyStop` on, paired on the same day (mcts-commun's trials of 27/10/2026, src/search-trials.js).
+ * "early" row too, its `earlyStop` on, paired on the same day (mcts-commun's trials of 27/10/2026, src/search-trials.js);
+ * with `pool`, a "pool" row, its worlds `pool` at most, reused (pathway-worlds.js, a trial of 28/10/2026).
  * With `early` or `diagnose`, each counts what its searches saw, the day's `tallies` beside the rows' measures.
  */
-export function searchesOf({ budget, early = false, diagnose = false }, make) {
-  const names = early ? ["search", "early"] : ["search"];
+export function searchesOf({ budget, early = false, diagnose = false, pool = 0 }, make) {
+  const trials = [...(early ? ["early"] : []), ...(pool ? ["pool"] : [])];
+  const names = ["search", ...trials];
   const tallies = early || diagnose ? Object.fromEntries(names.map((name) => [name, newTally()])) : null;
-  const rules = Object.fromEntries(names.map((name) => [name, make({ budget, earlyStop: name === "early", tally: tallies?.[name] })]));
+  const rules = Object.fromEntries(names.map((name) => [name, make({ budget, earlyStop: name === "early", pool: name === "pool" ? pool : undefined, tally: tallies?.[name] })]));
   return {
     rules,
-    rows: (base) => (early ? [...base, "early"] : base),
+    rows: (base) => [...base, ...trials],
     done: (measures) => (tallies ? { ...measures, tallies } : measures),
   };
 }

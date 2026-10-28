@@ -14,6 +14,7 @@ import { idOf } from "./pathway.js";
 import { hourAt } from "./pathway-scenario.js";
 import { BED_RULES, decide, followed, nextDecision } from "./pathway.js";
 import { cloneDay } from "./pathway-clone.js";
+import { sampleOnce } from "./pathway-worlds.js";
 import { arrivalsByHour, pathwayOf } from "./pathway-scenario.js";
 import { RULES } from "./rules.js";
 import { patientOf } from "./scenario.js";
@@ -216,9 +217,9 @@ const alertCost = (world, from) => (recalledHours(world, world.events.now) - rec
 /**
  * The problem the search solves on the day, scored `scale / (scale + cost)`; `beds`, `breaks`: the bed decisions, the
  * break decisions are moves too.
- * @param {{ scale: number, width: number, horizon: number, bed: Function, from?: number } & SearchFlags} options
+ * @param {{ scale: number, width: number, horizon: number, bed: Function, from?: number, pool?: number } & SearchFlags} options
  */
-export function problemFor({ scale, width, horizon, bed, from = 0, ...flags }) {
+export function problemFor({ scale, width, horizon, bed, from = 0, pool, ...flags }) {
   /** @type {SearchFlags & { bed: Function }} */
   const rules = { bed, ...flags };
   const { beds, interns, alerts, hets } = rules;
@@ -227,7 +228,7 @@ export function problemFor({ scale, width, horizon, bed, from = 0, ...flags }) {
   // horizon); choosing the intern's tasks, over the horizon.
   const done = (world) => (interns || alerts || hets ? world.events.now > from + horizon : allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon));
   return {
-    sample: (day, rng) => drawWorld(day, rng, horizon),
+    sample: sampleOnce((day, rng) => drawWorld(day, rng, horizon), { pool }),
     actor: () => "service",
     moves: (world) => movesOf(world, rules),
     shortlist: (world, moves) => (moves[0]?.whole ? moves : shortlistOf(moves, width)),
@@ -270,7 +271,7 @@ export function pathwaySearchRule(options = {}) {
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(day.events.now * 1000) * 31 + Number(candidates[0].id) * 7 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed });
-    const found = searchTried(day, problemFor({ scale, width, horizon, bed }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
+    const found = searchTried(day, problemFor({ scale, width, horizon, bed, pool: options.pool }), { budget, rng, depth, explore, earlyStop: options.earlyStop, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? RULES.colour(candidates);
   };
 }

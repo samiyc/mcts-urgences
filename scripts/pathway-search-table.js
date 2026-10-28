@@ -30,10 +30,10 @@ const LABELS = {
   boxes: (name) => RULE_LABELS[name],
 };
 const NAMES = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: SEARCHED };
-/** A row's name: the search with earlyStop (`--early-stop`) after the search's own name. */
-const labelOf = (kind, name) => ({ early: `${LABELS[kind]("search")}, arrêt anticipé`, convex: `${LABELS[kind]("search")}, attente convexe` })[name] ?? LABELS[kind](name);
-/** The rows of a run: its kind's, then the convex wait's (`--attente-convexe`) and the early stop's (`--early-stop`). */
-const rowsOf = ({ kind, convex, early }) => [...NAMES[kind], ...(convex && kind === "beds" ? ["convex"] : []), ...(early ? ["early"] : [])];
+/** A row's name: the search's trials (`--early-stop`, `--attente-convexe`, `--mondes`) after the search's own name. */
+const labelOf = (kind, name) => ({ early: `${LABELS[kind]("search")}, arrêt anticipé`, convex: `${LABELS[kind]("search")}, attente convexe`, pool: `${LABELS[kind]("search")}, mondes réutilisés` })[name] ?? LABELS[kind](name);
+/** The rows of a run: its kind's, then the convex wait's (`--attente-convexe`), the early stop's (`--early-stop`), the reused worlds' (`--mondes`). */
+const rowsOf = ({ kind, convex, early, pool }) => [...NAMES[kind], ...(convex && kind === "beds" ? ["convex"] : []), ...(early ? ["early"] : []), ...(pool ? ["pool"] : [])];
 
 const fixed = (value) => Math.round(value).toLocaleString("fr-FR");
 const comma = (value, digits) => value.toFixed(digits).replace(".", ",");
