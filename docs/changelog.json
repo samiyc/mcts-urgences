@@ -58,7 +58,9 @@
       ],
       "items": [
         "Chaque monde de la recherche est tiré une fois puis copié par mcts-commun (problem.copy), qui reprend ce que le projet faisait lui-même : les mêmes mesures, champ par champ, et le même temps.",
-        "Les tests et les empreintes passent sous Node 24 et la dernière bibliothèque, sans rien changer."
+        "Les tests et les empreintes passent sous Node 24 et la dernière bibliothèque, sans rien changer.",
+        "Réutiliser moins de mondes (--mondes) ne fait gagner que 6 à 10 % de temps, et pas mieux que de faire moins d'itérations : la recherche reste entière et les empreintes ne bougent pas (décision de Sami).",
+        "diagnose recompté avec les coups à égalité corrigés par mcts-commun : ils tombent à 10 % sur le HET et à 19 % sur le Plan blanc, où le choix est net, et restent de 70 à 81 % sur la garde et les box, où les deux premiers coups se valent."
       ]
     },
     {
@@ -74,7 +76,7 @@
         "Un monde de la recherche n'est plus tiré qu'une fois, puis copié pour chaque coup de la racine qui le joue : encore 15 à 18 % de temps en moins, les mêmes mondes.",
         "Une journée cherchée, tous les ajouts allumés pendant l'accident en hiver, prend 38 % de temps en moins à l'hôpital moyen, 44 % avec la marche, 42 % au CHU et 21 % à l'hôpital de proximité.",
         "Les résultats ne changent pas : les empreintes, et les mesures des huit recherches comparées champ par champ avant et après, sur 64 journées.",
-        "Un essai, éteint par défaut : réutiliser au plus quelques mondes par décision (--mondes N). Plus rapide, mais la recherche joue moins bien ; la mesure à temps égal est dans les docs."
+        "Un essai, éteint par défaut : réutiliser au plus quelques mondes par décision (--mondes N). La mesure à temps égal est dans les docs (0.26)."
       ]
     },
     {

@@ -165,12 +165,31 @@ ne touchent presque pas le parcours, qui n'utilise ni A* ni les réservations.
 Construire les patients d'un monde sur place, sans les recopier (`Object.assign` au lieu de `{ ...a, ...b }`), garde
 les mêmes tirages, mais va **plus lentement** : l'objet perd la forme fixe que V8 optimise. L'idée est abandonnée.
 
-**Alléger vraiment les tirages change les résultats.** `--mondes N` (`pathway-search-compare.js`, éteint par défaut)
-ajoute la recherche qui tire au plus N mondes par décision, puis les rejoue à tour de rôle. Sur 4 journées de
-l'hôpital moyen pendant l'accident en hiver, avec les quatre ajouts, à 100 itérations, 8 mondes vont 47 % plus vite.
-Mais la recherche y coûte 7 807 de plus (de 650 à 14 963) : moins de mondes, une estimation plus bruitée. La mesure
-à temps égal (8, 16 et 32 mondes, contre la recherche entière à moins d'itérations) passe par la file, tag
-`2026-10-28-mondes`.
+**Alléger vraiment les tirages ne vaut pas de casser les empreintes** (Sami, 28/10 : « on décidera en fonction des
+résultats », puis « ok pour ne pas casser l'empreinte »). `--mondes N` (`pathway-search-compare.js`, éteint par
+défaut) ajoute la recherche qui tire au plus N mondes par décision, puis les rejoue à tour de rôle. La mesure porte
+sur 100 journées de l'hôpital moyen pendant l'accident en hiver, avec les quatre ajouts (jobs
+`mondes-*-2026-10-28-mondes`). Le coût est le retard au moment, et le temps est compté dans le même job que la
+recherche entière, donc à charge égale :
+
+| Recherche | coût | par recherche | contre l'entière à 100 (IC 95 %) |
+|---|---|---|---|
+| entière, 100 itérations | **58 074** | 240 ms | – |
+| 8 mondes, 100 itérations | 59 817 | 216 ms (−10 %) | +1 743 (−86 à +3 572) |
+| 16 mondes, 100 itérations | 61 308 | 222 ms (−9 %) | +3 234 (+1 012 à +5 456) |
+| 32 mondes, 100 itérations | 58 635 | 202 ms (−6 %) | +561 (−626 à +1 748) |
+| entière, 70 itérations | 61 274 | 176 ms | +3 201 (+1 189 à +5 212) |
+| entière, 50 itérations | 61 099 | 137 ms | +3 025 (+922 à +5 127) |
+
+- **Le temps gagné est faible**, 6 à 10 %. Les 47 % d'un premier essai sur 4 journées venaient surtout de l'ordre :
+  la ligne jouée en second trouve le code déjà chaud. Depuis que chaque monde commun n'est tiré qu'une fois, il ne
+  reste presque rien à gagner sur les tirages. Le temps part à jouer les mondes.
+- **À temps égal, réutiliser des mondes ne fait pas mieux que de faire moins d'itérations.** 8 mondes coûtent environ
+  1 700 de plus pour 10 % de temps, et 70 itérations 3 200 de plus pour 27 %.
+- **32 mondes ne changent presque rien** : à 100 itérations, une recherche voit rarement plus de 32 mondes distincts
+  par coup. Elle perd de la qualité vers 16 mondes et en dessous.
+
+L'essai reste dans le code, éteint, et les empreintes ne bougent pas.
 
 ## Pour les autres projets mcts-*
 

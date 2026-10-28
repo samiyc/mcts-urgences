@@ -241,29 +241,34 @@ itérations. Une recherche arrêtée tôt reçoit souvent `fewIterations` (79 % 
 était acquis. Il reste éteint par défaut : c'est à Sami de trancher.
 
 **Ce que dit `diagnose`**, en part des recherches (une recherche peut donner plusieurs codes), à l'hôpital moyen
-pendant l'accident, sauf la mention « ordinaire » ; 200 gardes ou journées chacune :
+pendant l'accident, sauf la mention « ordinaire » ; 200 gardes ou journées chacune. Les coups à égalité et « rien »
+sont recomptés le 28/10 avec le `closeCall` corrigé de mcts-commun (a2c66bd), les mêmes recherches ; entre
+parenthèses, le compte du 27/10, avant le correctif :
 
 | Décision (itérations) | recherches | peu d'itérations | score plat | coups à égalité | arbre court | rien | épargne de l'arrêt |
 |---|---|---|---|---|---|---|---|
-| la garde, ordinaire (100) | 9 015 | 0 % | 5 % | 94 % | 0 % | 2 % | 7 % |
-| la garde (100) | 13 235 | 0 % | 4 % | 95 % | 0 % | 0 % | 2 % |
-| le box du parcours, ordinaire (100) | 5 338 | 0 % | 4 % | 96 % | 0 % | 0 % | 5 % |
-| le box du parcours (100) | 15 315 | 0 % | 1 % | 99 % | 0 % | 0 % | 2 % |
-| la sortie de SAUV (50) | 667 | 48 % | 5 % | 95 % | 0 % | 0 % | 2 % |
-| le lit d'aval (50) | 444 | 61 % | **94 %** | 6 % | 38 % | 0 % | 0 % |
-| les pauses (50) | 3 679 | 0 % | 17 % | 83 % | 0 % | 0 % | 3 % |
-| le scanner et le bloc (50) | 1 520 | 31 % | 37 % | 62 % | 0 % | 0 % | 1 % |
-| l'interne (50) | 42 698 | 42 % | **52 %** | 48 % | 0 % | 0 % | 0 % |
-| le Plan blanc (50) | 5 458 | 0 % | 1 % | 37 % | 0 % | 63 % | **32 %** |
-| le HET (50) | 9 309 | 0 % | 2 % | 84 % | 0 % | 14 % | **16 %** |
+| la garde, ordinaire (100) | 9 015 | 0 % | 5 % | 78 % (94 %) | 0 % | 17 % (2 %) | 7 % |
+| la garde (100) | 13 235 | 0 % | 4 % | 81 % (95 %) | 0 % | 14 % (0 %) | 2 % |
+| le box du parcours, ordinaire (100) | 5 338 | 0 % | 4 % | 70 % (96 %) | 0 % | 26 % (0 %) | 5 % |
+| le box du parcours (100) | 15 315 | 0 % | 1 % | 78 % (99 %) | 0 % | 21 % (0 %) | 2 % |
+| la sortie de SAUV (50) | 667 | 48 % | 5 % | 49 % (95 %) | 0 % | 28 % (0 %) | 2 % |
+| le lit d'aval (50) | 444 | 61 % | **94 %** | 4 % (6 %) | 38 % | 0 % | 0 % |
+| les pauses (50) | 3 679 | 0 % | 17 % | 52 % (83 %) | 0 % | 31 % (0 %) | 3 % |
+| le scanner et le bloc (50) | 1 520 | 31 % | 37 % | 42 % (62 %) | 0 % | 12 % (0 %) | 1 % |
+| l'interne (50) | 42 698 | 42 % | **52 %** | 42 % (48 %) | 0 % | 3 % (0 %) | 0 % |
+| le Plan blanc (50) | 5 458 | 0 % | 1 % | 19 % (37 %) | 0 % | 80 % (63 %) | **32 %** |
+| le HET (50) | 9 309 | 0 % | 2 % | 10 % (84 %) | 0 % | 89 % (14 %) | **16 %** |
 
 Les codes de mcts-commun sont `fewIterations`, `flatScore`, `closeCall` et `shallow` ; « rien », aucun code. Les
-jobs sont `essai-*-essais-commun-2026-10-27` de la file. Ce qu'on en retient :
-- **les coups à égalité dominent presque partout**, et c'est vrai. Sur les box d'une journée d'accident, 8 graines ne
-  font le même choix qu'à 65 à 75 % (50 itérations), et 79 à 85 % (400). Le critère ne départage pourtant rien chez
-  nous, pour deux raisons :
-  - il borne l'écart type par p(1 − p), le plus haut à ½, là où notre score est centré par construction ;
-  - il ignore les mondes communs, qui comparent les coups par paires.
+jobs sont `essai-*-essais-commun-2026-10-27` de la file, puis `diagnose-*-2026-10-28-diagnose` pour le recompte.
+Ce qu'on en retient :
+- **les coups à égalité départagent maintenant les décisions.** Avant le correctif, ils sortaient presque partout :
+  le critère bornait l'écart type par p(1 − p), le plus haut à ½, là où notre score est centré par construction, et
+  ignorait les mondes communs. Il juge désormais l'écart apparié du coup joué sur le suivant. Il tombe là où le
+  choix est net : 10 % sur le HET, 19 % sur le Plan blanc, et « rien » y monte à 89 et 80 %. Il reste haut sur la
+  garde et les box (70 à 81 %), où il dit vrai : sur les box d'une journée d'accident, 8 graines ne font le même
+  choix qu'à 65 à 75 % (50 itérations), et 79 à 85 % (400). Les deux premiers coups y valent presque autant, et le
+  choix entre eux compte peu ;
 - **le score des lits est plat** : 94 % des recherches voient la même valeur pour chaque patient. Le choix compte
   pourtant : selon la règle, le boarding le plus long passe de 1 121 à 1 191 min. Qui que prenne le lit, le retard
   dans l'horizon est le même, et l'attente d'un lit passe d'un patient à l'autre au même poids, sauf un patient de
@@ -300,7 +305,7 @@ tête ne peut plus être rattrapé.
 - **Pour** : aucun effet sur les résultats ; il trouve ce qu'on ne voyait pas (la note des lits plate, celle de
   l'interne une fois sur deux) ; il dit aussi ce qui ne sert à rien (`shallow` presque absent, donc pas de `widening`).
 - **Contre** : `closeCall` sortait presque toujours (corrigé par mcts-commun le soir même, a2c66bd : il juge
-  maintenant l'écart apparié du coup joué sur le suivant) ; un code est une piste, pas une preuve, que seule une
+  maintenant l'écart apparié du coup joué sur le suivant ; recompté le 28/10, de 4 à 81 % selon la décision) ; un code est une piste, pas une preuve, que seule une
   mesure par paires tranche ; il compte, donc il ralentit un peu.
 - **Ici** : une option de mesure, allumée dans les comparaisons, jamais par défaut.
 
@@ -337,4 +342,4 @@ Sur 200 journées d'accident à l'hôpital moyen, les trois règles des lits don
   brancard de moins pour les 75 ans et plus (0,09 par jour, pour 46 min d'attente maximale en plus).
 - **`diagnose` avait raison** : un score plat sur une décision qui compte disait qu'il n'y avait rien à départager
   dans l'horizon. Les jobs sont `lits-convexe-*-2026-10-27-soir-lits` de la file. Avec le `closeCall` corrigé de
-  mcts-commun (a2c66bd), il ne sort plus que dans 2 à 7 % des recherches des lits.
+  mcts-commun (a2c66bd), il ne sort plus que dans 2 à 7 % des recherches des lits (4 % au recompte du 28/10).
