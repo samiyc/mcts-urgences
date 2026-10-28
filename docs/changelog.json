@@ -50,6 +50,20 @@
   ],
   "versions": [
     {
+      "version": "0.27",
+      "date": "28/10, nuit",
+      "title": "Le palier de réglages",
+      "commits": [
+        "a4fc3a4"
+      ],
+      "items": [
+        "Le palier de réglages proposé par mcts-commun, mesuré par paires sur la garde, les box et le HET à l'hôpital moyen : pendant l'accident, 8 coups à la racine font gagner 16 % sur la garde et 5 % sur les box pour le même temps, et tout ensemble (budget ×4) 19 et 13 %.",
+        "Les jours ordinaires, aucun réglage ne gagne plus de 9 %, et le HET, dont le choix est net, ne gagne rien.",
+        "Le rang du coup joué dit pourquoi : pendant l'accident, avec 8 coups, la recherche joue un des coups 5 à 8 dans 31 à 39 % des cas, que la liste courte de 4 écartait.",
+        "Rien ne change par défaut, ni les empreintes : c'est à Sami de décider."
+      ]
+    },
+    {
       "version": "0.26",
       "date": "28/10, soir",
       "title": "La dernière bibliothèque, et Node 24",

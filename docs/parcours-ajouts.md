@@ -343,3 +343,45 @@ Sur 200 journées d'accident à l'hôpital moyen, les trois règles des lits don
 - **`diagnose` avait raison** : un score plat sur une décision qui compte disait qu'il n'y avait rien à départager
   dans l'horizon. Les jobs sont `lits-convexe-*-2026-10-27-soir-lits` de la file. Avec le `closeCall` corrigé de
   mcts-commun (a2c66bd), il ne sort plus que dans 2 à 7 % des recherches des lits (4 % au recompte du 28/10).
+
+## Le palier de réglages (28/10 au soir, Sami)
+
+Sami trouve nos réglages bas face à lopin. mcts-commun a proposé à chaque projet un palier à mesurer
+(son `docs/reglages.md`) : A, les réglages d'aujourd'hui (100 itérations, 50 pour le HET ; 4 coups à la racine ;
+profondeur 2) ; B, quatre fois le budget ; C, 8 coups à la racine ; D, la profondeur 3 pour deux fois le budget ; E,
+tout ensemble (budget ×4, 8 coups à la racine, 5 plus bas, profondeur 3, `widening` 1). Les cinq jouent par paires
+les mêmes journées ou gardes, à l'hôpital moyen, avec `diagnose` et le rang du coup joué (`--palier`,
+[outillage.md](outillage.md)).
+
+L'écart sur A, en coût au moment (négatif : moins cher que A ; IC 95 %) :
+
+| Décision (journées) | A | B, budget ×4 | C, 8 à la racine | D, profondeur 3 | E, tout |
+|---|---|---|---|---|---|
+| la garde, ordinaire (200) | 1 255 | −83 (−157 à −8) | +35 (−104 à +174) | **−112** (−208 à −17) | −5 (−95 à +85) |
+| la garde, accident (100) | 42 298 | −2 034 (−3 836 à −233) | **−6 621** (−9 470 à −3 773) | −1 259 (−2 961 à +444) | **−7 895** (−10 846 à −4 944) |
+| le box, ordinaire (200) | 2 184 | −41 (−225 à +143) | −34 (−151 à +82) | 0 (−95 à +94) | −81 (−283 à +121) |
+| le box, accident (100) | 21 074 | −625 (−1 513 à +263) | **−1 103** (−2 114 à −92) | −753 (−1 611 à +106) | **−2 686** (−4 015 à −1 357) |
+| le HET, accident (200) | 42 347 | +20 (−41 à +81) | 0 (0 à 0) | +70 (+14 à +125) | +53 (−10 à +115) |
+
+B et E prennent quatre fois le temps de A, D deux fois, C le même (de 0 à 9 % de moins : les coups de plus reçoivent
+peu de visites). Une recherche du box prend 186 à 219 ms avec A, 731 à 848 ms avec B ou E ; une recherche de la garde,
+13 à 19 ms avec A.
+
+Ce qu'on en retient :
+- **Pendant l'accident, la liste courte de 4 coups écarte souvent le bon.** Avec 8 coups, la recherche joue un des
+  coups 5 à 8 dans 39 % des recherches de la garde et 31 % de celles du box. C gagne 16 % sur la garde et 5 % sur le
+  box, pour le même temps. Les jours ordinaires, les rangs 5 à 8 ne sont joués que dans 6 à 8 % des recherches, et C
+  ne change rien de sûr ;
+- **plus d'itérations aident peu** : B gagne 3 à 7 %, sûr sur la garde seulement, pour quatre fois le temps. Ses
+  coups à égalité baissent (de 78 à 64 % sur la garde, de 79 à 60 % sur le box pendant l'accident), mais le rang joué
+  ne bouge pas : la recherche départage mieux les mêmes 4 coups ;
+- **la profondeur 3 ne gagne sûrement que sur la garde d'un jour ordinaire** (−9 %). Sur le HET, elle obtient plus de
+  lits (4,7 par jour, contre 3,9), mais coûte 70 de plus : des lits demandés pour rien ;
+- **E est le meilleur pendant l'accident** : −19 % sur la garde, −13 % sur le box, pour quatre fois le temps. Sur la
+  garde, C en donne déjà l'essentiel (6 621 sur 7 895). Sur le box, E gagne plus que B et C ensemble : avec C seul,
+  `fewIterations` sort dans 69 % des recherches (100 itérations pour 8 coups), et les 8 coups demandent des visites ;
+- **le HET ne gagne rien** : deux coups, un choix net (des coups à égalité dans 10 % des recherches). Il reste à A.
+
+Rien ne change par défaut : les empreintes restent les mêmes, en attendant la décision de Sami. La mesure suivante
+serait 8 coups à la racine pour deux fois le budget, pendant l'accident et aux deux autres hôpitaux : voir si elle
+rejoint E pour la moitié du temps. Les jobs sont `palier-*-2026-10-28-palier` de la file.

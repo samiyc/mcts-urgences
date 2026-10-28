@@ -31,6 +31,17 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.27</span> Le palier de réglages <span class="date">28/10, nuit</span></h3>
+        <ul>
+          <li>Le palier de réglages proposé par mcts-commun, mesuré par paires sur la garde, les box et le HET à l'hôpital moyen : pendant l'accident, 8 coups à la racine font gagner 16 % sur la garde et 5 % sur les box pour le même temps, et tout ensemble (budget ×4) 19 et 13 %.</li>
+          <li>Les jours ordinaires, aucun réglage ne gagne plus de 9 %, et le HET, dont le choix est net, ne gagne rien.</li>
+          <li>Le rang du coup joué dit pourquoi : pendant l'accident, avec 8 coups, la recherche joue un des coups 5 à 8 dans 31 à 39 % des cas, que la liste courte de 4 écartait.</li>
+          <li>Rien ne change par défaut, ni les empreintes : c'est à Sami de décider.</li>
+        </ul>
+        <p class="commits"><code>a4fc3a4</code></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.26</span> La dernière bibliothèque, et Node 24 <span class="date">28/10, soir</span></h3>
         <ul>
           <li>Chaque monde de la recherche est tiré une fois puis copié par mcts-commun (problem.copy), qui reprend ce que le projet faisait lui-même : les mêmes mesures, champ par champ, et le même temps.</li>

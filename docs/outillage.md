@@ -119,7 +119,7 @@ mcts-commun), jamais sur la vraie.
   `widening=1`). Avec `--diagnose`, chaque ligne dit aussi le rang du coup joué dans la liste courte de la racine.
   Les sept décisions qui gardent tous leurs coups n'ont rien à gagner à C.
 
-Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun ».
+Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun » et « Le palier de réglages ».
 
 ## La vitesse de la recherche
 
