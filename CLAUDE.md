@@ -19,8 +19,8 @@ in `docs/recherche/` (README first), the estimated values to check with professi
 ## Rules
 
 - **Prose docs are in French**, as the owner works; code, comments and identifiers are English.
-- **Node 20, ES modules, no build step**: the same modules run under Node (tests, benches) and in the
-  browser page. Modules that decide import no `node:*`.
+- **Node 24 (24.22.1 LTS on the machine since 28/10/2026, was 20.10), ES modules, no build step**: the same modules
+  run under Node (tests, benches) and in the browser page. Modules that decide import no `node:*`.
 - **What decides is pure and tested** (`npm test`, `node --test`); the page only draws and listens.
 - **Randomness is seeded** (`createRng` of `mcts-commun`): a scenario and a search replay from their seed.
 - **A simple rule first**, measured on the same scenarios; a search must beat it, paired over the same

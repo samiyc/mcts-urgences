@@ -31,6 +31,15 @@
         <h2>Les versions</h2>
 
       <article class="version">
+        <h3><span class="tag">0.26</span> La dernière bibliothèque, et Node 24 <span class="date">28/10, soir</span></h3>
+        <ul>
+          <li>Chaque monde de la recherche est tiré une fois puis copié par mcts-commun (problem.copy), qui reprend ce que le projet faisait lui-même : les mêmes mesures, champ par champ, et le même temps.</li>
+          <li>Les tests et les empreintes passent sous Node 24 et la dernière bibliothèque, sans rien changer.</li>
+        </ul>
+        <p class="commits"></p>
+      </article>
+
+      <article class="version">
         <h3><span class="tag">0.25</span> La recherche plus rapide <span class="date">28/10</span></h3>
         <ul>
           <li>Les mondes de la recherche ne comptent plus l'occupation, les pics ni les minutes en box : seule la vraie journée les mesure, et la note de la recherche n'en lit aucun.</li>

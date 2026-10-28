@@ -14,7 +14,7 @@ import { idOf } from "./pathway.js";
 import { hourAt } from "./pathway-scenario.js";
 import { BED_RULES, decide, followed, nextDecision } from "./pathway.js";
 import { cloneDay } from "./pathway-clone.js";
-import { sampleOnce } from "./pathway-worlds.js";
+import { copyWorld, sampleOnce } from "./pathway-worlds.js";
 import { arrivalsByHour, pathwayOf } from "./pathway-scenario.js";
 import { RULES } from "./rules.js";
 import { patientOf } from "./scenario.js";
@@ -227,8 +227,10 @@ export function problemFor({ scale, width, horizon, bed, from = 0, pool, ...flag
   // A world is played until its patients are in; choosing the beds, until those waiting for one have it (or the
   // horizon); choosing the intern's tasks, over the horizon.
   const done = (world) => (interns || alerts || hets ? world.events.now > from + horizon : allIn(world) && (!beds || allBedded(world) || world.events.now > from + horizon));
+  const draw = (day, rng) => drawWorld(day, rng, horizon);
   return {
-    sample: sampleOnce((day, rng) => drawWorld(day, rng, horizon), { pool }),
+    // Each common world drawn once and copied (mcts-commun's copy); the trial of fewer worlds draws its own.
+    ...(pool ? { sample: sampleOnce(draw, { pool }) } : { sample: draw, copy: copyWorld }),
     actor: () => "service",
     moves: (world) => movesOf(world, rules),
     shortlist: (world, moves) => (moves[0]?.whole ? moves : shortlistOf(moves, width)),

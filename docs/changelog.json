@@ -50,6 +50,16 @@
   ],
   "versions": [
     {
+      "version": "0.26",
+      "date": "28/10, soir",
+      "title": "La dernière bibliothèque, et Node 24",
+      "commits": [],
+      "items": [
+        "Chaque monde de la recherche est tiré une fois puis copié par mcts-commun (problem.copy), qui reprend ce que le projet faisait lui-même : les mêmes mesures, champ par champ, et le même temps.",
+        "Les tests et les empreintes passent sous Node 24 et la dernière bibliothèque, sans rien changer."
+      ]
+    },
+    {
       "version": "0.25",
       "date": "28/10",
       "title": "La recherche plus rapide",

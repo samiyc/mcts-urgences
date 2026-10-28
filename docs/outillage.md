@@ -153,6 +153,15 @@ du flux avant le tirage le reconnaît. Les mêmes mondes, donc les mêmes résul
 recherches sur 64 journées). C'est 15 % de temps en moins à l'hôpital moyen et 18 % au CHU, à 60 itérations, en plus
 des gains du tableau.
 
+**Depuis le soir du 28/10, c'est la bibliothèque qui le fait** : `problem.copy(world)` de mcts-commun (2f5554f),
+proposé par ce projet, garde le k-ième monde tiré et en donne une copie à chaque visite. La recherche lui passe
+`copyWorld` (`pathway-worlds.js`) ; `sampleOnce` ne sert plus qu'à l'essai `--mondes`. Les huit recherches sur 64
+journées donnent les mêmes mesures, champ par champ, qu'avec `sampleOnce` et qu'avec la lib d'avant (5fb458b), et
+les empreintes tiennent, sous Node 24. Le temps ne bouge pas : 48 journées à 60 itérations (hôpital moyen, accident
+en hiver, quatre ajouts), jouées en alternance, donnent 6,0 s avec la lib d'avant, 6,4 s avec `sampleOnce` et 6,3 s
+avec `copy`, dans le bruit d'une machine chargée. Les gains de la lib (A*, réservations, `events.clone` sans tri)
+ne touchent presque pas le parcours, qui n'utilise ni A* ni les réservations.
+
 Construire les patients d'un monde sur place, sans les recopier (`Object.assign` au lieu de `{ ...a, ...b }`), garde
 les mêmes tirages, mais va **plus lentement** : l'objet perd la forme fixe que V8 optimise. L'idée est abandonnée.
 
