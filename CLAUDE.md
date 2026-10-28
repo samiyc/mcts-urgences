@@ -26,7 +26,7 @@ in `docs/recherche/` (README first), the estimated values to check with professi
 - **A simple rule first**, measured on the same scenarios; a search must beat it, paired over the same
   scenarios, with its interval. A quick screen rejects, it never promotes (lopin's lesson).
 - **Markdown files stay under 800 lines**, this one under 300.
-- **`npm run check` passes before every commit** (the pre-commit hook runs it; `TEST_CONCURRENCY=2` while measures
+- **`npm run check` passes before every commit** (the pre-commit hook runs it, 4 test files at once at most, Sami 28/10; `TEST_CONCURRENCY=2` while measures
   run): lint, types, tests. Never skip the
   hook. The tooling and its reasons: `docs/outillage.md`.
 - **The lint budget is lopin's** (`eslint.config.js`: 40 lines a function, 220 a file, complexity 8): a module that
