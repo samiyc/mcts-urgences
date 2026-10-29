@@ -9,25 +9,24 @@ import { el } from "./dom.js";
 import { createLive } from "./live.js";
 import { statsActions } from "./stats-actions.js";
 import { createPlayer } from "./player.js";
-import { gardePanel, gardeView, planPanel, planView } from "./tabs/garde.js";
+import { gardePanel, gardeView } from "./tabs/garde.js";
 import { createPathwayState, fatigueOf, pathwayChange, pathwayClick, pathwayInput, pathwayPanel, pathwayView } from "./tabs/parcours.js";
 import { pathwayKey } from "./tabs/parcours-keys.js";
 import { replaysClick, replaysPanel, replaysView } from "./tabs/replays.js";
 import { statsPanel, statsView } from "./tabs/stats.js";
 import { clock } from "./view.js";
 import { createInternPanel } from "./intern-panel.js";
-import { createWardPanel } from "./ward-panel.js";
 
 /**
- * The page, in tabs (Sami, 26/10/2026, lopin's layout): a tab per kind of simulation (the simple shift, the shift on
- * its plan, the detailed pathway), the replays, the stats; the settings of the tab open in the panel on the left,
+ * The page, in tabs (Sami, 26/10/2026, lopin's layout): a tab per kind of simulation (the simple shift, the detailed
+ * pathway), the replays, the stats; the settings of the tab open in the panel on the left,
  * which folds. The settings shared by the tabs (the hospital, the situation, the shift's number) live in `state`; the
  * tabs are in tabs/, the drawing in view.js and its neighbours. This module only listens (event delegation on the
  * layout) and plays the simple shift, choice by choice when the search thinks.
  */
 const COMPARED = 100;
 const COMPARED_WITH_SEARCH = 12;
-const TAB_NAMES = ["garde", "plan", "parcours", "replays", "stats"];
+const TAB_NAMES = ["garde", "parcours", "replays", "stats"];
 const STORE = "urgences-onglet";
 const read = (key) => {
   try {
@@ -102,12 +101,11 @@ const player = createPlayer({
     render();
   },
 });
-const wardPanel = createWardPanel({ el, current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, nurse: state.nurse, rule: state.rule }), render: () => render() });
 const counts = () => (searching() ? COMPARED_WITH_SEARCH : COMPARED);
 const pathway = createPathwayState();
 const internPanel = createInternPanel({ el, current: () => ({ hospital: state.hospital, accident: state.accident, seed: state.seed, box: pathway.box === "search" ? "colour" : pathway.box, bed: pathway.bed, plan: pathway.plan, fatigue: fatigueOf(pathway) }), render: () => render() });
-const ctx = { el, state, settingsOf, live, player, wardPanel, internPanel, pathway, counts, render: () => render(), openTab: (name) => openTab(name) };
-const TABS = { garde: [gardePanel, gardeView], plan: [planPanel, planView], parcours: [pathwayPanel, pathwayView], replays: [replaysPanel, replaysView], stats: [statsPanel, statsView] };
+const ctx = { el, state, settingsOf, live, player, internPanel, pathway, counts, render: () => render(), openTab: (name) => openTab(name) };
+const TABS = { garde: [gardePanel, gardeView], parcours: [pathwayPanel, pathwayView], replays: [replaysPanel, replaysView], stats: [statsPanel, statsView] };
 /** The tabs the simple shift's work holds up: the shift itself, and the comparisons. */
 const WAITS_FOR_SHIFT = new Set(["garde", "stats"]);
 
@@ -161,7 +159,7 @@ function knobChanged(name, value) {
 }
 
 /** The parts that take their own clicks, in this order; the page's actions after them. */
-const CLICKS = [player.click, wardPanel.click, internPanel.click, (target) => pathwayClick(ctx, target), (target) => replaysClick(ctx, target)];
+const CLICKS = [player.click, internPanel.click, (target) => pathwayClick(ctx, target), (target) => replaysClick(ctx, target)];
 
 /** The element an event came from, as the form fields it is. */
 const fieldOf = (event) => /** @type {HTMLInputElement} */ (event.target);
@@ -176,7 +174,7 @@ function pageChange(target) {
 
 layout.addEventListener("change", (event) => {
   const target = fieldOf(event);
-  if (!(player.change(target) || wardPanel.change(target) || internPanel.change(target) || pathwayChange(ctx, target))) pageChange(target);
+  if (!(player.change(target) || internPanel.change(target) || pathwayChange(ctx, target))) pageChange(target);
 });
 layout.addEventListener("input", (event) => {
   const target = fieldOf(event);
@@ -204,9 +202,8 @@ const setFolded = (folded) => {
 };
 fold.addEventListener("click", () => setFolded(!layout.classList.contains("folded")));
 setFolded(read("urgences-replie") === "1");
-// The keys of the caregiver played on the plan, or of the intern, in their tab, else of the day replayed; a key in a
-// form field is the field's.
-const KEYS = { plan: (event) => wardPanel.key(event), parcours: (event) => internPanel.key(event) || pathwayKey(ctx, event) };
+// The keys of the intern in their tab, else of the day replayed; a key in a form field is the field's.
+const KEYS = { parcours: (event) => internPanel.key(event) || pathwayKey(ctx, event) };
 document.addEventListener("keydown", (event) => KEYS[state.tab]?.(event));
 fetch("../docs/changelog.json")
   .then((response) => (response.ok ? response.json() : null))

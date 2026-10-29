@@ -19,7 +19,6 @@ juste après l'ordonnanceur de Lopin, dont il reprend toutes les pièces.
 http://127.0.0.1:4801/web/. La page est en onglets depuis le 26/10/2026, chacun avec ses réglages dans le panneau de
 gauche, qui se replie :
 - **Garde simple** : la garde de 8 h et « Jouer la garde vous-même » ;
-- **Service en plan** : un soignant au clavier ;
 - **Parcours détaillé** : une journée de 24 h sur un plan en texte que l'on modifie dans le panneau, une saison
   ordinaire ou le pic d'une épidémie d'hiver, les accompagnants, les patients qui ne parlent pas français, le circuit
   court et les décès, la marche comptée ou non, un interne robot, au hasard ou décidé par une règle, la fatigue des

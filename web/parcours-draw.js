@@ -1,15 +1,27 @@
 import { COLOURS } from "../src/hypotheses.js";
 import { svg, text, titled } from "./dom.js";
-import { CELL, spotter } from "./ward-draw.js";
 
 /**
  * The detailed pathway's plan at a minute (Sami, 26/10/2026, step 2): the cells of the plan in text
  * (pathway-plans.js's legend), the patients by their bracelet, the doctors and the stretcher-bearers where their
  * walks put them (pathway-walk.js's `walkScene`).
  */
+const CELL = 30;
 const CELL_CLASS = { "#": "wall", b: "bed", S: "sauv", I: "isolation", U: "uhcd", X: "machine", w: "seat", r: "results", A: "desk", T: "desk", D: "room", R: "room", B: "room", L: "room", P: "room", O: "door", H: "door", E: "door", C: "room" };
 const LABELS = { A: "accueil", T: "tri", D: "méd.", R: "pause", B: "branc.", L: "labo", P: "pharma", O: "bloc", H: "asc.", E: "🚪", X: "scan", S: "SAUV", I: "iso", U: "UHCD", C: "court" };
 const ICONS = { doctor: "🩺", porter: "🛏️", intern: "🧑‍⚕️", fast: "🩺", family: "🧍" };
+
+/** Where to draw a person: people on one cell are spread a little, so that a crowd at the door still shows. */
+function spotter() {
+  const crowd = new Map();
+  return (x, y) => {
+    const key = `${x},${y}`;
+    const n = crowd.get(key) ?? 0;
+    crowd.set(key, n + 1);
+    return { cx: x * CELL + CELL / 2 + [0, 9, -9][n % 3], cy: y * CELL + CELL / 2 + Math.floor(n / 3) * 7 };
+  };
+}
+
 /** Who each mark is, from its `who` (« doctor:0 », « family:12 »…). */
 const TITLES = {
   doctor: (n) => `Médecin ${Number(n) + 1}`,

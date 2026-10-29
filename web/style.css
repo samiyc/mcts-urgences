@@ -93,20 +93,6 @@ td.hidden-truth.wrong { font-weight: 700; }
 .patient-card .card-line.pick { color: var(--accent, #2f6f8f); font-weight: 600; }
 .gaps h3 { font-size: 0.98rem; margin: 12px 0 4px; }
 
-/* The department on its plan (ward-panel.js, 23/10). */
-.plan.ward { min-width: 560px; }
-.plan.ward .cell.floor { fill: color-mix(in srgb, var(--ink) 3%, var(--panel)); }
-.plan.ward .cell.wall { fill: color-mix(in srgb, var(--ink) 55%, var(--panel)); }
-.plan.ward .cell.bed { fill: color-mix(in srgb, var(--accent) 18%, var(--panel)); stroke: var(--line); }
-.plan.ward .cell.seat { fill: color-mix(in srgb, var(--ink) 10%, var(--panel)); stroke: var(--line); }
-.plan.ward .cell.desk, .plan.ward .cell.room { fill: color-mix(in srgb, var(--accent) 35%, var(--panel)); }
-.plan.ward .cell.door { fill: color-mix(in srgb, var(--accent) 55%, var(--panel)); }
-.plan.ward .cell-label { font: 600 10px system-ui, sans-serif; fill: var(--ink); text-anchor: middle; pointer-events: none; }
-.plan.ward .box-title { font-size: 9px; }
-.plan.ward .staff { font-size: 17px; text-anchor: middle; }
-.plan.ward .staff.busy { opacity: 0.75; }
-.plan.ward .me { fill: none; stroke: var(--accent); stroke-width: 3; }
-
 /* The emblem before the title: a red cross on white. */
 .masthead h1::before {
   content: "";

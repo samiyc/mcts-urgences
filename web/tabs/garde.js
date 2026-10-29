@@ -28,9 +28,3 @@ export function gardeView({ state, settingsOf, live, player }) {
     worstTable(patients),
   ];
 }
-
-/** The tab « Service en plan »: the same shift on a plan where people walk, a caregiver at the keyboard (ward-panel.js). */
-export const planPanel = ({ state }) =>
-  panelOf("La garde sur le plan", state, ["hospital", "accident", "rule", "nurse", "seed"], el("p", { class: "hint" }, "La garde choisie ici se joue sur un plan du service : vous choisissez votre rôle et la vitesse à droite."));
-
-export const planView = ({ wardPanel }) => [wardPanel.view()];
