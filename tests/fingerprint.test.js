@@ -26,8 +26,9 @@ const EXPECTED = {
   shift: "2268a5261e750c8b",
   ward: "57b01014292f8c4d",
   search: "2bc22fa5048d24e8",
-  walked: "a59f8ec32aa3b27f",
-  intern: "2f8e26fa3de22379",
+  // The plans with two corridors (Sami, 29/10/2026) changed the walks: walked was a59f8ec32aa3b27f, intern 2f8e26fa3de22379.
+  walked: "f19b3a4267ffd803",
+  intern: "4bffbd3b9ea4eb49",
   fatigue: "9e82a932b8b806b1",
   pathwaySearch: "0bdc497e0fe40ebb",
   epidemic: "e79be809e5f092a1",

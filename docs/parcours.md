@@ -99,18 +99,26 @@ La légende :
 - `O` la porte du bloc, `H` les ascenseurs ;
 - `D` la salle des médecins, `R` la pause, `B` la base des brancardiers.
 
-Le plan de l'hôpital moyen :
+Le plan de l'hôpital moyen, depuis le 29/10 : deux couloirs reliés par l'accueil et par l'arrière. Jusque-là, un seul
+long couloir de 54 cases desservait tout ; les mesures de la marche de cette page sont faites sur ces anciens plans
+([parcours-ajouts.md](parcours-ajouts.md), « Les plans à deux couloirs ») :
 
 ```text
-######################################################
-#S..S#b.b.b.b.b.b#U.U.U.U.U.U#X..#O..#H..#wwwwwwwwww.#
-#....#...........#...........#...#...#...#...........#
-#....#...........#...........#...#...#...#wwwwwwwwww.#
-#....................................................E
-#....#...........#...........#...#...#...#A.T........#
-#....#...........#...........#...#...#...#wwwwwwwwww.#
-#I...#b.b.b.b.b.b#D...R...B..#L..#P..#...#rrrrrr.....#
-######################################################
+###############################
+#U.U.U.U.U.U#X..#O..#H.#wwwwww#
+#...........#...#...#..#wwwwww#
+#.####.####.##.###.##..#...www#
+#.............................#
+##.#.###########.#######Crrr..#
+#..#.#D..R.B#L.#.#P....#....A.E
+#I.#.#......#..#.#.....#..rrr.#
+####.##..#####.#.###.###T.....#
+#.............................#
+##.#####.#####.#####.###...www#
+#....#b...b#b...b#b...b#wwwwww#
+#....#.....#.....#.....#wwwwww#
+#S..S#b...b#b...b#b...b#......#
+###############################
 ```
 
 **Le plan fixe les places.** Le nombre de box, de lits de SAUV, d'UHCD, de chambres d'isolement et de scanners est
@@ -131,7 +139,7 @@ toutes les 6 s :
 Personne n'attend une marche, donc le patient peut être examiné avant que le dessin ne l'ait amené au box : c'est
 ce que l'étape 3 corrigera.
 
-Ce qui se marche, sur l'hôpital moyen, couleur puis ordre d'arrivée, en moyenne sur 20 journées :
+Ce qui se marche, sur l'ancien plan de l'hôpital moyen, couleur puis ordre d'arrivée, en moyenne sur 20 journées :
 
 | | patients | médecins | brancardiers | transports | sans brancardier libre | délai du brancardier |
 |---|---|---|---|---|---|---|
@@ -164,8 +172,8 @@ marches, et le modèle peut les attendre.
 - le scanner passe par un vrai brancardier (`src/pathway-porters.js`) : le plus proche des libres va au patient,
   l'accompagne, puis revient à sa base.
 
-Sans la case, la journée est celle de l'étape 1, empreinte comprise. Ce que la marche coûte, sur l'hôpital moyen,
-couleur puis ordre d'arrivée, en moyenne sur 20 journées :
+Sans la case, la journée est celle de l'étape 1, empreinte comprise. Ce que la marche coûte, sur l'ancien plan de
+l'hôpital moyen, couleur puis ordre d'arrivée, en moyenne sur 20 journées :
 
 | | coût du retard au moment | passage, médiane | sortis en moins de 4 h |
 |---|---|---|---|

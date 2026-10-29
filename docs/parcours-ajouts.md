@@ -385,3 +385,82 @@ Ce qu'on en retient :
 Rien ne change par défaut : les empreintes restent les mêmes, en attendant la décision de Sami. La mesure suivante
 serait 8 coups à la racine pour deux fois le budget, pendant l'accident et aux deux autres hôpitaux : voir si elle
 rejoint E pour la moitié du temps. Les jobs sont `palier-*-2026-10-28-palier` de la file.
+
+## Les plans à deux couloirs (29/10, Sami)
+
+Sami a redessiné l'hôpital de proximité : deux couloirs au lieu d'un, les salles entre les deux, un accueil en U qui
+les relie et un passage à l'arrière. Le plan est plus proche d'un carré (20 × 14 cases au lieu de 36 × 9) : il remplit
+mieux la largeur de la page, et les cases s'y voient mieux. Il a une case de résultats de moins (3 `r`).
+
+Les deux autres hôpitaux suivent la même idée, avec des couloirs plus longs :
+- **l'hôpital moyen** (31 × 15, avant 54 × 9) : deux couloirs, reliés par l'accueil et par deux passages à l'arrière ;
+  les 12 box en trois salles de 4 ([parcours.md](parcours.md), étape 2) ;
+- **le CHU** (37 × 20, avant 70 × 10) : trois couloirs. L'accueil et deux passages relient les deux premiers ; la salle
+  d'attente du milieu et un passage relient les deux derniers. L'UHCD est en deux salles de 6, les box en deux salles
+  de 6 et trois de 4.
+
+Les passages à l'arrière évitent que toutes les marches passent par l'accueil. Les plans ont les mêmes places qu'avant,
+et autant de sièges (`src/pathway-plans.js`). Le CHU :
+
+```text
+#####################################
+#U.U.U.U.U.U#X.X..#O..#H...#wwwwwwww#
+#...........#.....#...#....#wwwwwwww#
+#.####.####.###.####.##....#........#
+#...................................#
+##.#.###########.###########C.rrrr.C#
+#..#.#D...R...B#.#L...#P...#......A.E
+#II#.#.........#.#....#....#.rrrrrr.#
+####.##..#######.###.####.##T.......#
+#...................................#
+#.####.####.#.##.#####.#####........#
+#U.U.U.U.U.U#.#b.b.b#b.b.b.#wwwwwwww#
+#...........#.#b.b.b#b.b.b.#wwwwwwww#
+#############.####.#####.###........#
+#...................................#
+##.########.#####.#####.####........#
+#.......#b...b#b...b#b....b#wwwwwwww#
+#.......#.....#.....#......#wwwwwwww#
+#S.S.S.S#b...b#b...b#b....b#........#
+#####################################
+```
+
+**Sans la marche, rien ne change** : une journée sur le plan reste la même, et les empreintes de la journée et des
+recherches n'ont pas bougé. Seules `walked` et `intern`, qui comptent la marche, changent.
+
+**Ce qui se marche**, sur 20 journées, couleur puis ordre d'arrivée, de l'ancien plan au nouveau (le modèle
+d'aujourd'hui pour les deux) :
+
+| Hôpital | patients | médecins | brancardiers | sans brancardier libre | délai du brancardier |
+|---|---|---|---|---|---|
+| proximité, ordinaire | 11,4 → 7,8 km | 5,8 → 4,8 km | 3,1 → 3,4 km | 5,2 → 5,5 | 1,1 → 1,3 min |
+| proximité, accident | 10,9 → 7,7 km | 5,3 → 4,4 km | 3,6 → 4,1 km | 7,2 → 7,6 | 1,1 → 1,3 min |
+| moyen, ordinaire | 29,6 → 18,9 km | 14,7 → 13,6 km | 9,1 → 10,0 km | 3,3 → 4,2 | 1,7 → 2,0 min |
+| moyen, accident | 29,5 → 19,7 km | 14,5 → 13,7 km | 10,2 → 11,4 km | 4,7 → 5,7 | 1,7 → 2,0 min |
+| CHU, ordinaire | 74,0 → 42,3 km | 42,7 → 35,7 km | 22,9 → 24,2 km | 8,5 → 9,5 | 2,2 → 2,6 min |
+| CHU, accident | 76,3 → 45,5 km | 43,5 → 37,6 km | 25,0 → 26,4 km | 11,9 → 14,6 | 2,2 → 2,6 min |
+
+**Ce que coûte la marche comptée**, en coût du retard au moment, sur les mêmes journées :
+
+| Hôpital | sans marche | marche, ancien plan | marche, nouveau plan | passage médian | sortis en moins de 4 h |
+|---|---|---|---|---|---|
+| proximité, ordinaire | 4 257 | 4 490 | 4 100 | 2 h 36 → 2 h 30 | 74 → 75 % |
+| proximité, accident | 56 507 | 60 487 | 62 015 | 4 h 44 → 4 h 47 | 44 → 42 % |
+| moyen, ordinaire | 4 444 | 7 929 | **6 227** | 2 h 36 → 2 h 28 | 76 → 78 % |
+| moyen, accident | 44 992 | 61 106 | **56 654** | 4 h 19 → 4 h 10 | 48 → 51 % |
+| CHU, ordinaire | 1 038 | 6 432 | **2 641** | 2 h 23 → 2 h 15 | 81 → 83 % |
+| CHU, accident | 3 344 | 17 127 | **8 708** | 2 h 49 → 2 h 33 | 74 → 78 % |
+
+Ce qu'on en retient :
+- **les patients marchent de 29 à 43 % de moins.** L'entrée donne sur le milieu du plan : un box est à 24 pas de
+  l'entrée en moyenne à l'hôpital moyen, au lieu de 45, et à 28 au CHU, au lieu de 52 ;
+- **la marche coûte moins à l'hôpital moyen et au CHU** : ce qu'elle ajoute au retard baisse de 49 % (un jour
+  ordinaire) et de 28 % (l'accident) à l'hôpital moyen, de 70 et 61 % au CHU ;
+- **les brancardiers marchent de 6 à 14 % de plus**, et un transport attend le sien un peu plus longtemps (0,2 à
+  0,4 min). Leur base est dans la salle des médecins, entre deux couloirs, plus loin du scanner qu'avant ;
+- **à l'hôpital de proximité, rien de sûr** : la marche y comptait déjà peu. Pendant l'accident, le nouveau plan
+  coûte 1 528 de plus (3 %), le seul cas où il fait moins bien. Ces moyennes viennent de 20 journées, sans intervalle :
+  une mesure par paires le confirmerait, s'il le faut.
+
+Les autres mesures avec la marche comptée faites avant le 29/10 (l'interne, la fatigue `--marche`) l'ont été sur les
+anciens plans.

@@ -50,6 +50,17 @@
   ],
   "versions": [
     {
+      "version": "0.28",
+      "date": "29/10",
+      "title": "Les plans à deux couloirs",
+      "commits": [],
+      "items": [
+        "Le nouveau plan de l'hôpital de proximité, dessiné par Sami : deux couloirs reliés par l'accueil et par l'arrière, plus proche d'un carré, pour mieux voir les cases dans la page.",
+        "Les plans de l'hôpital moyen et du CHU suivent la même idée, avec des couloirs plus longs, et trois couloirs au CHU. Les places et les sièges restent les mêmes.",
+        "Sans la marche, rien ne change. Avec la marche comptée, les patients marchent de 29 à 43 % de moins, et la marche coûte de 28 à 49 % de moins à l'hôpital moyen, de 61 à 70 % de moins au CHU."
+      ]
+    },
+    {
       "version": "0.27",
       "date": "28/10, nuit",
       "title": "Le palier de réglages",
