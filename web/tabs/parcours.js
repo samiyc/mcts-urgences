@@ -27,7 +27,7 @@ import { createReplayStore, download, replayName } from "../replay-store.js";
  */
 const FORMAT = "urgences-parcours/1";
 const store = createReplayStore("urgences-parcours");
-const SPEEDS = [["5", "5 min par seconde"], ["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
+export const SPEEDS = [["1", "1 min par seconde"], ["5", "5 min par seconde"], ["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
 export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null, searched: null, season: "ordinaire", ...decisionDefaults(), ...additionDefaults() });
@@ -126,7 +126,7 @@ function controls(ctx, run) {
     el("button", { type: "button", "data-parcours-do": playing ? "pause" : "play" }, playing ? "Pause" : "Lire la journée"),
     el("label", { class: "scrub" }, `Heure : ${dayClock(run.day.settings, pathway.t)}`, el("input", { type: "range", min: "0", max: String(Math.ceil(run.end)), step: "1", value: String(Math.round(pathway.t)), "data-parcours-t": "1", "aria-label": "Minute de la journée" })),
     el("button", { type: "button", class: "quiet", "data-parcours-do": "keep" }, "Garder cette journée"),
-    el("span", { class: "hint" }, "Espace : lecture ou pause ; ← → : 10 min, avec Maj : 1 h"),
+    el("span", { class: "hint" }, "Espace : lecture ou pause ; ← → : 10 min, avec Maj : 1 h ; ↑ ↓ : plus ou moins vite"),
   );
 }
 
@@ -149,7 +149,7 @@ export function pathwayView(ctx) {
 }
 
 /** Redraws the minute shown in place (the plan, the line, the list, the slider): the controls stay. */
-function draw(ctx) {
+export function draw(ctx) {
   const section = document.getElementById("pathway");
   const run = ctx.pathway.run;
   if (!section || !run) return;
@@ -178,13 +178,16 @@ export function pausePathway(ctx) {
 
 const replayOf = ({ state, pathway }) => ({ format: FORMAT, hospital: state.hospital, accident: state.accident, seed: state.seed, season: pathway.season, adds: Object.fromEntries(Object.entries(pathway).filter(([key]) => key.startsWith("add:"))), box: pathway.box, bed: pathway.bed, plan: pathway.plan, savedAt: new Date().toISOString() });
 
+/** Plays the day from the minute shown, from the start once it ended. */
+export function playPathway(ctx) {
+  const { pathway } = ctx;
+  if (pathway.t >= pathway.run.end) pathway.t = 0;
+  pathway.last = null;
+  pathway.frame = requestAnimationFrame((at) => tick(ctx, at));
+}
+
 const DOES = {
-  play: (ctx) => {
-    const { pathway } = ctx;
-    if (pathway.t >= pathway.run.end) pathway.t = 0;
-    pathway.last = null;
-    pathway.frame = requestAnimationFrame((at) => tick(ctx, at));
-  },
+  play: playPathway,
   pause: pausePathway,
   apply: (ctx) => {
     const { pathway } = ctx;
@@ -208,29 +211,6 @@ export function pathwayClick(ctx, target) {
   if (!DOES[action]) return false;
   DOES[action](ctx);
   ctx.render();
-  return true;
-}
-
-/** The way an arrow moves the day: back or on. */
-const ARROWS = { ArrowLeft: -1, ArrowRight: 1 };
-/** Whether a key goes to the day replayed: its view shown, not in a field nor on a button, which keep their keys. */
-const forTheDay = (ctx, event) => ctx.pathway.run && document.getElementById("pathway") && !(event.ctrlKey || event.altKey || event.metaKey || event.target.closest?.("input, textarea, select, button"));
-
-/**
- * A key in the tab, as on a video (Sami, 29/10/2026): space plays or pauses the day, the arrows go 10 min back or on
- * (an hour with Shift), playing or not. True if it was the tab's.
- */
-export function pathwayKey(ctx, event) {
-  if (!forTheDay(ctx, event)) return false;
-  const { pathway } = ctx;
-  if (event.key === " ") {
-    DOES[pathway.frame === null ? "play" : "pause"](ctx);
-    ctx.render();
-  } else if (ARROWS[event.key]) {
-    pathway.t = Math.max(0, Math.min(pathway.run.end, pathway.t + ARROWS[event.key] * (event.shiftKey ? 60 : 10)));
-    draw(ctx);
-  } else return false;
-  event.preventDefault();
   return true;
 }
 
