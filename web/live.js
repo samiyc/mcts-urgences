@@ -1,5 +1,6 @@
 import { el, select } from "./dom.js";
 import { livePlan } from "./live-plan.js";
+import { REPLAY_HINT, nextSpeed, replayKey, within } from "./replay-keys.js";
 import { sceneAt, sceneLine } from "./view.js";
 
 /**
@@ -37,6 +38,7 @@ function section(live) {
       el("button", { type: "button", "data-action": playing ? "livePause" : "livePlay" }, playLabel(live, playing)),
       el("label", {}, "Vitesse", select("liveSpeed", LIVE_SPEEDS, String(live.speed))),
       el("label", { class: "scrub" }, `Heure : ${scene.clock}`, el("input", { type: "range", min: "0", max: String(end), step: "1", value: String(Math.round(live.t)), "data-live": "t", "aria-label": "Minute de la garde" })),
+      el("span", { class: "hint" }, REPLAY_HINT),
     ),
     el("p", { class: "summary live-line", "aria-live": "off" }, sceneLine(scene)),
     el("div", { class: "plan-wrap" }, livePlan(scene)),
@@ -83,6 +85,22 @@ function pause(live) {
   if (live.result()) refresh(live);
 }
 
+/** The shift replayed, as replay-keys.js drives it; drawn again whole when paused, so the button says where it is. */
+const playerOf = (live) => ({
+  t: () => live.t,
+  end: () => endOf(live),
+  seek: (t) => {
+    live.t = within(t, endOf(live));
+    if (live.frame === null) refresh(live);
+    else draw(live);
+  },
+  toggle: () => (live.frame === null ? play(live) : pause(live)),
+  faster: (way) => {
+    live.speed = nextSpeed(LIVE_SPEEDS, live.speed, way);
+    refresh(live);
+  },
+});
+
 export function createLive({ result, settings }) {
   /** The minute shown, minutes of shift a second, the animation frame while it plays. */
   const live = { t: 0, speed: 5, frame: null, last: null, result, settings };
@@ -95,6 +113,8 @@ export function createLive({ result, settings }) {
       live.t = 0;
     },
     setSpeed: (speed) => (live.speed = speed),
+    /** A key in the tab while the shift is shown (replay-keys.js); true if it was the replay's. */
+    key: (event) => Boolean(live.result() && document.getElementById("live")) && replayKey(playerOf(live), event),
     /** The slider moved: redrawn in place, so the slider keeps the pointer. */
     seek: (t) => {
       live.t = t;

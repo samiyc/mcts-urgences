@@ -10,6 +10,7 @@ import { INTERN } from "../../src/pathway-hypotheses.js";
 import { FATIGUE } from "../../src/pathway-hypotheses.js";
 import { RULE_LABELS, RULES } from "../../src/rules.js";
 import { el } from "../dom.js";
+import { REPLAY_HINT } from "../replay-keys.js";
 import { panelOf } from "../knobs.js";
 import { compareField, timelineClick, timelineSection } from "./parcours-compare.js";
 import { searchedBox, searchingView } from "./parcours-search.js";
@@ -126,7 +127,7 @@ function controls(ctx, run) {
     el("button", { type: "button", "data-parcours-do": playing ? "pause" : "play" }, playing ? "Pause" : "Lire la journée"),
     el("label", { class: "scrub" }, `Heure : ${dayClock(run.day.settings, pathway.t)}`, el("input", { type: "range", min: "0", max: String(Math.ceil(run.end)), step: "1", value: String(Math.round(pathway.t)), "data-parcours-t": "1", "aria-label": "Minute de la journée" })),
     el("button", { type: "button", class: "quiet", "data-parcours-do": "keep" }, "Garder cette journée"),
-    el("span", { class: "hint" }, "Espace : lecture ou pause ; ← → : 10 min, avec Maj : 1 h ; ↑ ↓ : plus ou moins vite"),
+    el("span", { class: "hint" }, REPLAY_HINT),
   );
 }
 

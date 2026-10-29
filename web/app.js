@@ -202,8 +202,9 @@ const setFolded = (folded) => {
 };
 fold.addEventListener("click", () => setFolded(!layout.classList.contains("folded")));
 setFolded(read("urgences-replie") === "1");
-// The keys of the intern in their tab, else of the day replayed; a key in a form field is the field's.
-const KEYS = { parcours: (event) => internPanel.key(event) || pathwayKey(ctx, event) };
+// The keys of the shift replayed, of the intern in their tab, else of the day replayed; a key in a form field is the
+// field's.
+const KEYS = { garde: (event) => live.key(event), parcours: (event) => internPanel.key(event) || pathwayKey(ctx, event) };
 document.addEventListener("keydown", (event) => KEYS[state.tab]?.(event));
 fetch("../docs/changelog.json")
   .then((response) => (response.ok ? response.json() : null))

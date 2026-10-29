@@ -56,10 +56,11 @@
       "commits": [
         "98b0a92",
         "acbdb20",
-        "2e7ce32"
+        "2e7ce32",
+        "4e2deb8"
       ],
       "items": [
-        "Dans l'onglet Parcours détaillé, la journée se lit au clavier, comme une vidéo : Espace la lance ou la met en pause, les flèches gauche et droite reculent ou avancent de 10 min (d'une heure avec Maj), les flèches haut et bas la lisent plus ou moins vite.",
+        "Les deux lectures, la garde de l'onglet Garde simple et la journée de l'onglet Parcours détaillé, se lisent au clavier, comme une vidéo : Espace lance ou met en pause, les flèches gauche et droite reculent ou avancent de 10 min (d'une heure avec Maj), les flèches haut et bas lisent plus ou moins vite, les chiffres de 0 à 9 (du pavé numérique ou de la rangée du haut) mènent à 0 %, 10 %… 90 % de la lecture.",
         "Deux vitesses de lecture plus lentes : 1 et 5 min par seconde.",
         "L'onglet « Service en plan » est retiré : il est devenu inutile. Le modèle et ses tests restent."
       ]
