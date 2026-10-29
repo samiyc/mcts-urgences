@@ -53,9 +53,12 @@
       "version": "0.29",
       "date": "29/10",
       "title": "Les touches de la lecture",
-      "commits": [],
+      "commits": [
+        "98b0a92"
+      ],
       "items": [
-        "Dans l'onglet Parcours détaillé, la journée se lit au clavier, comme une vidéo : Espace la lance ou la met en pause, les flèches reculent ou avancent de 10 min, d'une heure avec Maj."
+        "Dans l'onglet Parcours détaillé, la journée se lit au clavier, comme une vidéo : Espace la lance ou la met en pause, les flèches reculent ou avancent de 10 min, d'une heure avec Maj.",
+        "Une vitesse de lecture plus lente : 5 min par seconde."
       ]
     },
     {

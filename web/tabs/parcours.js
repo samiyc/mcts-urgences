@@ -27,7 +27,7 @@ import { createReplayStore, download, replayName } from "../replay-store.js";
  */
 const FORMAT = "urgences-parcours/1";
 const store = createReplayStore("urgences-parcours");
-const SPEEDS = [["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
+const SPEEDS = [["5", "5 min par seconde"], ["10", "10 min par seconde"], ["30", "30 min par seconde"], ["60", "1 h par seconde"], ["180", "3 h par seconde"]];
 const CAPACITY_LABELS = { boxes: "box", sauv: "SAUV", isolation: "isolement", uhcd: "UHCD", scanner: "scanner" };
 
 export const createPathwayState = () => ({ box: "colour", bed: "oldest", plan: null, draft: null, errors: [], speed: 30, t: 0, frame: null, last: null, run: null, walk: false, intern: "none", fatigue: "off", teams: "24", compare: "", other: null, searched: null, season: "ordinaire", ...decisionDefaults(), ...additionDefaults() });
