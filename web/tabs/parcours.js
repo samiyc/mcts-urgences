@@ -94,7 +94,7 @@ function planFields(ctx) {
     el("label", {}, "Le plan en texte", el("textarea", { class: "plan-text", "data-parcours": "plan", spellcheck: "false", wrap: "off" }, pathway.draft ?? planText(ctx))),
     el("div", { class: "row-buttons" }, el("button", { type: "button", "data-parcours-do": "apply" }, "Appliquer le plan"), el("button", { type: "button", class: "quiet", "data-parcours-do": "reset" }, "Revenir au plan de l'hôpital")),
     pathway.errors.length ? el("ul", { class: "plan-errors" }, ...pathway.errors.map((error) => el("li", {}, error))) : null,
-    el("p", { class: "hint" }, `${pathway.plan ? "Plan modifié" : "Plan de l'hôpital"} : ${places}. # mur, . sol, E entrée, A accueil, T tri, w attente, r résultats, b box, S SAUV, I isolement, U UHCD, X scanner, L labo, P pharmacie, O bloc, H ascenseurs, D médecins, R pause, B brancardiers.`),
+    el("p", { class: "hint" }, `${pathway.plan ? "Plan modifié" : "Plan de l'hôpital"} : ${places}. # mur, . sol, E entrée, A accueil, T tri, w attente, r résultats, b box, S SAUV, I isolement, U UHCD, C circuit court, X scanner, L labo, P pharmacie, O bloc, H ascenseurs, D médecins, R pause, B brancardiers.`),
   ];
 }
 

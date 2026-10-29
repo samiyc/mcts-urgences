@@ -47,7 +47,7 @@ describe("the plans of the detailed pathway (src/pathway-plans.js)", () => {
 ###
 #b#
 ###`;
-    assert.match(planErrors(shut).join(" "), /hors d'atteinte depuis l'entrée, la première en colonne 2, ligne 17/);
+    assert.match(planErrors(shut).join(" "), /hors d'atteinte depuis l'entrée, la première en colonne 2, ligne 19/);
     assert.match(planErrors("#####\n#E.b#\n#####").join(" "), /au moins un scanner/);
   });
 });

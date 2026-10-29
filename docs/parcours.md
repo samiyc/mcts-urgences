@@ -94,31 +94,32 @@ Le parcours détaillé se voit maintenant sur un plan en texte, dans l'onglet «
 La légende :
 - `#` un mur, `.` le sol, `E` l'entrée ;
 - `A` l'accueil, `T` le tri, `w` un siège d'attente, `r` un siège pour l'attente des résultats ;
-- `b` un box, `S` la SAUV, `I` l'isolement, `U` un lit d'UHCD ;
+- `b` un box, `S` la SAUV, `I` l'isolement, `U` un lit d'UHCD, `C` la salle du circuit court ;
 - `X` un scanner, `L` le labo, `P` la pharmacie ;
 - `O` la porte du bloc, `H` les ascenseurs ;
 - `D` la salle des médecins, `R` la pause, `B` la base des brancardiers.
 
-Le plan de l'hôpital moyen, depuis le 29/10 : deux couloirs reliés par l'accueil et par l'arrière. Jusque-là, un seul
+Le plan de l'hôpital moyen, dessiné par Sami le 29/10 : deux couloirs reliés par l'accueil et par l'arrière. Jusque-là, un seul
 long couloir de 54 cases desservait tout ; les mesures de la marche de cette page sont faites sur ces anciens plans
 ([parcours-ajouts.md](parcours-ajouts.md), « Les plans à deux couloirs ») :
 
 ```text
-###############################
-#U.U.U.U.U.U#X..#O..#H.#wwwwww#
-#...........#...#...#..#wwwwww#
-#.####.####.##.###.##..#...www#
-#.............................#
-##.#.###########.#######Crrr..#
-#..#.#D..R.B#L.#.#P....#....A.E
-#I.#.#......#..#.#.....#..rrr.#
-####.##..#####.#.###.###T.....#
-#.............................#
-##.#####.#####.#####.###...www#
-#....#b...b#b...b#b...b#wwwwww#
-#....#.....#.....#.....#wwwwww#
-#S..S#b...b#b...b#b...b#......#
-###############################
+####################
+#U.U.U#b.b#b.b#wwww#
+#.....#...#...#wwww#
+#U.U.U#b.b#b.b#wwww#
+####.###.###.##.www#
+#..................#
+#.#.#####.#####rCr.#
+#I#.#.R.#.#L.P#..A.E
+###.#B.D#.#...#..r.#
+#H#.##.##.##.##rTr.#
+#..................#
+##.###.##.##.##.www#
+#..#S..#..#b.b#wwww#
+#..#...#..#...#wwww#
+#O.#S..#X.#b.b#wwww#
+####################
 ```
 
 **Le plan fixe les places.** Le nombre de box, de lits de SAUV, d'UHCD, de chambres d'isolement et de scanners est

@@ -15,8 +15,8 @@ import { walkSteps } from "./ward-moves.js";
  *
  * The default plans (Sami, 29/10/2026) have two corridors, three at the CHU, the rooms between them: closer to a
  * square than one long corridor, so the page draws larger cells. The corridors meet at the reception and through
- * passages at the back, so that not every walk goes through the reception. Sami drew the small hospital's; the two
- * larger ones follow it, with longer corridors.
+ * passages at the back, so that not every walk goes through the reception. Sami drew the small and the medium
+ * hospital's; the CHU's follows them, with longer corridors.
  *
  * The default plans have exactly the capacities `pathwaySettingsOf` gives each hospital (a test holds it), so a day
  * drawn on its hospital's plan is the day of step 1.
@@ -38,21 +38,23 @@ export const PATHWAY_PLANS = Object.freeze({
 #S.#b.b.b#b.b.b#www#
 ####################`,
   moyen: `
-###############################
-#U.U.U.U.U.U#X..#O..#H.#wwwwww#
-#...........#...#...#..#wwwwww#
-#.####.####.##.###.##..#...www#
-#.............................#
-##.#.###########.#######Crrr..#
-#..#.#D..R.B#L.#.#P....#....A.E
-#I.#.#......#..#.#.....#..rrr.#
-####.##..#####.#.###.###T.....#
-#.............................#
-##.#####.#####.#####.###...www#
-#....#b...b#b...b#b...b#wwwwww#
-#....#.....#.....#.....#wwwwww#
-#S..S#b...b#b...b#b...b#......#
-###############################`,
+####################
+#U.U.U#b.b#b.b#wwww#
+#.....#...#...#wwww#
+#U.U.U#b.b#b.b#wwww#
+####.###.###.##.www#
+#..................#
+#.#.#####.#####rCr.#
+#I#.#.R.#.#L.P#..A.E
+###.#B.D#.#...#..r.#
+#H#.##.##.##.##rTr.#
+#..................#
+##.###.##.##.##.www#
+#..#S..#..#b.b#wwww#
+#..#...#..#...#wwww#
+#O.#S..#X.#b.b#wwww#
+####################
+`,
   chu: `
 #####################################
 #U.U.U.U.U.U#X.X..#O..#H...#wwwwwwww#
