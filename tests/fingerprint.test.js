@@ -27,8 +27,9 @@ const EXPECTED = {
   ward: "57b01014292f8c4d",
   search: "2bc22fa5048d24e8",
   // The plans with two corridors (Sami, 29/10/2026) changed the walks: walked was a59f8ec32aa3b27f, intern 2f8e26fa3de22379;
-  // then f19b3a4267ffd803 and 4bffbd3b9ea4eb49 before Sami drew the medium plan, walked f3a10e16877a81eb before the CHU.
-  walked: "044ceecaf768ccab",
+  // then f19b3a4267ffd803 and 4bffbd3b9ea4eb49 before Sami drew the medium plan, walked f3a10e16877a81eb
+  // before the CHU, 044ceecaf768ccab before its facade set back.
+  walked: "172269e371b4f3c1",
   intern: "83e223468a87eb43",
   fatigue: "9e82a932b8b806b1",
   pathwaySearch: "0bdc497e0fe40ebb",
