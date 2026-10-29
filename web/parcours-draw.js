@@ -22,6 +22,7 @@ const TITLES = {
 function cells(root, lines) {
   lines.forEach((line, y) =>
     [...line].forEach((char, x) => {
+      if (char === " ") return; // outside the building
       root.append(svg("rect", { x: x * CELL, y: y * CELL, width: CELL, height: CELL, class: `cell ${CELL_CLASS[char] ?? "floor"}` }));
       if (LABELS[char]) root.append(text(x * CELL + CELL / 2, y * CELL + CELL / 2 + 3, LABELS[char], { class: "cell-label" }));
     }),

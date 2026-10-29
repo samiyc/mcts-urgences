@@ -92,7 +92,7 @@ Le parcours détaillé se voit maintenant sur un plan en texte, dans l'onglet «
 (`src/pathway-plans.js`, `src/pathway-trace.js`, `src/pathway-walk.js`, `src/pathway-status.js`).
 
 La légende :
-- `#` un mur, `.` le sol, `E` l'entrée ;
+- `#` un mur, `.` le sol, `E` l'entrée, une espace le dehors ;
 - `A` l'accueil, `T` le tri, `w` un siège d'attente, `r` un siège pour l'attente des résultats ;
 - `b` un box, `S` la SAUV, `I` l'isolement, `U` un lit d'UHCD, `C` la salle du circuit court ;
 - `X` un scanner, `L` le labo, `P` la pharmacie ;

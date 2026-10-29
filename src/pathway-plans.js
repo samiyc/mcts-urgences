@@ -13,10 +13,9 @@ import { walkSteps } from "./ward-moves.js";
  * to the wards; `D` the doctors' room; `R` the break room; `B` the stretcher-bearers' base. Places are numbered in
  * reading order (row by row, left to right).
  *
- * The default plans (Sami, 29/10/2026) have two corridors, three at the CHU, the rooms between them: closer to a
- * square than one long corridor, so the page draws larger cells. The corridors meet at the reception and through
- * passages at the back, so that not every walk goes through the reception. Sami drew the small and the medium
- * hospital's; the CHU's follows them, with longer corridors.
+ * The default plans (Sami drew them, 29/10/2026) have two corridors, three at the CHU, the rooms between them: closer
+ * to a square than one long corridor, so the page draws larger cells. The corridors meet at the reception and through
+ * passages at the back, so that not every walk goes through the reception. A space is outside the building.
  *
  * The default plans have exactly the capacities `pathwaySettingsOf` gives each hospital (a test holds it), so a day
  * drawn on its hospital's plan is the day of step 1.
@@ -56,26 +55,27 @@ export const PATHWAY_PLANS = Object.freeze({
 ####################
 `,
   chu: `
-#####################################
-#U.U.U.U.U.U#X.X..#O..#H...#wwwwwwww#
-#...........#.....#...#....#wwwwwwww#
-#.####.####.###.####.##....#........#
-#...................................#
-##.#.###########.###########C.rrrr.C#
-#..#.#D...R...B#.#L...#P...#......A.E
-#II#.#.........#.#....#....#.rrrrrr.#
-####.##..#######.###.####.##T.......#
-#...................................#
-#.####.####.#.##.#####.#####........#
-#U.U.U.U.U.U#.#b.b.b#b.b.b.#wwwwwwww#
-#...........#.#b.b.b#b.b.b.#wwwwwwww#
-#############.####.#####.###........#
-#...................................#
-##.########.#####.#####.####........#
-#.......#b...b#b...b#b....b#wwwwwwww#
-#.......#.....#.....#......#wwwwwwww#
-#S.S.S.S#b...b#b...b#b....b#........#
-#####################################`,
+#################   ########
+#U.U.U.U#X.X#O..#   #wwwwww#
+#U.....U#...#...##H##wwwwww#
+####.######.##.##......wwww#
+#..........................#
+##.#.#######.######rrrrr...#
+#..#.#D.R.B#.#L..P#####A...E
+#II#.#.....#.#....#####T...#
+####.##.####.##.###rrrrr...#
+#..........................#
+####.##.##.#####.####rrr...#
+#U.U.U#.#b.b.b.b.b.b###C.ww#
+#U.U.U#.#b.b.b.b.b.b###C.ww#
+#######.##.#####.####rrr.ww#
+#........................ww#
+###.####.####.####.##wwwwww#
+#S..S#b..b#b..b#b..b#wwwwww#
+#....#....#....#....#wwwwww#
+#S..S#b..b#b..b#b..b#wwwwww#
+############################
+`,
 });
 
 /** The pools of the pathway a plan holds, and their character. */

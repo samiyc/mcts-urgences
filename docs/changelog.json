@@ -54,13 +54,13 @@
       "date": "29/10",
       "title": "Les plans à deux couloirs",
       "commits": [
-        "b114dd0"
+        "b114dd0",
+        "88b413c"
       ],
       "items": [
-        "Les nouveaux plans de l'hôpital de proximité et de l'hôpital moyen, dessinés par Sami : deux couloirs reliés par l'accueil et par l'arrière, plus proches d'un carré, pour mieux voir les cases dans la page.",
-        "Le plan du CHU suit la même idée, avec des couloirs plus longs et trois couloirs. Les places et les sièges restent les mêmes.",
-        "Sans la marche, rien ne change. Avec la marche comptée, les patients marchent de 29 à 53 % de moins, et la marche coûte de 53 à 74 % de moins à l'hôpital moyen, de 61 à 70 % de moins au CHU.",
-        "La salle du circuit court (« C ») dans la légende du plan."
+        "Les nouveaux plans des trois hôpitaux, dessinés par Sami : deux couloirs reliés par l'accueil et par l'arrière, trois au CHU, plus proches d'un carré, pour mieux voir les cases dans la page. Les places et les sièges restent les mêmes.",
+        "Sans la marche, rien ne change. Avec la marche comptée, les patients marchent de 29 à 53 % de moins, et la marche coûte de 53 à 74 % de moins à l'hôpital moyen, de 63 à 74 % de moins au CHU.",
+        "La salle du circuit court (« C ») dans la légende du plan ; le dehors (des espaces) n'est plus dessiné."
       ]
     },
     {
