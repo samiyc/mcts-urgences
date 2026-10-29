@@ -10,7 +10,7 @@ import { createLive } from "./live.js";
 import { statsActions } from "./stats-actions.js";
 import { createPlayer } from "./player.js";
 import { gardePanel, gardeView, planPanel, planView } from "./tabs/garde.js";
-import { createPathwayState, fatigueOf, pathwayChange, pathwayClick, pathwayInput, pathwayPanel, pathwayView } from "./tabs/parcours.js";
+import { createPathwayState, fatigueOf, pathwayChange, pathwayClick, pathwayInput, pathwayKey, pathwayPanel, pathwayView } from "./tabs/parcours.js";
 import { replaysClick, replaysPanel, replaysView } from "./tabs/replays.js";
 import { statsPanel, statsView } from "./tabs/stats.js";
 import { clock } from "./view.js";
@@ -203,8 +203,9 @@ const setFolded = (folded) => {
 };
 fold.addEventListener("click", () => setFolded(!layout.classList.contains("folded")));
 setFolded(read("urgences-replie") === "1");
-// The keys of the caregiver played on the plan, or of the intern, in their tab; a key in a form field is the field's.
-const KEYS = { plan: (event) => wardPanel.key(event), parcours: (event) => internPanel.key(event) };
+// The keys of the caregiver played on the plan, or of the intern, in their tab, else of the day replayed; a key in a
+// form field is the field's.
+const KEYS = { plan: (event) => wardPanel.key(event), parcours: (event) => internPanel.key(event) || pathwayKey(ctx, event) };
 document.addEventListener("keydown", (event) => KEYS[state.tab]?.(event));
 fetch("../docs/changelog.json")
   .then((response) => (response.ok ? response.json() : null))
