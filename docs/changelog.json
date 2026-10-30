@@ -5,7 +5,7 @@
   "back": "les urgences",
   "intro": "Des patients arrivent avec une couleur de tri qui estime leur gravité ; une recherche (ISMCTS) choisit qui passe, en imaginant leur gravité réelle et les arrivées à venir.",
   "gainsTitle": "Ce que gagne la recherche (ISMCTS)",
-  "gainsNote": "Coût d'une garde au niveau du moment (l'attente pondérée par la gravité qu'a le patient pendant qu'il attend ; moins, c'est mieux), 200 gardes tirées par situation, mêmes patients pour toutes les règles, la recherche notée à ce coût (npm run compare -- --search --now). Mesures de nuit du 23/10 au soir, jouées par l'ordonnanceur commun (mcts-backlog). La dernière colonne : l'écart de la recherche sur l'ordre d'arrivée, à 95 %.",
+  "gainsNote": "Coût d'une garde au niveau du moment (l'attente pondérée par la gravité qu'a le patient pendant qu'il attend ; moins, c'est mieux), 200 gardes tirées par situation, mêmes patients pour toutes les règles, la recherche notée à ce coût (npm run compare -- --search --now). Mesures du 30/10 au soir, avec les réglages de ce jour-là (8 coups à la racine, 4 au grand CHU), jouées par l'ordonnanceur commun (mcts-backlog) ; celles du 23/10, avec 4 coups partout, sont dans le git. La dernière colonne : l'écart de la recherche sur l'ordre d'arrivée, à 95 %.",
   "gainsHead": [
     "Situation",
     "l'arrivée",
@@ -20,24 +20,24 @@
       "2 113",
       "2 007",
       "1 416",
-      "<strong>1 255</strong>",
-      "+858 (+697 à +1 019)"
+      "<strong>1 290</strong>",
+      "+823 (+602 à +1 044)"
     ],
     [
       "hôpital moyen, accident",
-      "<strong>39 318</strong>",
+      "39 318",
       "56 196",
       "51 193",
-      "39 626",
-      "−309 (−1 769 à +1 151)"
+      "<strong>33 929</strong>",
+      "+5 389 (+3 737 à +7 041)"
     ],
     [
       "hôpital de proximité, accident",
       "98 347",
       "119 693",
       "116 749",
-      "<strong>95 803</strong>",
-      "+2 544 (+429 à +4 660)"
+      "<strong>75 063</strong>",
+      "+23 284 (+20 235 à +26 334)"
     ],
     [
       "grand CHU, accident",
@@ -57,14 +57,16 @@
         "cca195f",
         "8c8349d",
         "e3ea0f0",
-        "dff746f"
+        "dff746f",
+        "ca8c345"
       ],
       "items": [
         "La recherche garde 8 coups à la racine au lieu de 4, pour la garde et pour le box. Le 28/10, pendant l'accident, elle coûtait ainsi 16 % de moins sur la garde et 5 % de moins sur le box, pour le même temps.",
         "Au grand CHU, la recherche de la garde garde 4 coups à la racine : 8 y coûtaient 10 à 20 % de plus (mesures du 30/10).",
         "L'interne au clavier marche avec Z Q S D et agit avec E ; les flèches restent à la lecture.",
         "Les touches des deux lectures viennent de la bibliothèque commune, comme à l'entrepôt et à la cuisine. Sur un bouton, Espace appuie sur le bouton ; les flèches et les chiffres vont à la lecture.",
-        "Le modèle du service en plan est retiré ; son onglet l'était depuis le 29/10."
+        "Le modèle du service en plan est retiré ; son onglet l'était depuis le 29/10.",
+        "Le tableau « Ce que gagne la recherche » est remesuré avec ces réglages : la recherche bat maintenant l'ordre d'arrivée dans les quatre situations, de +5 389 à l'hôpital moyen pendant l'accident (−309 avant, pas sûr) et de +23 284 à l'hôpital de proximité (+2 544 avant). Au grand CHU, rien ne change : sa garde garde 4 coups."
       ]
     },
     {

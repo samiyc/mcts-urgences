@@ -432,6 +432,12 @@ Les deux jobs de la garde au CHU ont pris 44 et 54 min, pour 30 annoncées : une
 prend 35 s pendant l'accident et 23 s un jour ordinaire. Une prochaine mesure de la garde au CHU se coupe en
 tranches plus courtes.
 
+**Le tableau de la page remesuré (30/10 au soir, Sami).** « Ce que gagne la recherche », la garde simple sur 200 gardes
+par situation (`npm run compare -- --search --now`, jobs `gains-*-2026-10-30-gains`), avec 8 coups à la racine (4 au
+CHU). La recherche bat l'ordre d'arrivée partout : +823 (+602 à +1 044) un jour ordinaire à l'hôpital moyen (+858
+le 23/10) ; pendant l'accident, +5 389 (+3 737 à +7 041) à l'hôpital moyen, où elle était à égalité (−309), et
++23 284 (+20 235 à +26 334) à la proximité (+2 544). Le CHU, à 4 coups, redonne exactement les chiffres du 23/10.
+
 ## Les plans à deux couloirs (29/10, Sami)
 
 Sami a redessiné l'hôpital de proximité : deux couloirs au lieu d'un, les salles entre les deux, un accueil en U qui
