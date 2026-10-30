@@ -29,7 +29,7 @@ const trialsOf = ({ early, pool, tiers }) => [...(early ? ["early"] : []), ...(p
  * A day's searches, made by `make` (a search rule's factory) with `budget` iterations: "search", and with `early` an
  * "early" row too, its `earlyStop` on, paired on the same day (mcts-commun's trials of 27/10/2026, src/search-trials.js);
  * with `pool`, a "pool" row, its worlds `pool` at most, reused (pathway-worlds.js, a trial of 28/10/2026); with
- * `tiers`, rows "B" to "E", the step up of the settings (search-trials.js's TIERS, 28/10/2026).
+ * `tiers`, rows "A", "C2" and "E", the step up of the settings against the default (search-trials.js's TIERS, 30/10/2026).
  * With `early` or `diagnose`, each counts what its searches saw, the day's `tallies` beside the rows' measures.
  */
 export function searchesOf({ budget, early = false, diagnose = false, pool = 0, tiers = false }, make) {

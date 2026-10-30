@@ -23,17 +23,17 @@ import { internResult, runInternGame, startInternGame } from "../src/pathway-gam
 const EXPECTED = {
   pathway: "fcc1ce236ad7e3c7",
   shift: "2268a5261e750c8b",
-  search: "2bc22fa5048d24e8",
+  search: "cb2efa9c2f4da789",
   // The plans with two corridors (Sami, 29/10/2026) changed the walks: walked was a59f8ec32aa3b27f, intern 2f8e26fa3de22379;
   // then f19b3a4267ffd803 and 4bffbd3b9ea4eb49 before Sami drew the medium plan, walked f3a10e16877a81eb
   // before the CHU, 044ceecaf768ccab before its facade set back.
   walked: "172269e371b4f3c1",
   intern: "83e223468a87eb43",
   fatigue: "9e82a932b8b806b1",
-  pathwaySearch: "0bdc497e0fe40ebb",
-  epidemic: "e79be809e5f092a1",
+  pathwaySearch: "a03bd68e009e0711",
+  epidemic: "36db44b38355b7bf",
   het: "cd3d771f8c5c191b",
-  additions: "c4eacd1c877524af",
+  additions: "90784e8ef674a222",
 };
 
 const digest = (value) => createHash("sha256").update(JSON.stringify(value, (_, x) => (x instanceof Map ? [...x] : x))).digest("hex").slice(0, 16);

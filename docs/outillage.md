@@ -113,11 +113,12 @@ mcts-commun), jamais sur la vraie.
 - `--mondes N` (`pathway-search-compare.js`, 28/10) ajoute la recherche qui réutilise au plus N mondes par décision
   (« La vitesse de la recherche », plus bas) ;
 - `--palier` (`pathway-search-compare.js`, 28/10 au soir ; Sami trouve nos réglages bas face à lopin, `docs/reglages.md`
-  de mcts-commun) ajoute quatre lignes, B à E, contre les réglages d'aujourd'hui (A) : B quatre fois le budget, C
-  8 coups à la racine, D la profondeur 3 pour deux fois le budget, E tout ensemble (5 coups plus bas, l'élargissement
-  progressif à 1). La garde les prend en variantes de `search-bench.js` (`root=8`, `depth=3`, `width=5`,
-  `widening=1`). Avec `--diagnose`, chaque ligne dit aussi le rang du coup joué dans la liste courte de la racine.
-  Les sept décisions qui gardent tous leurs coups n'ont rien à gagner à C.
+  de mcts-commun) ajoute des lignes de réglages contre ceux par défaut. Le 28/10 : B à E contre A (B quatre fois le
+  budget, C 8 coups à la racine, D la profondeur 3 pour deux fois le budget, E tout ensemble : 5 coups plus bas,
+  l'élargissement progressif à 1). C est le défaut depuis le 30/10 ; les lignes sont depuis A (les 4 coups d'avant),
+  C2 (le budget ×2) et E. La garde les prend en variantes de `search-bench.js` (`root=4`, `budget=200`,
+  `depth=3`, `width=5`, `widening=1`). Avec `--diagnose`, chaque ligne dit aussi le rang du coup joué dans la
+  liste courte de la racine. Les sept décisions qui gardent tous leurs coups n'ont rien à gagner à 8 coups.
 
 Les résultats sont dans [parcours-ajouts.md](parcours-ajouts.md), « Les essais de mcts-commun » et « Le palier de réglages ».
 

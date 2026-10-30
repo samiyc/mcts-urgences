@@ -35,8 +35,10 @@ import { searchTried } from "./search-trials.js";
  * cost at the level of the moment of the patients waiting or coming within `horizon` minutes, played until they are
  * all in. The root's choices are judged on common worlds. Not for a day with an intern (whose tasks a world would
  * have to play too).
+ * `root`: the moves kept at the root of the box's search, `width` below it. 8 since 30/10/2026 (Sami, the step up of 28/10: with 4, the
+ * accident's searches often left out the right move), 4 before.
  */
-export const PATHWAY_SEARCH = Object.freeze({ budget: 100, depth: 2, explore: 0.7, width: 4, horizon: 120, seed: 1 });
+export const PATHWAY_SEARCH = Object.freeze({ budget: 100, depth: 2, explore: 0.7, width: 4, root: 8, horizon: 120, seed: 1 });
 const NEW = 1_000_000;
 
 function drawLevel(rng, odds) {
@@ -267,14 +269,14 @@ export function scaleOf(day, rng, { horizon, bed, ...flags }) {
  * once; otherwise `budget` iterations, seeded from the day's clock and the candidates. `bed`: the bed rule of the worlds.
  */
 export function pathwaySearchRule(options = {}) {
-  const { budget, depth, explore, width, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
+  const { budget, depth, explore, width, root, horizon, seed } = { ...PATHWAY_SEARCH, ...options };
   const bed = options.bed ?? BED_RULES.oldest;
   return (candidates, { day }) => {
     if (candidates.length === 1) return candidates[0];
     if (day.intern && !day.settings.internDecided) throw new Error("la recherche du parcours ne joue pas une journée avec un interne pas à pas");
     const rng = createRng((Math.imul(seed, 0x9e3779b1) + Math.round(day.events.now * 1000) * 31 + Number(candidates[0].id) * 7 + candidates.length) >>> 0);
     const scale = scaleOf(day, rng, { horizon, bed });
-    const found = searchTried(day, problemFor({ scale, width, root: options.root, horizon, bed, pool: options.pool }), { budget, rng, depth, explore, earlyStop: options.earlyStop, widening: options.widening, tally: options.tally });
+    const found = searchTried(day, problemFor({ scale, width, root, horizon, bed, pool: options.pool }), { budget, rng, depth, explore, earlyStop: options.earlyStop, widening: options.widening, tally: options.tally });
     return candidates.find((view) => view.id === found.move?.id) ?? RULES.colour(candidates);
   };
 }

@@ -15,14 +15,15 @@ export const CODES = Object.freeze(["fewIterations", "flatScore", "closeCall", "
 export const newTally = () => ({ searches: 0, iterations: 0, ms: 0, codes: Object.fromEntries([...CODES, "clear", "oneMove"].map((code) => [code, 0])), ranks: {} });
 
 /**
- * The step up of the settings to measure against today's, A (Sami, 28/10/2026: « les valeurs sont très basses en
- * comparaison de lopin » ; mcts-commun's docs/reglages.md): B four times the budget, C 8 moves at the root, D one
- * level deeper for twice the budget, E all of it (5 moves below the root, progressive widening 1). Off by default.
+ * The step up of the settings to measure against today's (Sami, 28/10/2026: « les valeurs sont très basses en
+ * comparaison de lopin » ; mcts-commun's docs/reglages.md). Measured on 28/10 against A, 4 moves at the root: C,
+ * 8 moves at the root, gained most for the same time and is the default since 30/10. The rows now measured against
+ * it (Sami, 30/10): A, the 4 moves of before; C2, twice the budget; E, all of it (four times the budget, 5 moves below
+ * the root, depth 3, progressive widening 1). Off by default.
  */
 export const TIERS = Object.freeze({
-  B: (budget) => ({ budget: 4 * budget }),
-  C: (budget) => ({ budget, root: 8 }),
-  D: (budget) => ({ budget: 2 * budget, depth: 3 }),
+  A: (budget) => ({ budget, root: 4 }),
+  C2: (budget) => ({ budget: 2 * budget }),
   E: (budget) => ({ budget: 4 * budget, root: 8, width: 5, depth: 3, widening: 1 }),
 });
 

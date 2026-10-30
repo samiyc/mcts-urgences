@@ -30,8 +30,8 @@ const LABELS = {
   boxes: (name) => RULE_LABELS[name],
 };
 const NAMES = { beds: BED_SEARCHED, breaks: BREAK_SEARCHED, interns: INTERN_SEARCHED, queues: QUEUE_SEARCHED, alerts: ALERT_SEARCHED, hets: HET_SEARCHED, sauvs: SAUV_SEARCHED, boxes: SEARCHED };
-/** The step up's rows (`--palier`), B to E (src/search-trials.js's TIERS). */
-const TIER_LABELS = Object.freeze({ B: "palier B, budget ×4", C: "palier C, 8 coups à la racine", D: "palier D, profondeur 3, budget ×2", E: "palier E, tout ensemble" });
+/** The step up's rows (`--palier`, src/search-trials.js's TIERS), against C, the default since 30/10. */
+const TIER_LABELS = Object.freeze({ A: "palier A, 4 coups à la racine (avant le 30/10)", C2: "palier C2, budget ×2", E: "palier E, tout ensemble" });
 /** A row's name: the search's trials (`--early-stop`, `--attente-convexe`, `--mondes`, `--palier`) after the search's own name. */
 const labelOf = (kind, name) => (TIER_LABELS[name] ? `${LABELS[kind]("search")}, ${TIER_LABELS[name]}` : null) ?? ({ early: `${LABELS[kind]("search")}, arrêt anticipé`, convex: `${LABELS[kind]("search")}, attente convexe`, pool: `${LABELS[kind]("search")}, mondes réutilisés` })[name] ?? LABELS[kind](name);
 /** The rows of a run: its kind's, then the convex wait's (`--attente-convexe`), the early stop's (`--early-stop`), the reused worlds' (`--mondes`), the step up's (`--palier`). */

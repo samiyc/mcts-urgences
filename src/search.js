@@ -24,8 +24,10 @@ import { HOLD, act, candidateViewsOf, choose, cloneShift, hold, lateCostNow, nex
  * looked at has a known level (the bracelet's new colour) in every world drawn after. In the playouts nobody
  * is looked at again. `measure` scores the worlds on the late cost at arrival ("arrival", the first results'
  * score) or at the level of the moment ("now", `lateCostNow`: worsening while waiting counts).
+ * `root`: the moves kept at the root, `width` below it. 8 since 30/10/2026 (Sami, the step up of 28/10: with 4, the
+ * accident's searches often left out the right move), 4 before.
  */
-export const SEARCH_SETTINGS = Object.freeze({ budget: 100, depth: 2, explore: 0.7, width: 4, horizon: 120, seed: 1, omniscient: 0, measure: "arrival" });
+export const SEARCH_SETTINGS = Object.freeze({ budget: 100, depth: 2, explore: 0.7, width: 4, root: 8, horizon: 120, seed: 1, omniscient: 0, measure: "arrival" });
 const NEW = 1_000_000;
 
 /** P(true level | colour, source), levels 1 to 5: triage's error model times the source's mix. */
@@ -239,11 +241,11 @@ function answerOf(move, waiting, kind) {
  * @returns {import("./types.js").Rule}
  */
 export function searchRule(options = {}) {
-  const { budget, depth, explore, width, horizon, seed, omniscient, measure } = { ...SEARCH_SETTINGS, ...options };
+  const { budget, depth, explore, width, root, horizon, seed, omniscient, measure } = { ...SEARCH_SETTINGS, ...options };
   return (waiting, { shift, kind }) => {
     if (kind !== "nurse" && waiting.length === 1 && !onItsWay(shift)) return waiting[0];
     const rng = createRng(choiceSeed(seed, shift, waiting, kind));
-    const found = searchTried(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, root: options.root, horizon, omniscient, measure }), { budget, rng, depth, explore, earlyStop: options.earlyStop, widening: options.widening, tally: options.tally });
+    const found = searchTried(shift, problemFor(scaleOf(shift, rng, { horizon, measure }), { width, root, horizon, omniscient, measure }), { budget, rng, depth, explore, earlyStop: options.earlyStop, widening: options.widening, tally: options.tally });
     return answerOf(found.move, waiting, kind);
   };
 }

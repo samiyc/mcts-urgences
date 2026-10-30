@@ -386,6 +386,13 @@ Rien ne change par défaut : les empreintes restent les mêmes, en attendant la 
 serait 8 coups à la racine pour deux fois le budget, pendant l'accident et aux deux autres hôpitaux : voir si elle
 rejoint E pour la moitié du temps. Les jobs sont `palier-*-2026-10-28-palier` de la file.
 
+**C par défaut (30/10, Sami : « racine changement d'empreinte ok »).** La recherche de la garde et celle du box
+gardent 8 coups à la racine, 4 plus bas (`root: 8` dans `SEARCH_SETTINGS` et `PATHWAY_SEARCH`). Les autres
+décisions gardent déjà tous leurs coups. Quatre empreintes changent : `search`, `pathwaySearch`, `epidemic` et
+`additions`. Les mesures d'avant le 30/10 sont faites avec 4 coups. La mesure de C2 (C avec le budget ×2) et de E
+contre C, pendant l'accident et aux deux autres hôpitaux, est dans la file : `--palier` donne maintenant les lignes
+A (4 coups), C2 et E.
+
 ## Les plans à deux couloirs (29/10, Sami)
 
 Sami a redessiné l'hôpital de proximité : deux couloirs au lieu d'un, les salles entre les deux, un accueil en U qui
