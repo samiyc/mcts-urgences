@@ -1,8 +1,7 @@
 import { COLOURS } from "../src/hypotheses.js";
 import { INTERN_FORMAT, atKeyboard, gameScene, internBenchmarks, internReplayOf, internResult, minuteOf, openTasks, runInternGame, startInternGame, stepInternGame } from "../src/pathway-game.js";
 import { TASKS } from "../src/pathway-intern.js";
-import { MOVES } from "../src/ward-keys.js";
-import { STEP } from "../src/ward-moves.js";
+import { MOVES, STEP } from "../src/ward-moves.js";
 import { decimal, fixed } from "./dom.js";
 import { pathwayPlan } from "./parcours-draw.js";
 import { dayClock } from "./parcours-view.js";

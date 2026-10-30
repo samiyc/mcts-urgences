@@ -212,8 +212,9 @@ Dans la page, « Jouer la garde vous-même » : la personne décide qui entre da
 ## Le service en plan, un soignant au clavier (23/10 au soir, Sami : l'étape 3)
 
 La même garde (les mêmes patients, examens, séjours, aggravations et réévaluations), mais **sur un plan du
-service où l'on marche** (`src/plans.js`, `src/ward.js`, pur et testé). L'onglet « Service en plan » qui
-le jouait a été retiré le 29/10 (Sami : « il est devenu inutile ») ; le modèle et ses tests restent. Un plan
+service où l'on marche**. L'onglet « Service en plan » qui le jouait a été retiré le 29/10 (Sami : « il est
+devenu inutile »), puis le modèle et ses tests le 30/10 (`src/plans.js`, `src/ward.js`) : ce qui suit est
+l'historique. La marche (`src/ward-moves.js`) sert toujours au parcours détaillé. Un plan
 par hôpital, en texte comme ceux de l'entrepôt : `#` un mur, `E` l'entrée, `w` une chaise de la salle
 d'attente, `T` le tri, `D` la salle des médecins, `b` le lit d'un box (autant de lits que de box).
 - **Une case, c'est quelques mètres, et un pas 6 s de garde.** Les gens se croisent dans les couloirs (pas de

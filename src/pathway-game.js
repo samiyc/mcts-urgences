@@ -6,8 +6,7 @@ import { drawPathwayDay } from "./pathway-scenario.js";
 import { timelineOf } from "./pathway-timeline.js";
 import { walkScene, walksOfDay } from "./pathway-walk.js";
 import { RULES } from "./rules.js";
-import { MOVES } from "./ward-keys.js";
-import { STEP, walk, walkSteps } from "./ward-moves.js";
+import { MOVES, STEP, walk, walkSteps } from "./ward-moves.js";
 
 /**
  * The intern played (Sami, 26/10/2026, docs/recherche/feuille-de-route.md, step 3): a day of the detailed pathway with

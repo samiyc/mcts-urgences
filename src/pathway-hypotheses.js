@@ -267,7 +267,7 @@ export const FAST_TRACK = Object.freeze({ from: 10, to: 22, doctors: 1, fromColo
  */
 export const DEATHS = Object.freeze({ base: Object.freeze({ 1: 0.04, 2: 0.002 }), perHour: 0.1, resus: 45, after: 90, cost: 1920 });
 
-/** A cell of a plan, in metres (as on the simple shift's plan, ward.js: a few metres, 6 s of walking). */
+/** A cell of a plan, in metres (a few metres, 6 s of walking, as on the simple shift's plan of 23/10). */
 export const CELL_METRES = 2;
 
 /** The places a plan sets (the boxes, the SAUV, the isolation, the UHCD, the scanners) over the hospital's. */

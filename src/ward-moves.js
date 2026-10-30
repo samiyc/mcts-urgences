@@ -1,10 +1,16 @@
-/** How people walk on the plan (ward.js): the distances by breadth-first search, a cell a step. */
+/**
+ * How people walk on a plan of the detailed pathway (pathway-plans.js): the distances by breadth-first search, a cell a
+ * step; and the keys of a person walking at the keyboard. First written for the simple shift's plan (23/10/2026), whose
+ * model was taken out on 30/10/2026.
+ */
 
 /** A step of the plan, in minutes. */
 export const STEP = 0.1;
 
-export const same = (a, b) => a.x === b.x && a.y === b.y;
-export const near = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= 1;
+/** The person at the keyboard: Z Q S D (or the arrows) to walk. */
+export const MOVES = Object.freeze({ z: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1], q: [-1, 0], arrowleft: [-1, 0], d: [1, 0], arrowright: [1, 0] });
+
+const same = (a, b) => a.x === b.x && a.y === b.y;
 const NEIGHBOURS = [
   [1, 0],
   [-1, 0],
@@ -53,10 +59,3 @@ export function walk(ward, unit) {
     }
   }
 }
-
-/** The bed at or beside the person, the one under their feet first. */
-export const bedNear = (ward, at) => {
-  const { beds } = ward.layout;
-  const index = beds.findIndex((bed) => same(bed, at));
-  return index >= 0 ? index : beds.findIndex((bed) => near(bed, at));
-};

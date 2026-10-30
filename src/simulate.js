@@ -71,12 +71,7 @@ const HANDLERS = {
   wake(shift) {
     shift.wakeAt = null;
   },
-  /** The plan's clock (ward.js): a step of the shift walked minute by minute, nothing else. */
-  tick() {},
 };
-
-/** Applies one event of the queue to `shift`: the plan (ward.js) runs the queue itself, a step at a time. */
-export const handleEvent = (shift, event) => HANDLERS[event.type](shift, shift.patients.get(event.id));
 
 /** The start of a shift: `patients` (scenario.js, `drawShift`) to come, every box and doctor free. */
 export function startShift(patients, overrides = {}) {
@@ -91,7 +86,7 @@ const choiceNeeded = (shift) => !shift.holding && shift.boxIds.length > 0 && shi
 const lastLook = (patient) => patient.reassessedAt ?? patient.arrival;
 
 /** The waiting patients a free nurse may look at now: not being looked at, due for a look (`recheck`). */
-export function candidatesOf(shift) {
+function candidatesOf(shift) {
   const { recheck } = shift.settings;
   return shift.waiting.map((id) => shift.patients.get(id)).filter((patient) => !patient.assessing && lastLook(patient) + recheck <= shift.events.now);
 }

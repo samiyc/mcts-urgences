@@ -14,7 +14,6 @@ import { pathwaySearchHetRule } from "../src/pathway-search-rules.js";
 import { HET_RULES } from "../src/pathway-het.js";
 import { HET } from "../src/pathway-hypotheses.js";
 import { internResult, runInternGame, startInternGame } from "../src/pathway-game.js";
-import { runWard, startWard, wardResult } from "../src/ward.js";
 
 /**
  * The behaviour of the models, held in a few hashes (Sami, 26/10/2026, before the code went under the lint budget):
@@ -24,7 +23,6 @@ import { runWard, startWard, wardResult } from "../src/ward.js";
 const EXPECTED = {
   pathway: "fcc1ce236ad7e3c7",
   shift: "2268a5261e750c8b",
-  ward: "57b01014292f8c4d",
   search: "2bc22fa5048d24e8",
   // The plans with two corridors (Sami, 29/10/2026) changed the walks: walked was a59f8ec32aa3b27f, intern 2f8e26fa3de22379;
   // then f19b3a4267ffd803 and 4bffbd3b9ea4eb49 before Sami drew the medium plan, walked f3a10e16877a81eb
@@ -92,7 +90,6 @@ const FINGERPRINTS = {
     ...["family", "interpreter", "fastTrack", "deaths"].flatMap((name) => [1, 2].map((seed) => played(drawPathwayDay(seed, { [name]: true, interpreter: name === "family" || name === "interpreter" }), { box: RULES.colour, bed: BED_RULES.oldest }))),
     played(drawPathwayDay(2, { hospital: "proximite", accident: true, deaths: true, fastTrack: true }), { box: pathwaySearchRule({ budget: 10 }), bed: BED_RULES.oldest }),
   ],
-  ward: () => ["aucun", "medecin", "infirmier"].map((role) => wardResult(runWard(startWard({ seed: 2, role, nurse: "round" })))),
   search: () => {
     const settings = { ...DEFAULTS, ...HOSPITALS.moyen, crisis: ACCIDENT };
     return simulateShift(drawShift(1, settings), searchRule({ budget: 50, measure: "now" }), settings).measures;
