@@ -20,7 +20,7 @@ import { timelineOf } from "../src/pathway-timeline.js";
 const store = createReplayStore("urgences-internes");
 const SHIFTS = [8, 10, 12, 14, 16, 18, 20].map((hour) => [String((hour - 8) * 60), `${hour} h → ${hour + 4} h`]);
 const SPEEDS = [["1", "1 min de garde par seconde"], ["2", "2 min par seconde"], ["5", "5 min par seconde"]];
-const HELP = "Z Q S D (ou les flèches) pour marcher, E à côté d'un patient suivi, au labo, à la pharmacie, au poste des médecins (méd.) ou au scanner.";
+const HELP = "Z Q S D pour marcher, E à côté d'un patient suivi, au labo, à la pharmacie, au poste des médecins (méd.) ou au scanner.";
 
 function stop({ panel }) {
   clearInterval(panel.timer);

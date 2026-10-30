@@ -51,4 +51,10 @@ describe("the search (src/search.js)", () => {
     assert.ok(viewsOf(startShift([], quick)).length === 0);
     assert.ok(simulateShift(drawShift(3, quick), RULES.colour, quick).measures.patients === measures.patients);
   });
+  it("keeps 4 moves at the root at the CHU, the hospital's searchRoot (Sami, 30/10/2026)", () => {
+    const chu = { ...DEFAULTS, ...HOSPITALS.chu };
+    const play = (options) => simulateShift(drawShift(5, chu), searchRule({ budget: 20, ...options }), chu).measures;
+    assert.equal(HOSPITALS.chu.searchRoot, 4);
+    assert.deepEqual(play({}), play({ root: 4 }));
+  });
 });

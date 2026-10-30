@@ -55,10 +55,14 @@
       "title": "8 coups à la racine",
       "commits": [
         "cca195f",
-        "8c8349d"
+        "8c8349d",
+        "e3ea0f0",
+        "dff746f"
       ],
       "items": [
         "La recherche garde 8 coups à la racine au lieu de 4, pour la garde et pour le box. Le 28/10, pendant l'accident, elle coûtait ainsi 16 % de moins sur la garde et 5 % de moins sur le box, pour le même temps.",
+        "Au grand CHU, la recherche de la garde garde 4 coups à la racine : 8 y coûtaient 10 à 20 % de plus (mesures du 30/10).",
+        "L'interne au clavier marche avec Z Q S D et agit avec E ; les flèches restent à la lecture.",
         "Les touches des deux lectures viennent de la bibliothèque commune, comme à l'entrepôt et à la cuisine. Sur un bouton, Espace appuie sur le bouton ; les flèches et les chiffres vont à la lecture.",
         "Le modèle du service en plan est retiré ; son onglet l'était depuis le 29/10."
       ]

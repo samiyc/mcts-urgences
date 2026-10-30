@@ -7,8 +7,9 @@
 /** A step of the plan, in minutes. */
 export const STEP = 0.1;
 
-/** The person at the keyboard: Z Q S D (or the arrows) to walk. */
-export const MOVES = Object.freeze({ z: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1], q: [-1, 0], arrowleft: [-1, 0], d: [1, 0], arrowright: [1, 0] });
+/** The person at the keyboard: Z Q S D to walk, not the arrows, which stay the replays' (Sami, 30/10/2026: « zqsd+e par
+ * défaut pour les personnages jouables »). */
+export const MOVES = Object.freeze({ z: [0, -1], s: [0, 1], q: [-1, 0], d: [1, 0] });
 
 const same = (a, b) => a.x === b.x && a.y === b.y;
 const NEIGHBOURS = [

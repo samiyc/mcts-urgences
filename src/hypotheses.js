@@ -64,10 +64,12 @@ export const ACCIDENT = Object.freeze({ at: 90, size: 10, over: 30, mix: Object.
 
 /**
  * Hospitals to try the rules on (Sami, 22/10: change the hospital to test other configurations): each one
- * overrides DEFAULTS. Sized, like the default, to run about 80 % busy on an ordinary day.
+ * overrides DEFAULTS. Sized, like the default, to run about 80 % busy on an ordinary day. `searchRoot`, not a
+ * hypothesis of the department but a setting of the simple shift's search (search.js): the moves it keeps at the root,
+ * 4 at the CHU, where 8 cost 10 to 20 % more (Sami, 30/10/2026; docs/parcours-ajouts.md, « C2 et E contre C »).
  */
 export const HOSPITALS = Object.freeze({
   proximite: Object.freeze({ label: "Hôpital de proximité", boxes: 6, doctors: 2, walkInRate: 3, ambulanceRate: 0.75 }),
   moyen: Object.freeze({ label: "Hôpital moyen", boxes: 12, doctors: 4, walkInRate: 6, ambulanceRate: 1.5 }),
-  chu: Object.freeze({ label: "Grand CHU", boxes: 24, doctors: 8, walkInRate: 12, ambulanceRate: 3 }),
+  chu: Object.freeze({ label: "Grand CHU", boxes: 24, doctors: 8, walkInRate: 12, ambulanceRate: 3, searchRoot: 4 }),
 });

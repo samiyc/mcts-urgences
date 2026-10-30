@@ -424,8 +424,9 @@ Ce qu'on en retient :
   recherches de la garde) ;
 - **C2 donne au box l'essentiel de E pour la moitié du temps** : −7 % au moyen, −4 % au CHU pendant l'accident, sûrs
   tous les deux ; E n'y ajoute rien de sûr. Sur la garde, C2 et E ne gagnent rien de sûr ;
-- **rien ne change par défaut** : deux décisions sont à Sami, la racine de la garde au CHU (4 coups) et C2 pour le box
-  pendant l'accident (deux fois le temps : 370 à 730 ms une recherche au CHU).
+- **les décisions de Sami (30/10)** : la garde du CHU garde 4 coups à la racine (`searchRoot` de l'hôpital, dans
+  `HOSPITALS`), les deux autres hôpitaux 8 ; C2 pour le box pendant l'accident attend, trop lent (370 à 730 ms une
+  recherche au CHU). Aucune empreinte ne joue la garde du CHU : aucune ne change.
 
 Les deux jobs de la garde au CHU ont pris 44 et 54 min, pour 30 annoncées : une garde du CHU, jouée par les six règles,
 prend 35 s pendant l'accident et 23 s un jour ordinaire. Une prochaine mesure de la garde au CHU se coupe en
