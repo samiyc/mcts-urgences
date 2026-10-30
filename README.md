@@ -35,9 +35,10 @@ niveau réel (ce que personne ne voyait), puis, dans Stats, les trois règles su
 comparaison se fait sur 12 gardes, jouées côte à côte dans des *workers* (`web/shift-worker.js`, tous les cœurs
 sauf deux) : une dizaine de secondes au lieu de plusieurs minutes sur un seul cœur (23/10/2026).
 
-**Le service en plan** (23/10 au soir) : la même garde sur un plan où patients et soignants marchent, et un
-médecin ou l'infirmier de tri joué au clavier (Z Q S D et E) ; à la fin, la garde contre la même avec un robot à
-votre place ([`docs/modele.md`](docs/modele.md), « Le service en plan »).
+**Les deux lectures**, la garde et la journée, se pilotent au clavier comme une vidéo (29/10, les touches de
+`mcts-commun/replay-keys.js` depuis le 30/10) : Espace lance ou met en pause, ← → reculent ou avancent de 10 min
+(d'une heure avec Maj), ↑ ↓ changent la vitesse, 0 à 9 mènent à 0 %, 10 %… 90 %. L'onglet « Service en plan » (un
+soignant joué au clavier sur le plan de la garde) a été retiré le 29/10, son modèle le 30/10 ([`docs/modele.md`](docs/modele.md)).
 
 Le parcours détaillé, ses six étapes et leurs chiffres : [`docs/parcours.md`](docs/parcours.md) ; ce qui a suivi (la
 chambre d'isolement prêtée, le HET, les accompagnants, l'interprète, le circuit court, les décès) :

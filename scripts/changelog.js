@@ -40,6 +40,7 @@ const page = (project) => `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Journal des versions</title>
+    <link rel="stylesheet" href="../node_modules/mcts-commun/web/theme.css" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="changelog.css" />
   </head>

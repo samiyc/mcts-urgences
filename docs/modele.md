@@ -71,8 +71,9 @@ une ambulance annoncée), `search` de `mcts-commun` joue des mondes compatibles 
   connues, avec leur couleur ;
 - les soins en cours sont supposés connus (on sait quand un box se libère).
 
-Elle choisit parmi les favoris des trois règles (4 au plus), et peut aussi **attendre** une ambulance
-annoncée, en gardant un box et un médecin libres. Aucune règle ne fait ce coup-là. Chaque monde est joué
+Elle choisit parmi les favoris des trois règles (8 au plus à la racine depuis le 30/10, 4 avant ; 4 plus bas), et
+peut aussi **attendre** une ambulance annoncée, en gardant un box et un médecin libres. Aucune règle ne fait ce
+coup-là. Chaque monde est joué
 deux choix plus loin, puis avec la règle de la couleur jusqu'à ce que les patients des deux heures à venir
 soient entrés. Il est noté sur leur coût du retard. 100 itérations par choix, sur des **mondes communs** : la
 k-ième visite de chaque coup joue le même monde. Sans eux, le bruit d'une garde à venir écrasait l'écart entre

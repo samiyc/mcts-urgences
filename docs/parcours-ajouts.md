@@ -389,9 +389,47 @@ rejoint E pour la moitié du temps. Les jobs sont `palier-*-2026-10-28-palier` d
 **C par défaut (30/10, Sami : « racine changement d'empreinte ok »).** La recherche de la garde et celle du box
 gardent 8 coups à la racine, 4 plus bas (`root: 8` dans `SEARCH_SETTINGS` et `PATHWAY_SEARCH`). Les autres
 décisions gardent déjà tous leurs coups. Quatre empreintes changent : `search`, `pathwaySearch`, `epidemic` et
-`additions`. Les mesures d'avant le 30/10 sont faites avec 4 coups. La mesure de C2 (C avec le budget ×2) et de E
-contre C, pendant l'accident et aux deux autres hôpitaux, est dans la file : `--palier` donne maintenant les lignes
-A (4 coups), C2 et E.
+`additions`. Les mesures d'avant le 30/10 sont faites avec 4 coups.
+
+**C2 et E contre C (30/10, Sami : « mesure C »).** `--palier` donne maintenant trois lignes contre C : A (les 4 coups
+d'avant), C2 (le budget ×2) et E (tout ensemble). Les jobs sont `c2-*-2026-10-30-c2` de la file. L'écart sur C, en
+coût au moment (négatif : moins cher que C ; IC 95 %) :
+
+| Le box (journées) | C | A, 4 coups | C2, budget ×2 | E, tout |
+|---|---|---|---|---|
+| proximité, accident (100) | 37 608 | +3 236 (−384 à +6 857) | −843 (−3 146 à +1 459) | −1 412 (−4 250 à +1 426) |
+| moyen, accident (100) | 19 971 | **+1 103** (+92 à +2 114) | **−1 409** (−2 248 à −571) | **−1 583** (−2 534 à −632) |
+| CHU, accident (100) | 3 277 | +17 (−216 à +249) | **−122** (−231 à −12) | −105 (−368 à +157) |
+| proximité, ordinaire (200) | 2 295 | −25 (−220 à +170) | −58 (−354 à +238) | −94 (−252 à +64) |
+| CHU, ordinaire (200) | 1 156 | **−20** (−37 à −4) | −7 (−23 à +10) | **−29** (−48 à −10) |
+
+| La garde (gardes) | C | A, 4 coups | C2, budget ×2 | E, tout |
+|---|---|---|---|---|
+| proximité, accident (100) | 81 916 | **+20 802** (+16 705 à +24 900) | −1 359 (−4 559 à +1 841) | −1 825 (−4 807 à +1 157) |
+| proximité, ordinaire (200) | 3 673 | **+633** (+41 à +1 226) | −155 (−563 à +254) | −172 (−635 à +290) |
+| moyen, accident (100) | 35 677 | **+6 621** (+3 773 à +9 470) | −1 046 (−2 745 à +653) | −1 273 (−2 551 à +4) |
+| CHU, accident (75) | 6 804 | **−611** (−1 174 à −47) | −578 (−1 288 à +132) | −406 (−965 à +153) |
+| CHU, ordinaire (140) | 345 | **−57** (−94 à −19) | −41 (−95 à +12) | −29 (−65 à +6) |
+
+Une recherche du box prend 102, 184 et 370 ms avec C pendant l'accident (proximité, moyen, CHU), le double avec C2,
+quatre fois plus avec E ; une recherche de la garde, 16 à 31 ms avec C. A et C prennent le même temps. Les chiffres de
+l'hôpital moyen pendant l'accident retrouvent exactement A et C du 28/10.
+
+Ce qu'on en retient :
+- **8 coups gagnent à l'hôpital de proximité et à l'hôpital moyen**, et beaucoup sur la garde pendant l'accident
+  (A y coûte 25 % de plus à la proximité, 19 % au moyen) ;
+- **au CHU, 8 coups perdent sur la garde** : C coûte 10 % de plus que A pendant l'accident, 20 % un jour ordinaire, et
+  ni C2 ni E ne rattrapent A. Le box du CHU, un jour ordinaire, perd aussi un peu (2 %). Au CHU, les quatre favoris des
+  règles de référence suffisent, et les coups de plus dispersent 100 itérations (`fewIterations` dans 22 à 60 % des
+  recherches de la garde) ;
+- **C2 donne au box l'essentiel de E pour la moitié du temps** : −7 % au moyen, −4 % au CHU pendant l'accident, sûrs
+  tous les deux ; E n'y ajoute rien de sûr. Sur la garde, C2 et E ne gagnent rien de sûr ;
+- **rien ne change par défaut** : deux décisions sont à Sami, la racine de la garde au CHU (4 coups) et C2 pour le box
+  pendant l'accident (deux fois le temps : 370 à 730 ms une recherche au CHU).
+
+Les deux jobs de la garde au CHU ont pris 44 et 54 min, pour 30 annoncées : une garde du CHU, jouée par les six règles,
+prend 35 s pendant l'accident et 23 s un jour ordinaire. Une prochaine mesure de la garde au CHU se coupe en
+tranches plus courtes.
 
 ## Les plans à deux couloirs (29/10, Sami)
 

@@ -138,7 +138,7 @@ main.layout.folded .sidebar { display: none; }
 /* The detailed pathway on its plan (parcours-draw.js, step 2). */
 .plan-text { width: 100%; min-height: 190px; font: 12px/1.25 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre; overflow-x: auto; resize: vertical; }
 .plan-errors { margin: 0; padding-left: 18px; color: #c62828; font-size: 0.82rem; }
-.plan.pathway { min-width: 720px; }
+.plan.pathway { min-width: 480px; }
 .plan.pathway .cell.floor { fill: color-mix(in srgb, var(--ink) 3%, var(--panel)); }
 .plan.pathway .cell.wall { fill: color-mix(in srgb, var(--ink) 55%, var(--panel)); }
 .plan.pathway .cell.bed { fill: color-mix(in srgb, var(--accent) 16%, var(--panel)); stroke: var(--line); }
