@@ -1,6 +1,6 @@
 import { el, select } from "./dom.js";
 import { livePlan } from "./live-plan.js";
-import { REPLAY_HINT, nextSpeed, replayKey, within } from "./replay-keys.js";
+import { nextSpeed, replayHint, replayKeys, within } from "mcts-commun/replay-keys.js";
 import { sceneAt, sceneLine } from "./view.js";
 
 /**
@@ -85,7 +85,11 @@ function pause(live) {
   if (live.result()) refresh(live);
 }
 
-/** The shift replayed, as replay-keys.js drives it; drawn again whole when paused, so the button says where it is. */
+/** The keys of the replay (mcts-commun), by 10 min, an hour with Shift, and their line of help. */
+const replayKey = replayKeys({ step: 10, bigStep: 60 });
+const REPLAY_HINT = replayHint({ step: "10 min", bigStep: "1 h" });
+
+/** The shift replayed, as the keys of the replay drive it; drawn again whole when paused, so the button says where it is. */
 const playerOf = (live) => ({
   t: () => live.t,
   end: () => endOf(live),
@@ -113,7 +117,7 @@ export function createLive({ result, settings }) {
       live.t = 0;
     },
     setSpeed: (speed) => (live.speed = speed),
-    /** A key in the tab while the shift is shown (replay-keys.js); true if it was the replay's. */
+    /** A key in the tab while the shift is shown (mcts-commun/replay-keys.js); true if it was the replay's. */
     key: (event) => Boolean(live.result() && document.getElementById("live")) && replayKey(playerOf(live), event),
     /** The slider moved: redrawn in place, so the slider keeps the pointer. */
     seek: (t) => {
