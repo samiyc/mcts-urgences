@@ -27,14 +27,14 @@
     },
     {
       "id": "parcours-moyen-accident-1",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 100 --budget 100 --out tmp/nuit/parcours-moyen-accident-1.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 100 --budget 100 --out tmp/nuit/parcours-moyen-accident-1.jsonl",
       "estimate": "20 min",
       "limit": 40,
       "threads": 8
     },
     {
       "id": "parcours-moyen-accident-2",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 101 --days 100 --budget 100 --out tmp/nuit/parcours-moyen-accident-2.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 101 --days 100 --budget 100 --out tmp/nuit/parcours-moyen-accident-2.jsonl",
       "estimate": "20 min",
       "limit": 40,
       "threads": 8
@@ -52,35 +52,35 @@
     },
     {
       "id": "parcours-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100 --out tmp/nuit/parcours-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 100 --out tmp/nuit/parcours-moyen.jsonl",
       "estimate": "15 min",
       "limit": 30,
       "threads": 8
     },
     {
       "id": "parcours-proximite-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 100 --out tmp/nuit/parcours-proximite-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 100 --out tmp/nuit/parcours-proximite-accident.jsonl",
       "estimate": "8 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-chu-accident-1",
-      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --first 1 --days 67 --budget 100 --out tmp/nuit/parcours-chu-accident-1.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital chu --accident --first 1 --days 67 --budget 100 --out tmp/nuit/parcours-chu-accident-1.jsonl",
       "estimate": "20 min",
       "limit": 40,
       "threads": 8
     },
     {
       "id": "parcours-chu-accident-2",
-      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --first 68 --days 67 --budget 100 --out tmp/nuit/parcours-chu-accident-2.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital chu --accident --first 68 --days 67 --budget 100 --out tmp/nuit/parcours-chu-accident-2.jsonl",
       "estimate": "20 min",
       "limit": 40,
       "threads": 8
     },
     {
       "id": "parcours-chu-accident-3",
-      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --first 135 --days 66 --budget 100 --out tmp/nuit/parcours-chu-accident-3.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital chu --accident --first 135 --days 66 --budget 100 --out tmp/nuit/parcours-chu-accident-3.jsonl",
       "estimate": "20 min",
       "limit": 40,
       "threads": 8
@@ -99,14 +99,14 @@
     },
     {
       "id": "parcours-pauses-moyen-accident-1",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 100 --budget 50 --pauses --out tmp/nuit/parcours-pauses-moyen-accident-1.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 100 --budget 50 --pauses --out tmp/nuit/parcours-pauses-moyen-accident-1.jsonl",
       "estimate": "24 min",
       "limit": 50,
       "threads": 8
     },
     {
       "id": "parcours-pauses-moyen-accident-2",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 101 --days 100 --budget 50 --pauses --out tmp/nuit/parcours-pauses-moyen-accident-2.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 101 --days 100 --budget 50 --pauses --out tmp/nuit/parcours-pauses-moyen-accident-2.jsonl",
       "estimate": "24 min",
       "limit": 50,
       "threads": 8
@@ -124,21 +124,21 @@
     },
     {
       "id": "parcours-interne-moyen-accident-1",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 67 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-1.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 1 --days 67 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-1.jsonl",
       "estimate": "20 min",
       "limit": 41,
       "threads": 8
     },
     {
       "id": "parcours-interne-moyen-accident-2",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 68 --days 67 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-2.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 68 --days 67 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-2.jsonl",
       "estimate": "20 min",
       "limit": 41,
       "threads": 8
     },
     {
       "id": "parcours-interne-moyen-accident-3",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --first 135 --days 66 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-3.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --first 135 --days 66 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen-accident-3.jsonl",
       "estimate": "20 min",
       "limit": 41,
       "threads": 8
@@ -157,63 +157,63 @@
     },
     {
       "id": "parcours-interne-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --interne --out tmp/nuit/parcours-interne-moyen.jsonl",
       "estimate": "17 min",
       "limit": 35,
       "threads": 8
     },
     {
       "id": "parcours-files-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --files --out tmp/nuit/parcours-files-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --files --out tmp/nuit/parcours-files-moyen-accident.jsonl",
       "estimate": "2 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-files-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --files --out tmp/nuit/parcours-files-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --files --out tmp/nuit/parcours-files-moyen.jsonl",
       "estimate": "2 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-plan-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --plan --out tmp/nuit/parcours-plan-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --plan --out tmp/nuit/parcours-plan-moyen-accident.jsonl",
       "estimate": "6 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-plan-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --plan --out tmp/nuit/parcours-plan-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --plan --out tmp/nuit/parcours-plan-moyen.jsonl",
       "estimate": "18 min",
       "limit": 38,
       "threads": 8
     },
     {
       "id": "parcours-sauv-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --sauv --out tmp/nuit/parcours-sauv-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --sauv --out tmp/nuit/parcours-sauv-moyen-accident.jsonl",
       "estimate": "2 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-sauv-proximite-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 50 --sauv --out tmp/nuit/parcours-sauv-proximite-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital proximite --accident --days 200 --budget 50 --sauv --out tmp/nuit/parcours-sauv-proximite-accident.jsonl",
       "estimate": "2 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-hiver-moyen-1",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --first 1 --days 100 --budget 100 --out tmp/nuit/parcours-hiver-moyen-1.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --hiver --first 1 --days 100 --budget 100 --out tmp/nuit/parcours-hiver-moyen-1.jsonl",
       "estimate": "17 min",
       "limit": 34,
       "threads": 8
     },
     {
       "id": "parcours-hiver-moyen-2",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --first 101 --days 100 --budget 100 --out tmp/nuit/parcours-hiver-moyen-2.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --hiver --first 101 --days 100 --budget 100 --out tmp/nuit/parcours-hiver-moyen-2.jsonl",
       "estimate": "17 min",
       "limit": 34,
       "threads": 8
@@ -231,98 +231,98 @@
     },
     {
       "id": "parcours-hiver-plan-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --plan --out tmp/nuit/parcours-hiver-plan-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --plan --out tmp/nuit/parcours-hiver-plan-moyen.jsonl",
       "estimate": "29 min",
       "limit": 60,
       "threads": 8
     },
     {
       "id": "parcours-het-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen.jsonl",
       "estimate": "14 min",
       "limit": 28,
       "threads": 8
     },
     {
       "id": "parcours-het-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen-accident.jsonl",
       "estimate": "12 min",
       "limit": 25,
       "threads": 8
     },
     {
       "id": "parcours-het-moyen-hiver",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen-hiver.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --hiver --days 200 --budget 50 --het --out tmp/nuit/parcours-het-moyen-hiver.jsonl",
       "estimate": "14 min",
       "limit": 28,
       "threads": 8
     },
     {
       "id": "parcours-deces-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen.jsonl",
       "estimate": "8 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-deces-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen-accident.jsonl",
       "estimate": "23 min",
       "limit": 48,
       "threads": 8
     },
     {
       "id": "parcours-circuit-court-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --circuit-court --days 200 --budget 100 --out tmp/nuit/parcours-circuit-court-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --circuit-court --days 200 --budget 100 --out tmp/nuit/parcours-circuit-court-moyen.jsonl",
       "estimate": "10 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-circuit-court-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --circuit-court --days 200 --budget 100 --out tmp/nuit/parcours-circuit-court-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --circuit-court --days 200 --budget 100 --out tmp/nuit/parcours-circuit-court-moyen-accident.jsonl",
       "estimate": "23 min",
       "limit": 48,
       "threads": 8
     },
     {
       "id": "parcours-familles-moyen",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --familles --interpretes --days 200 --budget 100 --out tmp/nuit/parcours-familles-moyen.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --familles --interpretes --days 200 --budget 100 --out tmp/nuit/parcours-familles-moyen.jsonl",
       "estimate": "8 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-familles-moyen-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --accident --familles --interpretes --days 200 --budget 100 --out tmp/nuit/parcours-familles-moyen-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --accident --familles --interpretes --days 200 --budget 100 --out tmp/nuit/parcours-familles-moyen-accident.jsonl",
       "estimate": "21 min",
       "limit": 43,
       "threads": 8
     },
     {
       "id": "parcours-deces-moyen-hiver",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen-hiver.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --hiver --deces --days 200 --budget 100 --out tmp/nuit/parcours-deces-moyen-hiver.jsonl",
       "estimate": "11 min",
       "limit": 23,
       "threads": 8
     },
     {
       "id": "parcours-het-proximite-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital proximite --accident --het --days 200 --budget 50 --out tmp/nuit/parcours-het-proximite-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital proximite --accident --het --days 200 --budget 50 --out tmp/nuit/parcours-het-proximite-accident.jsonl",
       "estimate": "4 min",
       "limit": 20,
       "threads": 8
     },
     {
       "id": "parcours-het-chu-accident",
-      "command": "node scripts/pathway-search-compare.js --hopital chu --accident --het --days 200 --budget 50 --out tmp/nuit/parcours-het-chu-accident.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital chu --accident --het --days 200 --budget 50 --out tmp/nuit/parcours-het-chu-accident.jsonl",
       "estimate": "28 min",
       "limit": 58,
       "threads": 8
     },
     {
       "id": "parcours-tout-moyen-hiver",
-      "command": "node scripts/pathway-search-compare.js --hopital moyen --hiver --familles --interpretes --circuit-court --deces --days 200 --budget 100 --out tmp/nuit/parcours-tout-moyen-hiver.jsonl",
+      "command": "node --min-semi-space-size=64 --max-semi-space-size=64 scripts/pathway-search-compare.js --hopital moyen --hiver --familles --interpretes --circuit-court --deces --days 200 --budget 100 --out tmp/nuit/parcours-tout-moyen-hiver.jsonl",
       "estimate": "15 min",
       "limit": 30,
       "threads": 8

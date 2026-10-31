@@ -98,6 +98,12 @@ scripts qu'elle lance suivent les recommandations de mcts-commun (`docs/backlog.
   moins ;
 - **un échec sort avec un code non nul**, un fil de calcul qui tombe compris. Les fils sont ceux que la file donne
   (`MCTS_THREADS`).
+- **les journées du parcours fixent la jeune génération de node à 64 Mo** (`node --min-semi-space-size=64
+  --max-semi-space-size=64 scripts/pathway-search-compare.js`, `npm run pathway:search` ; commun, Sami d'accord le
+  31/10). Mesuré le 31/10 sous `--slot 4`, cinq paires alternées de 24 journées de l'hôpital moyen au budget 100 :
+  16,7 s sans, 16,0 s avec, **−4,2 %** (quatre paires sur cinq), les mêmes sorties. La garde (`compare.js`, 10
+  gardes) n'y gagne rien (+1 %) : ses commandes ne changent pas. Le coût : 128 Mo par fil de calcul. Les drapeaux
+  vont sur la ligne `node`, `NODE_OPTIONS` les refuse.
 
 Un changement de ces scripts s'essaie sur une file temporaire (`--home` d'un dossier temporaire, la recette de
 mcts-commun), jamais sur la vraie.
